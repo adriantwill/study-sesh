@@ -1,65 +1,130 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import { StudyQuestion } from "@/app/api/generate-questions/route";
+import ReviewMode from "@/components/ReviewMode";
+import QuizMode from "@/components/QuizMode";
 
 export default function Home() {
+  const [file, setFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [questions, setQuestions] = useState<StudyQuestion[]>([]);
+  const [mode, setMode] = useState<"upload" | "review" | "quiz">("upload");
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      setFile(e.target.files[0]);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!file) return;
+
+    setLoading(true);
+    const formData = new FormData();
+    formData.append("png", file);
+
+    try {
+      const res = await fetch("/api/generate-questions", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      setQuestions(data.questions || []);
+      setMode("review");
+    } catch (error) {
+      console.error("Upload error:", error);
+      alert("Failed to generate questions");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (mode === "review") {
+    return (
+      <ReviewMode
+        questions={questions}
+        onStartQuiz={() => setMode("quiz")}
+        onReset={() => {
+          setMode("upload");
+          setQuestions([]);
+          setFile(null);
+        }}
+      />
+    );
+  }
+
+  if (mode === "quiz") {
+    return (
+      <QuizMode
+        questions={questions}
+        onBack={() => setMode("review")}
+        onReset={() => {
+          setMode("upload");
+          setQuestions([]);
+          setFile(null);
+        }}
+      />
+    );
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <div className="min-h-screen bg-zinc-50 dark:bg-black p-8">
+      <div className="max-w-2xl mx-auto">
+        <h1 className="text-4xl font-bold mb-2 text-black dark:text-white">
+          Study Sesh
+        </h1>
+        <p className="text-zinc-600 dark:text-zinc-400 mb-8">
+          Upload PowerPoint png to generate study questions
+        </p>
+
+        <div className="bg-white dark:bg-zinc-900 rounded-lg shadow p-8">
+          <div className="border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-lg p-12 text-center">
+            {file ? (
+              <div>
+                <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
+                  {file.name}
+                </p>
+                <button
+                  onClick={() => setFile(null)}
+                  className="text-sm text-red-600 hover:underline"
+                >
+                  Remove
+                </button>
+              </div>
+            ) : (
+              <div>
+                <input
+                  type="file"
+                  accept="application/png"
+                  onChange={handleFileChange}
+                  className="hidden"
+                  id="png-upload"
+                />
+                <label
+                  htmlFor="png-upload"
+                  className="cursor-pointer text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white"
+                >
+                  <div className="text-4xl mb-4">📄</div>
+                  <div className="font-medium">Click to upload png</div>
+                  <div className="text-sm mt-2">or drag and drop</div>
+                </label>
+              </div>
+            )}
+          </div>
+
+          {file && (
+            <button
+              onClick={handleUpload}
+              disabled={loading}
+              className="w-full mt-6 bg-black dark:bg-white text-white dark:text-black py-3 rounded-lg font-medium hover:bg-zinc-800 dark:hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+              {loading ? "Generating questions..." : "Generate Study Questions"}
+            </button>
+          )}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </div>
     </div>
   );
 }
