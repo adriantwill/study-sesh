@@ -1,7 +1,0 @@
-{
-"name": "study-sesh",
-"main": ".open-next/worker. js",
-"compatibility_date": "2025-12-10",
-"compatibility_flags": ["nodejs_compat"],
-"assets": {"directory": " open-next/assets", "binding": "ASSETS" }
-}
