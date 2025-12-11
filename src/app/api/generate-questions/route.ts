@@ -13,12 +13,15 @@ export interface StudyQuestion {
 
 export async function POST(req: NextRequest) {
   try {
+    console.log("API route called");
     if (!process.env.HUGGINGFACE_API_KEY) {
+      console.error("Missing HUGGINGFACE_API_KEY");
       return NextResponse.json(
         { error: "HUGGINGFACE_API_KEY not configured" },
         { status: 500 },
       );
     }
+    console.log("API key present, length:", process.env.HUGGINGFACE_API_KEY.length);
     const formData = await req.formData();
     const file = formData.get("png") as File;
     const arrayBuffer = await file.arrayBuffer();
@@ -95,10 +98,22 @@ Only return valid JSON, no additional text.`,
           console.error(`HuggingFace API error:`, hfError);
           console.error(`Error status: ${hfError?.status || 'unknown'}`);
           console.error(`Error message: ${hfError?.message || 'unknown'}`);
-          throw new Error(`HuggingFace API failed: ${hfError?.message || 'Unknown error'}`);
+          console.error(`Full error object:`, JSON.stringify(hfError, null, 2));
+
+          // Return error to frontend for debugging
+          return NextResponse.json(
+            {
+              error: "HuggingFace API error",
+              details: hfError?.message || 'Unknown error',
+              status: hfError?.status || 'unknown'
+            },
+            { status: 503 },
+          );
         }
 
+        console.log(`HF API response received for page ${page}`);
         const content = response.choices[0]?.message?.content || "";
+        console.log(`Response content length: ${content.length}`);
 
         const jsonMatch = content.match(/\[[\s\S]*\]/);
 
