@@ -13,6 +13,12 @@ export interface StudyQuestion {
 
 export async function POST(req: NextRequest) {
   try {
+    if (!process.env.HUGGINGFACE_API_KEY) {
+      return NextResponse.json(
+        { error: "HUGGINGFACE_API_KEY not configured" },
+        { status: 500 },
+      );
+    }
     const formData = await req.formData();
     const file = formData.get("png") as File;
     const arrayBuffer = await file.arrayBuffer();
@@ -53,19 +59,21 @@ export async function POST(req: NextRequest) {
         const imageUrl = `data:${file.type};base64,${base64}`;
 
         // Use Qwen2-VL to analyze each slide and generate short-answer questions
-        const response = await hf.chatCompletion({
-          model: "Qwen/Qwen2.5-VL-7B-Instruct",
-          messages: [
-            {
-              role: "user",
-              content: [
-                {
-                  type: "image_url",
-                  image_url: { url: imageUrl },
-                },
-                {
-                  type: "text",
-                  text: `Analyze this educational slide and generate 2-3 short-answer study questions based on the key concepts.
+        let response;
+        try {
+          response = await hf.chatCompletion({
+            model: "meta-llama/Llama-3.2-11B-Vision-Instruct",
+            messages: [
+              {
+                role: "user",
+                content: [
+                  {
+                    type: "image_url",
+                    image_url: { url: imageUrl },
+                  },
+                  {
+                    type: "text",
+                    text: `Analyze this educational slide and generate 2-3 short-answer study questions based on the key concepts.
 
 Format your response as JSON array:
 [
@@ -77,12 +85,18 @@ Format your response as JSON array:
 ]
 
 Only return valid JSON, no additional text.`,
-                },
-              ],
-            },
-          ],
-          max_tokens: 500,
-        });
+                  },
+                ],
+              },
+            ],
+            max_tokens: 500,
+          });
+        } catch (hfError: any) {
+          console.error(`HuggingFace API error:`, hfError);
+          console.error(`Error status: ${hfError?.status || 'unknown'}`);
+          console.error(`Error message: ${hfError?.message || 'unknown'}`);
+          throw new Error(`HuggingFace API failed: ${hfError?.message || 'Unknown error'}`);
+        }
 
         const content = response.choices[0]?.message?.content || "";
 
@@ -109,6 +123,9 @@ Only return valid JSON, no additional text.`,
         page++;
       } catch (error) {
         console.error(`Error processing a frame:`, error);
+        if (error instanceof Error) {
+          console.error(`Error details: ${error.message}`);
+        }
         // Continue with other pages
       }
     }
