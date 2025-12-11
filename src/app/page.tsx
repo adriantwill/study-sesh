@@ -35,7 +35,9 @@ export default function Home() {
         console.error("API error response:", text);
         try {
           const errorData = JSON.parse(text);
-          alert(`Error: ${errorData.error || errorData.details || 'Unknown error'}`);
+          alert(
+            `Error: ${errorData.error || errorData.details || "Unknown error"}`,
+          );
         } catch {
           alert(`API error (${res.status}): ${text}`);
         }

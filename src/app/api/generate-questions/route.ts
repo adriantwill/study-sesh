@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { InferenceClient } from "@huggingface/inference";
 import parseAPNG from "apng-js";
 
-const hf = new InferenceClient(process.env.HUGGINGFACE_API_KEY);
-
 export interface StudyQuestion {
   question: string;
   answer: string;
@@ -21,7 +19,13 @@ export async function POST(req: NextRequest) {
         { status: 500 },
       );
     }
-    console.log("API key present, length:", process.env.HUGGINGFACE_API_KEY.length);
+    console.log(
+      "API key present, length:",
+      process.env.HUGGINGFACE_API_KEY.length,
+    );
+
+    const hf = new InferenceClient(process.env.HUGGINGFACE_API_KEY);
+
     const formData = await req.formData();
     const file = formData.get("png") as File;
     const arrayBuffer = await file.arrayBuffer();
@@ -43,11 +47,11 @@ export async function POST(req: NextRequest) {
     const questions: StudyQuestion[] = [];
     let page = 0;
     for (const frame of files) {
-      if (page > 5) {
+      if (page > 2) {
         console.log("Reached maximum pages");
         break;
       }
-      if (page < 2) {
+      if (page < 0) {
         page++;
         continue;
       }
@@ -65,7 +69,7 @@ export async function POST(req: NextRequest) {
         let response;
         try {
           response = await hf.chatCompletion({
-            model: "meta-llama/Llama-3.2-11B-Vision-Instruct",
+            model: "Qwen/Qwen2.5-VL-7B-Instruct",
             messages: [
               {
                 role: "user",
@@ -96,16 +100,16 @@ Only return valid JSON, no additional text.`,
           });
         } catch (hfError: any) {
           console.error(`HuggingFace API error:`, hfError);
-          console.error(`Error status: ${hfError?.status || 'unknown'}`);
-          console.error(`Error message: ${hfError?.message || 'unknown'}`);
+          console.error(`Error status: ${hfError?.status || "unknown"}`);
+          console.error(`Error message: ${hfError?.message || "unknown"}`);
           console.error(`Full error object:`, JSON.stringify(hfError, null, 2));
 
           // Return error to frontend for debugging
           return NextResponse.json(
             {
               error: "HuggingFace API error",
-              details: hfError?.message || 'Unknown error',
-              status: hfError?.status || 'unknown'
+              details: hfError?.message || "Unknown error",
+              status: hfError?.status || "unknown",
             },
             { status: 503 },
           );
