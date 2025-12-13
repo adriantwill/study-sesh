@@ -52,7 +52,6 @@ export default function ReviewMode({
                 <div className="flex-1">
                   <div className="text-xs text-zinc-500 dark:text-zinc-500 mb-2">
                     Page {q.pageNumber}
-                    {q.slideContext && ` • ${q.slideContext}`}
                   </div>
                   <div className="font-medium text-black dark:text-white mb-3">
                     {q.question}

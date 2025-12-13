@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { InferenceClient } from "@huggingface/inference";
 import parseAPNG from "apng-js";
 
 export interface StudyQuestion {
@@ -12,19 +11,17 @@ export interface StudyQuestion {
 export async function POST(req: NextRequest) {
   try {
     console.log("API route called");
-    if (!process.env.HUGGINGFACE_API_KEY) {
-      console.error("Missing HUGGINGFACE_API_KEY");
+    if (!process.env.HYPERBOLIC_API_KEY) {
+      console.error("Missing HYPERBOLIC_API_KEY");
       return NextResponse.json(
-        { error: "HUGGINGFACE_API_KEY not configured" },
+        { error: "HYPERBOLIC_API_KEY not configured" },
         { status: 500 },
       );
     }
     console.log(
       "API key present, length:",
-      process.env.HUGGINGFACE_API_KEY.length,
+      process.env.HYPERBOLIC_API_KEY.length,
     );
-
-    const hf = new InferenceClient(process.env.HUGGINGFACE_API_KEY);
 
     const formData = await req.formData();
     const file = formData.get("png") as File;
@@ -47,11 +44,7 @@ export async function POST(req: NextRequest) {
     const questions: StudyQuestion[] = [];
     let page = 0;
     for (const frame of files) {
-      if (page > 2) {
-        console.log("Reached maximum pages");
-        break;
-      }
-      if (page < 0) {
+      if (page < 2) {
         page++;
         continue;
       }
@@ -68,19 +61,23 @@ export async function POST(req: NextRequest) {
         // Use Qwen2-VL to analyze each slide and generate short-answer questions
         let response;
         try {
-          response = await hf.chatCompletion({
-            model: "Qwen/Qwen2.5-VL-7B-Instruct",
-            messages: [
-              {
-                role: "user",
-                content: [
+          const apiResponse = await fetch(
+            "https://api.hyperbolic.xyz/v1/chat/completions",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${process.env.HYPERBOLIC_API_KEY}`,
+              },
+              body: JSON.stringify({
+                model: "Qwen/Qwen2.5-VL-7B-Instruct",
+                messages: [
                   {
-                    type: "image_url",
-                    image_url: { url: imageUrl },
-                  },
-                  {
-                    type: "text",
-                    text: `Analyze this educational slide and generate 2-3 short-answer study questions based on the key concepts.
+                    role: "user",
+                    content: [
+                      {
+                        type: "text",
+                        text: `Analyze this educational slide and generate 2-3 short-answer study questions based on the key concepts.
 
 Format your response as JSON array:
 [
@@ -92,30 +89,43 @@ Format your response as JSON array:
 ]
 
 Only return valid JSON, no additional text.`,
+                      },
+                      {
+                        type: "image_url",
+                        image_url: {
+                          url: imageUrl,
+                        },
+                      },
+                    ],
                   },
                 ],
-              },
-            ],
-            max_tokens: 500,
-          });
-        } catch (hfError: any) {
-          console.error(`HuggingFace API error:`, hfError);
-          console.error(`Error status: ${hfError?.status || "unknown"}`);
-          console.error(`Error message: ${hfError?.message || "unknown"}`);
-          console.error(`Full error object:`, JSON.stringify(hfError, null, 2));
+                max_tokens: 512,
+                temperature: 0.1,
+                top_p: 0.001,
+                stream: false,
+              }),
+            },
+          );
 
-          // Return error to frontend for debugging
+          if (!apiResponse.ok) {
+            throw new Error(
+              `API error: ${apiResponse.status} ${apiResponse.statusText}`,
+            );
+          }
+
+          response = await apiResponse.json();
+        } catch (apiError) {
+          console.error(`Hyperbolic API error:`, apiError);
+
           return NextResponse.json(
             {
-              error: "HuggingFace API error",
-              details: hfError?.message || "Unknown error",
-              status: hfError?.status || "unknown",
+              error: "Hyperbolic API error",
             },
             { status: 503 },
           );
         }
 
-        console.log(`HF API response received for page ${page}`);
+        console.log(`Hyperbolic API response received for page ${page}`);
         const content = response.choices[0]?.message?.content || "";
         console.log(`Response content length: ${content.length}`);
 

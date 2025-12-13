@@ -1,21 +1,73 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { StudyQuestion } from "./api/generate-questions/route";
-import ReviewMode from "../components/ReviewMode";
-import QuizMode from "../components/QuizMode";
+import { Tables } from "@/database.types";
+import { createClient } from "../lib/supabase/client";
+import ReviewMode from "../components/ReviewComponents";
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [uploads, setUploads] = useState<Tables<"uploads">[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const [questions, setQuestions] = useState<StudyQuestion[]>([]);
   const [mode, setMode] = useState<"upload" | "review" | "quiz">("upload");
+
+  const getUploadByFilename = async (filename: string) => {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from("uploads")
+      .select("*")
+      .eq("filename", filename)
+      .single();
+
+    if (error) {
+      console.error("Error fetching upload:", error);
+      return null;
+    }
+
+    const { data: questionData, error: qerror } = await supabase
+      .from("questions")
+      .select("*")
+      .eq("upload_id", data.id);
+
+    if (qerror) {
+      console.error("Error fetching questions:", qerror);
+      return data;
+    }
+
+    const formattedQuestions: StudyQuestion[] = questionData.map((q) => ({
+      question: q.question_text,
+      answer: q.answer_text,
+      pageNumber: q.page_number,
+      slideContext: q.context,
+    }));
+
+    setQuestions(formattedQuestions);
+    setMode("review");
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
       setFile(e.target.files[0]);
     }
   };
+
+  useEffect(() => {
+    const fetchUploads = async () => {
+      const supabase = createClient();
+      const { data, error } = await supabase.from("uploads").select();
+
+      if (error) {
+        setError(error.message);
+      } else {
+        setUploads(data || []);
+      }
+    };
+
+    fetchUploads();
+  }, []);
 
   const handleUpload = async () => {
     if (!file) return;
@@ -43,10 +95,30 @@ export default function Home() {
         }
         return;
       }
-
+      const supabase = createClient();
+      const { data: upload } = await supabase
+        .from("uploads")
+        .insert({
+          filename: file.name,
+          page_count: questions.length,
+        })
+        .select()
+        .single();
       const data = await res.json();
       console.log(data);
       setQuestions(data.questions || []);
+      await supabase
+        .from("questions")
+        .insert(
+          data.questions.map((q: StudyQuestion) => ({
+            upload_id: upload.id,
+            page_number: q.pageNumber,
+            question_text: q.question,
+            answer_text: q.answer,
+            context: q.slideContext,
+          })),
+        )
+        .select();
       setMode("review");
     } catch (error) {
       console.error("Upload error:", error);
@@ -61,20 +133,6 @@ export default function Home() {
       <ReviewMode
         questions={questions}
         onStartQuiz={() => setMode("quiz")}
-        onReset={() => {
-          setMode("upload");
-          setQuestions([]);
-          setFile(null);
-        }}
-      />
-    );
-  }
-
-  if (mode === "quiz") {
-    return (
-      <QuizMode
-        questions={questions}
-        onBack={() => setMode("review")}
         onReset={() => {
           setMode("upload");
           setQuestions([]);
@@ -138,6 +196,27 @@ export default function Home() {
               {loading ? "Generating questions..." : "Generate Study Questions"}
             </button>
           )}
+          <div className="mt-6">
+            {error && <div className="text-red-600">Error: {error}</div>}
+            {uploads.length > 0 && (
+              <div>
+                <h2 className="font-semibold mb-2 text-black dark:text-white">
+                  Saved Uploads:
+                </h2>
+                <ul className="space-y-1">
+                  {uploads.map((item, index) => (
+                    <li
+                      onClick={() => getUploadByFilename(item.filename)}
+                      key={index}
+                      className="text-sm text-zinc-600 dark:text-zinc-400 cursor-pointer hover:text-black dark:hover:text-white"
+                    >
+                      {item.filename}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
