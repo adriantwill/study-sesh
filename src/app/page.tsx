@@ -12,7 +12,7 @@ export default function Home() {
   const [uploads, setUploads] = useState<Tables<"uploads">[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [questions, setQuestions] = useState<StudyQuestion[]>([]);
-  const [mode, setMode] = useState<"upload" | "review" | "quiz">("upload");
+  const [mode, setMode] = useState<"upload" | "review">("upload");
 
   const getUploadByFilename = async (filename: string) => {
     const supabase = createClient();
@@ -27,14 +27,14 @@ export default function Home() {
       return null;
     }
 
-    const { data: questionData, error: qerror } = await supabase
+    const { data: questionData, error: questionError } = await supabase
       .from("questions")
       .select("*")
       .eq("upload_id", data.id);
 
-    if (qerror) {
-      console.error("Error fetching questions:", qerror);
-      return data;
+    if (questionError) {
+      console.error("Error fetching questions:", questionError);
+      return null;
     }
 
     const formattedQuestions: StudyQuestion[] = questionData.map((q) => ({
@@ -62,7 +62,7 @@ export default function Home() {
       if (error) {
         setError(error.message);
       } else {
-        setUploads(data || []);
+        setUploads(data);
       }
     };
 
@@ -132,7 +132,6 @@ export default function Home() {
     return (
       <ReviewMode
         questions={questions}
-        onStartQuiz={() => setMode("quiz")}
         onReset={() => {
           setMode("upload");
           setQuestions([]);

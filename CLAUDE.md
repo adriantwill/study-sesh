@@ -1,7 +1,7 @@
 # Study Sesh - AI-Powered Study Question Generator
 
 ## Project Overview
-Next.js app that generates study questions from PowerPoint slides (exported as PNG/APNG). Uses HuggingFace vision AI (Qwen2.5-VL-7B-Instruct) to analyze slide images and create short-answer questions. Two modes: review (view all) and quiz (interactive).
+Next.js app that generates study questions from PowerPoint slides (exported as PNG/APNG). Uses HuggingFace vision AI (Qwen2.5-VL-7B-Instruct) to analyze slide images and create short-answer questions.
 
 ## Tech Stack
 - **Framework:** Next.js 16.0.7 (React 19.2.0, App Router)
@@ -22,7 +22,6 @@ src/
 │   ├── layout.tsx                        # Root layout
 │   └── globals.css                       # Global styles
 └── components/
-    ├── QuizMode.tsx                      # Interactive Q&A
     └── ReviewMode.tsx                    # Expandable Q&A list
 ```
 
@@ -48,7 +47,6 @@ src/
 
 ### Study Modes
 1. **Review:** View all questions, click to reveal answers
-2. **Quiz:** Interactive mode with progress bar, answer submission, answer reveal
 
 ## Important Patterns
 
@@ -60,7 +58,7 @@ src/
 ### Component Structure
 - Client components marked `"use client"`
 - State lifted to main page component
-- Mode switching: upload → review → quiz
+- Mode switching: upload → review 
 - Answered questions tracked in `Record<number, string>`
 
 ### Error Handling
@@ -158,6 +156,5 @@ docker compose up -d
 - Parallel frame processing
 - Configurable page limits
 - Export question sets (JSON/CSV)
-- Scoring system for quiz mode
 - Multiple AI model options
 - Restore PDF support
