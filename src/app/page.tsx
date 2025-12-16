@@ -1,18 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { StudyQuestion } from "./api/generate-questions/route";
 import { Tables } from "@/database.types";
 import { createClient } from "../lib/supabase/client";
-import ReviewMode from "../components/ReviewComponents";
 
 export default function Home() {
+  const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
-  const [uploads, setUploads] = useState<Tables<"uploads">[]>([]); //edit here
+  const [uploads, setUploads] = useState<Tables<"uploads">[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [questions, setQuestions] = useState<StudyQuestion[]>([]);
-  const [mode, setMode] = useState<"upload" | "review">("upload");
 
   const getUploadByFilename = async (filename: string) => {
     const supabase = createClient();
@@ -27,25 +26,7 @@ export default function Home() {
       return null;
     }
 
-    const { data: questionData, error: questionError } = await supabase
-      .from("questions")
-      .select("*")
-      .eq("upload_id", data.id);
-
-    if (questionError) {
-      console.error("Error fetching questions:", questionError);
-      return null;
-    }
-
-    const formattedQuestions: StudyQuestion[] = questionData.map((q) => ({
-      question: q.question_text,
-      answer: q.answer_text,
-      pageNumber: q.page_number,
-      slideContext: q.context,
-    }));
-
-    setQuestions(formattedQuestions);
-    setMode("review");
+    router.push(`/review/${data.id}`);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,18 +76,17 @@ export default function Home() {
         }
         return;
       }
+      const data = await res.json();
       const supabase = createClient();
       const { data: upload } = await supabase
         .from("uploads")
         .insert({
           filename: file.name,
-          page_count: questions.length,
+          page_count: data.questions.length,
         })
         .select()
         .single();
-      const data = await res.json();
-      console.log(data);
-      setQuestions(data.questions || []);
+
       await supabase
         .from("questions")
         .insert(
@@ -119,7 +99,8 @@ export default function Home() {
           })),
         )
         .select();
-      setMode("review");
+
+      router.push(`/review/${upload.id}`);
     } catch (error) {
       console.error("Upload error:", error);
       alert("Failed to generate questions");
@@ -127,19 +108,6 @@ export default function Home() {
       setLoading(false);
     }
   };
-
-  if (mode === "review") {
-    return (
-      <ReviewMode
-        questions={questions}
-        onReset={() => {
-          setMode("upload");
-          setQuestions([]);
-          setFile(null);
-        }}
-      />
-    );
-  }
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black p-8">
