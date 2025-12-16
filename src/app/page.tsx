@@ -9,7 +9,7 @@ import ReviewMode from "../components/ReviewComponents";
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
-  const [uploads, setUploads] = useState<Tables<"uploads">[]>([]);
+  const [uploads, setUploads] = useState<Tables<"uploads">[]>([]); //edit here
   const [error, setError] = useState<string | null>(null);
   const [questions, setQuestions] = useState<StudyQuestion[]>([]);
   const [mode, setMode] = useState<"upload" | "review">("upload");
