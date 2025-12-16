@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { StudyQuestion } from "./api/generate-questions/route";
 import { Tables } from "@/database.types";
 import { createClient } from "../lib/supabase/client";
+import Link from "next/link";
 
 export default function Home() {
   const router = useRouter();
@@ -12,22 +13,6 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [uploads, setUploads] = useState<Tables<"uploads">[]>([]);
   const [error, setError] = useState<string | null>(null);
-
-  const getUploadByFilename = async (filename: string) => {
-    const supabase = createClient();
-    const { data, error } = await supabase
-      .from("uploads")
-      .select("*")
-      .eq("filename", filename)
-      .single();
-
-    if (error) {
-      console.error("Error fetching upload:", error);
-      return null;
-    }
-
-    router.push(`/review/${data.id}`);
-  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
@@ -172,13 +157,9 @@ export default function Home() {
                 </h2>
                 <ul className="space-y-1">
                   {uploads.map((item, index) => (
-                    <li
-                      onClick={() => getUploadByFilename(item.filename)}
-                      key={index}
-                      className="text-sm text-zinc-600 dark:text-zinc-400 cursor-pointer hover:text-black dark:hover:text-white"
-                    >
+                    <Link key={index} href={`/review/${item.id}`}>
                       {item.filename}
-                    </li>
+                    </Link>
                   ))}
                 </ul>
               </div>
