@@ -48,7 +48,11 @@ export default async function Home() {
                 </h2>
                 <ul className="space-y-1">
                   {data.map((item, index) => (
-                    <Link key={index} href={`/review/${item.id}`}>
+                    <Link
+                      className="block text-sm text-zinc-600 dark:text-zinc-400 cursor-pointer hover:text-black dark:hover:text-white"
+                      key={index}
+                      href={`/review/${item.id}`}
+                    >
                       {item.filename}
                     </Link>
                   ))}

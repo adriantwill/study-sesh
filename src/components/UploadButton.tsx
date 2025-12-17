@@ -34,8 +34,10 @@ export default function UploadButton() {
         return;
       }
       const data = await res.json();
+      console.log("API response:", data);
+
       const supabase = createClient();
-      const { data: upload, error } = await supabase
+      const { data: upload, error: uploadError } = await supabase
         .from("uploads")
         .insert({
           filename: file.name,
@@ -43,11 +45,16 @@ export default function UploadButton() {
         })
         .select()
         .single();
-      if (error) {
-        console.error("Error fetching uploads:", error);
-        return null;
+
+      if (uploadError || !upload) {
+        console.error("Error inserting upload:", uploadError);
+        alert("Failed to save upload to database");
+        return;
       }
-      await supabase
+
+      console.log("Upload created:", upload);
+
+      const { error: questionsError } = await supabase
         .from("questions")
         .insert(
           data.questions.map((q: StudyQuestion) => ({
@@ -60,6 +67,13 @@ export default function UploadButton() {
         )
         .select();
 
+      if (questionsError) {
+        console.error("Error inserting questions:", questionsError);
+        alert("Failed to save questions to database");
+        return;
+      }
+
+      console.log("Navigating to review page...");
       router.push(`/review/${upload.id}`);
     } catch (error) {
       console.error("Upload error:", error);

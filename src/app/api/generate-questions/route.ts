@@ -155,7 +155,6 @@ Only return valid JSON, no additional text.`,
         if (error instanceof Error) {
           console.error(`Error details: ${error.message}`);
         }
-        // Continue with other pages
       }
     }
 
