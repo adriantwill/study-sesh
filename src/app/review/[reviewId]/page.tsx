@@ -14,17 +14,38 @@ export default async function ReviewPage({
     .select("*")
     .eq("upload_id", param.reviewId);
 
-  if (error) {
-    console.error("Error fetching questions:", error);
-    return;
-  }
+  let questions: StudyQuestion[];
 
-  const questions: StudyQuestion[] = supabaseQuestions.map((q) => ({
-    question: q.question_text,
-    answer: q.answer_text,
-    pageNumber: q.page_number,
-    slideContext: q.context,
-  }));
+  if (error || !supabaseQuestions) {
+    console.error("Error fetching questions, using dummy data:", error);
+    questions = [
+      {
+        question: "What is the main topic of this slide?",
+        answer: "This is dummy data for offline testing",
+        pageNumber: 1,
+        slideContext: "Dummy context",
+      },
+      {
+        question: "What are the key points discussed?",
+        answer: "Key points include A, B, and C",
+        pageNumber: 1,
+        slideContext: "Dummy context",
+      },
+      {
+        question: "How does this concept apply?",
+        answer: "It applies in various scenarios including X, Y, Z",
+        pageNumber: 2,
+        slideContext: "Dummy context",
+      },
+    ];
+  } else {
+    questions = supabaseQuestions.map((q) => ({
+      question: q.question_text,
+      answer: q.answer_text,
+      pageNumber: q.page_number,
+      slideContext: q.context,
+    }));
+  }
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black p-8">
