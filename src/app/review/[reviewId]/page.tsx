@@ -1,4 +1,5 @@
 import { StudyQuestion } from "../../api/generate-questions/route";
+import { LiaEditSolid } from "react-icons/lia";
 import { createClient } from "../../../lib/supabase/client";
 import ResetUploadButton from "@/src/components/ResetUploadButton";
 
@@ -69,11 +70,17 @@ export default async function ReviewPage({
                   {idx + 1}
                 </div>
                 <div className="flex-1">
-                  <div className="text-xs text-muted-foreground mb-2">
-                    Page {q.pageNumber}
+                  <div className="flex justify-between ">
+                    <div className="text-xs text-muted-foreground mb-2">
+                      Page {q.pageNumber}
+                    </div>
+                    <LiaEditSolid className="size-7 cursor-pointer hover:text-secondary" />
                   </div>
-                  <div className="font-medium text-foreground mb-3">
-                    {q.question}
+                  <div className="flex justify-between ">
+                    <div className="font-medium text-foreground mb-3">
+                      {q.question}
+                    </div>
+                    <div>{/*<LiaEditSolid className="size-8" />*/}</div>
                   </div>
                   <details className="text-sm">
                     <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
