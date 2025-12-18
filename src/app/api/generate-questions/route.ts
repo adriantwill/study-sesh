@@ -41,43 +41,40 @@ export async function POST(req: NextRequest) {
       );
     }
     const files = apng.frames;
-    const questions: StudyQuestion[] = [];
-    let page = 0;
-    for (const frame of files) {
-      if (page < 2) {
-        page++;
-        continue;
+
+    // Process all frames in parallel
+    const framePromises = files.map(async (frame, index) => {
+      if (index < 2) {
+        return null; // Skip first 2 frames
       }
+
       try {
         if (!frame.imageData) {
-          console.error("No imageData for frame");
-          continue;
+          console.error(`No imageData for frame ${index}`);
+          return null;
         }
-        const arrayBuffer = await frame.imageData.arrayBuffer();
 
+        const arrayBuffer = await frame.imageData.arrayBuffer();
         const base64 = Buffer.from(arrayBuffer).toString("base64");
         const imageUrl = `data:${file.type};base64,${base64}`;
 
-        // Use Qwen2-VL to analyze each slide and generate short-answer questions
-        let response;
-        try {
-          const apiResponse = await fetch(
-            "https://api.hyperbolic.xyz/v1/chat/completions",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${process.env.HYPERBOLIC_API_KEY}`,
-              },
-              body: JSON.stringify({
-                model: "Qwen/Qwen2.5-VL-7B-Instruct",
-                messages: [
-                  {
-                    role: "user",
-                    content: [
-                      {
-                        type: "text",
-                        text: `Analyze this educational slide and generate 2-3 short-answer study questions based on the key concepts.
+        const apiResponse = await fetch(
+          "https://api.hyperbolic.xyz/v1/chat/completions",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${process.env.HYPERBOLIC_API_KEY}`,
+            },
+            body: JSON.stringify({
+              model: "Qwen/Qwen2.5-VL-7B-Instruct",
+              messages: [
+                {
+                  role: "user",
+                  content: [
+                    {
+                      type: "text",
+                      text: `Analyze this educational slide and generate 2-3 short-answer study questions based on the key concepts.
 
 Format your response as JSON array:
 [
@@ -89,46 +86,34 @@ Format your response as JSON array:
 ]
 
 Only return valid JSON, no additional text.`,
+                    },
+                    {
+                      type: "image_url",
+                      image_url: {
+                        url: imageUrl,
                       },
-                      {
-                        type: "image_url",
-                        image_url: {
-                          url: imageUrl,
-                        },
-                      },
-                    ],
-                  },
-                ],
-                max_tokens: 512,
-                temperature: 0.1,
-                top_p: 0.001,
-                stream: false,
-              }),
-            },
-          );
+                    },
+                  ],
+                },
+              ],
+              max_tokens: 512,
+              temperature: 0.1,
+              top_p: 0.001,
+              stream: false,
+            }),
+          },
+        );
 
-          if (!apiResponse.ok) {
-            throw new Error(
-              `API error: ${apiResponse.status} ${apiResponse.statusText}`,
-            );
-          }
-
-          response = await apiResponse.json();
-        } catch (apiError) {
-          console.error(`Hyperbolic API error:`, apiError);
-
-          return NextResponse.json(
-            {
-              error: "Hyperbolic API error",
-            },
-            { status: 503 },
+        if (!apiResponse.ok) {
+          throw new Error(
+            `API error: ${apiResponse.status} ${apiResponse.statusText}`,
           );
         }
 
-        console.log(`Hyperbolic API response received for page ${page}`);
-        const content = response.choices[0]?.message?.content || "";
-        console.log(`Response content length: ${content.length}`);
+        const response = await apiResponse.json();
+        console.log(`Hyperbolic API response received for page ${index + 1}`);
 
+        const content = response.choices[0]?.message?.content || "";
         const jsonMatch = content.match(/\[[\s\S]*\]/);
 
         if (jsonMatch) {
@@ -138,25 +123,26 @@ Only return valid JSON, no additional text.`,
             slideContext?: string;
           }>;
 
-          pageQuestions.forEach((q) => {
-            questions.push({
-              question: q.question,
-              answer: q.answer,
-              pageNumber: page + 1,
-              slideContext: q.slideContext,
-            });
-          });
-        } else {
-          console.log(`No JSON match found in response for file`);
+          return pageQuestions.map((q) => ({
+            question: q.question,
+            answer: q.answer,
+            pageNumber: index + 1,
+            slideContext: q.slideContext,
+          }));
         }
-        page++;
+
+        console.log(`No JSON match found in response for frame ${index}`);
+        return null;
       } catch (error) {
-        console.error(`Error processing a frame:`, error);
-        if (error instanceof Error) {
-          console.error(`Error details: ${error.message}`);
-        }
+        console.error(`Error processing frame ${index}:`, error);
+        return null;
       }
-    }
+    });
+
+    const results = await Promise.all(framePromises);
+    const questions: StudyQuestion[] = results
+      .filter((result) => result !== null)
+      .flat();
 
     return NextResponse.json({ questions });
   } catch (error) {
