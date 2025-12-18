@@ -1,26 +1,81 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
+/* Tailwind theme tokens - reference CSS variables */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+    --color-*: initial;
+    --color-background: var(--bg);
+    --color-foreground: var(--fg);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-fg);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-fg);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-fg);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-fg);
+    --color-muted-hover: var(--muted-hover);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+    --color-success: var(--success);
+    --color-warning: var(--warning);
+    --color-error: var(--error);
+    --color-button-primary: var(--btn-primary);
+    --color-button-primary-foreground: var(--btn-primary-fg);
+    --font-sans: var(--font-geist-sans);
+    --font-mono: var(--font-geist-mono);
 }
 
+/* Light mode values (default) */
+:root {
+    --bg: #fafafa;
+    --fg: #171717;
+    --primary: #3b82f6;
+    --primary-fg: #ffffff;
+    --secondary: #64748b;
+    --secondary-fg: #ffffff;
+    --accent: #8b5cf6;
+    --accent-fg: #ffffff;
+    --muted: #ffffff;
+    --muted-fg: #64748b;
+    --muted-hover: #f4f4f5;
+    --border: #d4d4d8;
+    --input: #d4d4d8;
+    --ring: #3b82f6;
+    --success: #22c55e;
+    --warning: #f59e0b;
+    --error: #ef4444;
+    --btn-primary: #000000;
+    --btn-primary-fg: #ffffff;
+}
+
+/* Dark mode values */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+    :root {
+        --bg: #000000;
+        --fg: #fafafa;
+        --primary: #60a5fa;
+        --primary-fg: #1e293b;
+        --secondary: #64748b;
+        --secondary-fg: #f1f5f9;
+        --accent: #a78bfa;
+        --accent-fg: #1e293b;
+        --muted: #18181b;
+        --muted-fg: #a1a1aa;
+        --muted-hover: #27272a;
+        --border: #3f3f46;
+        --input: #3f3f46;
+        --ring: #60a5fa;
+        --success: #4ade80;
+        --warning: #fbbf24;
+        --error: #f87171;
+        --btn-primary: #ffffff;
+        --btn-primary-fg: #000000;
+    }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: Arial, Helvetica, sans-serif;
 }

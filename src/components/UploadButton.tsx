@@ -88,16 +88,14 @@ export default function UploadButton() {
     }
   };
   return (
-    <div>
-      <div className="border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-lg p-12 text-center">
+    <>
+      <div className="border-dashed border-2 border-border rounded-lg p-12 text-center">
         {file ? (
           <div>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
-              {file.name}
-            </p>
+            <p className="text-sm text-muted-foreground mb-4">{file.name}</p>
             <button
               onClick={() => setFile(null)}
-              className="text-sm text-red-600 hover:underline"
+              className="text-sm text-error hover:underline"
             >
               Remove
             </button>
@@ -113,7 +111,7 @@ export default function UploadButton() {
             />
             <label
               htmlFor="png-upload"
-              className="cursor-pointer text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white"
+              className="cursor-pointer text-muted-foreground hover:text-foreground"
             >
               <div className="text-4xl mb-4">📄</div>
               <div className="font-medium">Click to upload png</div>
@@ -127,11 +125,11 @@ export default function UploadButton() {
         <button
           onClick={handleUpload}
           disabled={loading}
-          className="w-full mt-6 bg-black dark:bg-white text-white dark:text-black py-3 rounded-lg font-medium hover:bg-zinc-800 dark:hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full mt-6 bg-button-primary text-button-primary-foreground py-3 rounded-lg font-medium hover:bg-muted-hover disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? "Generating questions..." : "Generate Study Questions"}
         </button>
       )}
-    </div>
+    </>
   );
 }
