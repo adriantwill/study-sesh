@@ -18,9 +18,11 @@ rm get-docker.sh
 echo "Installing nginx..."
 sudo apt install -y nginx
 
-# Get domain and API key
+# Get domain and API keys
 read -p "Enter your domain (e.g., study-sesh.com): " DOMAIN
-read -p "Enter your Hugging Face API key: " HF_KEY
+read -p "Enter your Hyperbolic API key: " HYPERBOLIC_KEY
+read -p "Enter your Supabase URL: " SUPABASE_URL
+read -p "Enter your Supabase Anon Key: " SUPABASE_KEY
 
 # Clone/setup repo
 echo "Setting up application..."
@@ -33,7 +35,11 @@ fi
 cd "$REPO_DIR"
 
 # Create .env
-echo "HUGGINGFACE_API_KEY=$HF_KEY" | sudo tee .env > /dev/null
+sudo tee .env > /dev/null <<EOF
+HYPERBOLIC_API_KEY=$HYPERBOLIC_KEY
+NEXT_PUBLIC_SUPABASE_URL=$SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY=$SUPABASE_KEY
+EOF
 
 # Configure nginx
 echo "Configuring nginx..."

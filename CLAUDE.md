@@ -1,13 +1,14 @@
 # Study Sesh - AI-Powered Study Question Generator
 
 ## Project Overview
-Next.js app that generates study questions from PowerPoint slides (exported as PNG/APNG). Uses HuggingFace vision AI (Qwen2.5-VL-7B-Instruct) to analyze slide images and create short-answer questions.
+Next.js app that generates study questions from PowerPoint slides (exported as PNG/APNG). Uses Hyperbolic vision AI (Qwen2-VL-7B-Instruct) to analyze slide images and create short-answer questions. Stores questions in Supabase database.
 
 ## Tech Stack
 - **Framework:** Next.js 16.0.7 (React 19.2.0, App Router)
 - **Language:** TypeScript 5 (strict mode)
 - **Styling:** Tailwind CSS v4
-- **AI:** HuggingFace Inference API (Qwen2.5-VL-7B-Instruct vision model)
+- **AI:** Hyperbolic Inference API (Qwen2-VL-7B-Instruct vision model)
+- **Database:** Supabase (PostgreSQL)
 - **Image Processing:** apng-js for APNG frame extraction
 - **Deployment:** Docker + Docker Compose, Nginx reverse proxy
 
@@ -37,7 +38,7 @@ src/
 - Upload PNG/APNG files (30MB max)
 - Extract APNG frames (multi-page PowerPoint exports)
 - **Hard limit: 3 pages** (line 50 in `route.ts`)
-- Base64 encode for HuggingFace API
+- Base64 encode for Hyperbolic API
 
 ### AI Question Generation
 - Sequential processing per slide
@@ -78,12 +79,14 @@ src/
 ### Setup
 ```bash
 npm install
-# Create .env.local with HUGGINGFACE_API_KEY
+# Create .env.local with API keys
 npm run dev  # localhost:3000
 ```
 
 ### Environment Variables
-- `HUGGINGFACE_API_KEY` - **Required** for HuggingFace API (get from https://huggingface.co/settings/tokens)
+- `HYPERBOLIC_API_KEY` - **Required** for Hyperbolic API
+- `NEXT_PUBLIC_SUPABASE_URL` - **Required** for Supabase
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - **Required** for Supabase
 
 ### Scripts
 - `npm run dev` - Dev server
@@ -96,12 +99,12 @@ npm run dev  # localhost:3000
 ### Docker
 ```bash
 docker build -t study-sesh .
-docker run -p 3000:3000 -e HUGGINGFACE_API_KEY=your_key study-sesh
+docker run -p 3000:3000 -e HYPERBOLIC_API_KEY=your_key -e NEXT_PUBLIC_SUPABASE_URL=your_url -e NEXT_PUBLIC_SUPABASE_ANON_KEY=your_key study-sesh
 ```
 
 ### Docker Compose
 ```bash
-# Add HUGGINGFACE_API_KEY to .env
+# Add API keys to .env
 docker compose up -d
 ```
 
