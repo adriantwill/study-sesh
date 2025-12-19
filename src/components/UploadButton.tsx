@@ -62,7 +62,6 @@ export default function UploadButton() {
             page_number: q.pageNumber,
             question_text: q.question,
             answer_text: q.answer,
-            context: q.slideContext,
           })),
         )
         .select();
@@ -125,7 +124,7 @@ export default function UploadButton() {
         <button
           onClick={handleUpload}
           disabled={loading}
-          className="w-full mt-6 bg-button-primary text-button-primary-foreground py-3 rounded-lg font-medium hover:bg-muted-hover disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full mt-6 bg-button-primary text-button-primary-foreground py-3 rounded-lg font-medium hover:opacity-85 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? "Generating questions..." : "Generate Study Questions"}
         </button>

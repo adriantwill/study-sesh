@@ -42,7 +42,7 @@ src/
 ### AI Question Generation
 - Sequential processing per slide
 - 2-3 short-answer questions per slide
-- Returns: question text, answer, page number, context
+- Returns: question text, answer, page number 
 - Error handling per frame (continues on failure)
 
 ### Study Modes

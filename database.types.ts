@@ -17,7 +17,6 @@ export type Database = {
       questions: {
         Row: {
           answer_text: string;
-          context: string | null;
           created_at: string | null;
           id: string;
           page_number: number;
@@ -26,7 +25,6 @@ export type Database = {
         };
         Insert: {
           answer_text: string;
-          context?: string | null;
           created_at?: string | null;
           id?: string;
           page_number: number;
@@ -35,7 +33,6 @@ export type Database = {
         };
         Update: {
           answer_text?: string;
-          context?: string | null;
           created_at?: string | null;
           id?: string;
           page_number?: number;

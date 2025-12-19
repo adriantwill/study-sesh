@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import parseAPNG from "apng-js";
 
 export interface StudyQuestion {
+  id: string;
   question: string;
   answer: string;
   pageNumber: number;
-  slideContext?: string;
 }
 
 export async function POST(req: NextRequest) {
@@ -81,7 +81,6 @@ Format your response as JSON array:
   {
     "question": "What is...",
     "answer": "Brief answer here",
-    "slideContext": "Brief description of what the slide covers"
   }
 ]
 
@@ -120,14 +119,13 @@ Only return valid JSON, no additional text.`,
           const pageQuestions = JSON.parse(jsonMatch[0]) as Array<{
             question: string;
             answer: string;
-            slideContext?: string;
           }>;
 
           return pageQuestions.map((q) => ({
+            id: "id",
             question: q.question,
             answer: q.answer,
             pageNumber: index + 1,
-            slideContext: q.slideContext,
           }));
         }
 

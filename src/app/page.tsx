@@ -1,4 +1,3 @@
-// import { Tables } from "@/database.types";
 import UploadButton from "../components/UploadButton";
 import { createClient } from "../lib/supabase/client";
 import Link from "next/link";
@@ -10,22 +9,6 @@ export default async function Home() {
   if (error || !data) {
     console.error("Error fetching uploads, using dummy data:", error);
     return null;
-    /*
-    data = [
-      {
-        id: "dummy-1",
-        filename: "Dummy Upload 1.png",
-        page_count: 3,
-        created_at: new Date().toISOString(),
-      } as Tables<"uploads">,
-      {
-        id: "dummy-2",
-        filename: "Dummy Upload 2.png",
-        page_count: 2,
-        created_at: new Date().toISOString(),
-      } as Tables<"uploads">,
-    ];
-     */
   }
 
   return (
