@@ -3,18 +3,39 @@ import { useState } from "react";
 import { createClient } from "../lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { StudyQuestion } from "../app/api/generate-questions/route";
+import parseAPNG from "apng-js";
 
 export default function UploadButton() {
   const [file, setFile] = useState<File | null>(null);
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-
+  const [progress, setProgress] = useState(0);
   const handleUpload = async () => {
     if (!file) return;
     setLoading(true);
     const formData = new FormData();
     formData.append("png", file);
 
+    const png = formData.get("png") as File;
+    const arrayBuffer = await png.arrayBuffer();
+    const apng = parseAPNG(arrayBuffer);
+    if (apng instanceof Error) {
+      console.error("Not APNG");
+      return { error: "No PNG/APNG file provided" };
+    }
+    if (!png) {
+      return { error: "No PNG/APNG file provided" };
+    }
+    const frameCount = apng.frames.length;
+    const totalTime = frameCount * 250;
+    const updateInterval = 100;
+    const totalTicks = totalTime / updateInterval;
+    const incrementPerTick = 95 / totalTicks;
+    const intervalId = setInterval(() => {
+      setProgress((prevProgress) =>
+        Math.min(prevProgress + incrementPerTick, 95),
+      );
+    }, updateInterval);
     try {
       const res = await fetch("/api/generate-questions", {
         method: "POST",
@@ -79,6 +100,8 @@ export default function UploadButton() {
       alert("Failed to generate questions");
     } finally {
       setLoading(false);
+      setProgress(100);
+      return () => clearInterval(intervalId);
     }
   };
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -128,6 +151,20 @@ export default function UploadButton() {
         >
           {loading ? "Generating questions..." : "Generate Study Questions"}
         </button>
+      )}
+      {loading && (
+        <div className="mt-6 space-y-2">
+          <div className="flex justify-between text-sm text-muted-foreground">
+            <span>Processing slides...</span>
+            <span>{progress}%</span>
+          </div>
+          <div className="w-full bg-muted rounded-full h-2">
+            <div
+              className="bg-button-primary h-2 rounded-full transition-all duration-300"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
       )}
     </>
   );
