@@ -1,7 +1,7 @@
 "use client";
-import { PiTrash } from "react-icons/pi";
 import { createClient } from "../lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { TbTrash } from "react-icons/tb";
 
 interface DeleteButtonProps {
   id: string;
@@ -21,5 +21,5 @@ export default function DeleteButton({ id, variant }: DeleteButtonProps) {
     router.refresh();
   };
 
-  return <PiTrash onClick={deleteQuestion} className=" hover:text-red-700" />;
+  return <TbTrash onClick={deleteQuestion} className="hover:text-red-700 " />;
 }

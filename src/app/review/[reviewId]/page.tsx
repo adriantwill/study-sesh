@@ -2,6 +2,7 @@ import { createClient } from "../../../lib/supabase/client";
 import ResetUploadButton from "@/src/components/ResetUploadButton";
 import DeleteButton from "@/src/components/DeleteButton";
 import EditableField from "@/src/components/EditableField";
+import { TbCheckbox } from "react-icons/tb";
 
 export default async function ReviewPage({
   params,
@@ -54,6 +55,7 @@ export default async function ReviewPage({
                     Page {q.pageNumber}
                   </div>
                   <EditableField question={q} variant="question">
+                    <TbCheckbox />
                     <DeleteButton id={q.id} variant="question" />
                   </EditableField>
                   <details className="text-sm">

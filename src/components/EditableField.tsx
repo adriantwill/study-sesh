@@ -4,6 +4,7 @@ import { useState } from "react";
 import { LiaEditSolid } from "react-icons/lia";
 import { StudyQuestion } from "../app/api/generate-questions/route";
 import { createClient } from "../lib/supabase/client";
+import { TbEdit } from "react-icons/tb";
 
 interface EditableFieldProps {
   question: StudyQuestion;
@@ -57,12 +58,12 @@ export default function EditableField({
   return (
     <div className={displayStyles}>
       {text}
-      <div className="flex items-center gap-1">
-        {children}
-        <LiaEditSolid
-          className="size-5 cursor-pointer hover:text-secondary"
+      <div className="*:size-6 *:cursor-pointer flex items-center gap-1">
+        <TbEdit
+          className="  hover:text-secondary"
           onClick={() => setIsEditing(true)}
         />
+        {children}
       </div>
     </div>
   );
