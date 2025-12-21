@@ -2,7 +2,6 @@
 
 /* Tailwind theme tokens - reference CSS variables */
 @theme inline {
-    --color-*: initial;
     --color-background: var(--bg);
     --color-foreground: var(--fg);
     --color-primary: var(--primary);

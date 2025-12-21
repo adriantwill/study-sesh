@@ -1,6 +1,7 @@
 import UploadButton from "../components/UploadButton";
 import { createClient } from "../lib/supabase/client";
 import Link from "next/link";
+import DeleteButton from "../components/DeleteButton";
 
 export default async function Home() {
   const supabase = createClient();
@@ -29,13 +30,18 @@ export default async function Home() {
                 </h2>
                 <ul className="space-y-1">
                   {data.map((item, index) => (
-                    <Link
-                      className="block text-sm text-muted-foreground cursor-pointer hover:text-foreground"
+                    <div
                       key={index}
-                      href={`/review/${item.id}`}
+                      className="flex justify-between items-center cursor-pointer"
                     >
-                      {item.filename}
-                    </Link>
+                      <Link
+                        className=" text-muted-foreground  hover:text-foreground"
+                        href={`/review/${item.id}`}
+                      >
+                        {item.filename}
+                      </Link>
+                      <DeleteButton id={item.id} />
+                    </div>
                   ))}
                 </ul>
               </div>

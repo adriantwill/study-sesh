@@ -43,7 +43,14 @@ export default async function ReviewPage({
         </div>
         <div className="space-y-4">
           {questions.map((q, idx) => (
-            <QuestionCard key={idx} question={q} index={idx} />
+            <div className="bg-muted rounded-lg shadow p-6" key={idx}>
+              <div className="flex items-start gap-4">
+                <div className="shrink-0 w-8 h-8 bg-muted-hover rounded-full flex items-center justify-center text-sm font-medium">
+                  {idx + 1}
+                </div>
+                <QuestionCard question={q} />
+              </div>
+            </div>
           ))}
         </div>
       </div>
