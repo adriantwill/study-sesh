@@ -1,6 +1,7 @@
 import { createClient } from "../../../lib/supabase/client";
 import ResetUploadButton from "@/src/components/ResetUploadButton";
-import QuestionCard from "@/src/components/QuestionCard";
+import DeleteButton from "@/src/components/DeleteButton";
+import EditableField from "@/src/components/EditableField";
 
 export default async function ReviewPage({
   params,
@@ -48,7 +49,22 @@ export default async function ReviewPage({
                 <div className="shrink-0 w-8 h-8 bg-muted-hover rounded-full flex items-center justify-center text-sm font-medium">
                   {idx + 1}
                 </div>
-                <QuestionCard question={q} />
+                <div className="flex-1">
+                  <div className="text-xs text-muted-foreground mb-2">
+                    Page {q.pageNumber}
+                  </div>
+                  <EditableField question={q} variant="question">
+                    <DeleteButton id={q.id} variant="question" />
+                  </EditableField>
+                  <details className="text-sm">
+                    <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+                      Show answer
+                    </summary>
+                    <div className="mt-2 p-4 rounded-lg bg-muted-hover">
+                      <EditableField question={q} variant="answer" />
+                    </div>
+                  </details>
+                </div>
               </div>
             </div>
           ))}

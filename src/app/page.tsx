@@ -40,7 +40,7 @@ export default async function Home() {
                       >
                         {item.filename}
                       </Link>
-                      <DeleteButton id={item.id} />
+                      <DeleteButton id={item.id} variant={"upload"} />
                     </div>
                   ))}
                 </ul>
