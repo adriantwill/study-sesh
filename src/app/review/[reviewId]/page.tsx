@@ -1,15 +1,13 @@
-import { createClient } from "../../../lib/supabase/client";
+import { createClient } from "../../../lib/supabase/server";
 import ResetUploadButton from "@/src/components/ResetUploadButton";
-import DeleteButton from "@/src/components/DeleteButton";
 import EditableField from "@/src/components/EditableField";
-import { TbCheckbox } from "react-icons/tb";
 
 export default async function ReviewPage({
   params,
 }: {
   params: Promise<{ reviewId: string }>;
 }) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const param = await params;
   const { data, error } = await supabase
     .from("questions")
@@ -20,8 +18,13 @@ export default async function ReviewPage({
 
   if (error) {
     console.error("Error fetching questions:", error);
-    return null;
+    throw new Error("Failed to load questions");
   }
+
+  if (!data) {
+    throw new Error("No questions found");
+  }
+
   const questions = data.map((q) => ({
     id: q.id,
     question: q.question_text,
@@ -45,7 +48,7 @@ export default async function ReviewPage({
         </div>
         <div className="space-y-4">
           {questions.map((q, idx) => (
-            <div className="bg-muted rounded-lg shadow p-6" key={idx}>
+            <div className="bg-muted rounded-lg shadow p-6" key={q.id}>
               <div className="flex items-start gap-4">
                 <div className="shrink-0 w-8 h-8 bg-muted-hover rounded-full flex items-center justify-center text-sm font-medium">
                   {idx + 1}
@@ -54,10 +57,7 @@ export default async function ReviewPage({
                   <div className="text-xs text-muted-foreground mb-2">
                     Page {q.pageNumber}
                   </div>
-                  <EditableField question={q} variant="question">
-                    <TbCheckbox />
-                    <DeleteButton id={q.id} variant="question" />
-                  </EditableField>
+                  <EditableField question={q} variant="question" />
                   <details className="text-sm">
                     <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
                       Show answer

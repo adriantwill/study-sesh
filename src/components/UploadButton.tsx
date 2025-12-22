@@ -1,8 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { createClient } from "../lib/supabase/client";
 import { useRouter } from "next/navigation";
-import { StudyQuestion } from "../app/api/generate-questions/route";
+import { StudyQuestion } from "../types";
 import parseAPNG from "apng-js";
 
 export default function UploadButton() {
@@ -10,22 +10,29 @@ export default function UploadButton() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const supabase = useMemo(() => createClient(), []);
+
   const handleUpload = async () => {
     if (!file) return;
     setLoading(true);
+    setError(null);
+    setProgress(0);
+
     const formData = new FormData();
     formData.append("png", file);
 
     const png = formData.get("png") as File;
     const arrayBuffer = await png.arrayBuffer();
     const apng = parseAPNG(arrayBuffer);
+
     if (apng instanceof Error) {
       console.error("Not APNG");
-      return { error: "No PNG/APNG file provided" };
+      setError("Invalid PNG/APNG file");
+      setLoading(false);
+      return;
     }
-    if (!png) {
-      return { error: "No PNG/APNG file provided" };
-    }
+
     const frameCount = apng.frames.length;
     const totalTime = frameCount * 250;
     const updateInterval = 100;
@@ -36,28 +43,29 @@ export default function UploadButton() {
         Math.min(prevProgress + incrementPerTick, 95),
       );
     }, updateInterval);
+
     try {
       const res = await fetch("/api/generate-questions", {
         method: "POST",
         body: formData,
       });
+
       if (!res.ok) {
         const text = await res.text();
         console.error("API error response:", text);
         try {
           const errorData = JSON.parse(text);
-          alert(
-            `Error: ${errorData.error || errorData.details || "Unknown error"}`,
+          throw new Error(
+            errorData.error || errorData.details || "Unknown error",
           );
         } catch {
-          alert(`API error (${res.status}): ${text}`);
+          throw new Error(`API error (${res.status}): ${text}`);
         }
-        return;
       }
+
       const data = await res.json();
       console.log("API response:", data);
 
-      const supabase = createClient();
       const { data: upload, error: uploadError } = await supabase
         .from("uploads")
         .insert({
@@ -69,11 +77,8 @@ export default function UploadButton() {
 
       if (uploadError || !upload) {
         console.error("Error inserting upload:", uploadError);
-        alert("Failed to save upload to database");
-        return;
+        throw new Error("Failed to save upload to database");
       }
-
-      console.log("Upload created:", upload);
 
       const { error: questionsError } = await supabase
         .from("questions")
@@ -89,19 +94,19 @@ export default function UploadButton() {
 
       if (questionsError) {
         console.error("Error inserting questions:", questionsError);
-        alert("Failed to save questions to database");
-        return;
+        throw new Error("Failed to save questions to database");
       }
 
-      console.log("Navigating to review page...");
-      router.push(`/review/${upload.id}`);
-    } catch (error) {
-      console.error("Upload error:", error);
-      alert("Failed to generate questions");
-    } finally {
-      setLoading(false);
       setProgress(100);
-      return () => clearInterval(intervalId);
+      router.push(`/review/${upload.id}`);
+    } catch (err) {
+      console.error("Upload error:", err);
+      setError(
+        err instanceof Error ? err.message : "Failed to generate questions",
+      );
+    } finally {
+      clearInterval(intervalId);
+      setLoading(false);
     }
   };
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -111,13 +116,26 @@ export default function UploadButton() {
   };
   return (
     <>
+      {error && (
+        <div
+          className="mb-4 bg-red-900/20 border border-red-900 text-red-200 px-4 py-3 rounded-lg"
+          role="alert"
+        >
+          <p className="font-medium">Error</p>
+          <p className="text-sm">{error}</p>
+        </div>
+      )}
       <div className="border-dashed border-2 border-border rounded-lg p-12 text-center">
         {file ? (
           <div>
             <p className="text-sm text-muted-foreground mb-4">{file.name}</p>
             <button
-              onClick={() => setFile(null)}
+              onClick={() => {
+                setFile(null);
+                setError(null);
+              }}
               className="text-sm text-error hover:underline"
+              aria-label="Remove selected file"
             >
               Remove
             </button>
@@ -126,10 +144,11 @@ export default function UploadButton() {
           <div>
             <input
               type="file"
-              accept="application/png"
+              accept="image/png"
               onChange={handleFileChange}
               className="hidden"
               id="png-upload"
+              aria-label="Upload PNG file"
             />
             <label
               htmlFor="png-upload"
@@ -148,6 +167,7 @@ export default function UploadButton() {
           onClick={handleUpload}
           disabled={loading}
           className="w-full mt-6 bg-button-primary text-button-primary-foreground py-3 rounded-lg font-medium hover:opacity-85 disabled:opacity-50 disabled:cursor-not-allowed"
+          aria-label="Generate study questions from uploaded file"
         >
           {loading ? "Generating questions..." : "Generate Study Questions"}
         </button>
@@ -156,12 +176,16 @@ export default function UploadButton() {
         <div className="mt-6 space-y-2">
           <div className="flex justify-between text-sm text-muted-foreground">
             <span>Processing slides...</span>
-            <span>{progress}%</span>
+            <span>{Math.round(progress)}%</span>
           </div>
           <div className="w-full bg-muted rounded-full h-2">
             <div
               className="bg-button-primary h-2 rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
+              role="progressbar"
+              aria-valuenow={Math.round(progress)}
+              aria-valuemin={0}
+              aria-valuemax={100}
             />
           </div>
         </div>

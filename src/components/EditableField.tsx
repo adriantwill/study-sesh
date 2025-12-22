@@ -1,27 +1,26 @@
 "use client";
 
-import { useState } from "react";
-import { LiaEditSolid } from "react-icons/lia";
-import { StudyQuestion } from "../app/api/generate-questions/route";
+import { useState, useMemo } from "react";
+import { StudyQuestion } from "../types";
 import { createClient } from "../lib/supabase/client";
-import { TbEdit } from "react-icons/tb";
+import { TbCheckbox, TbEdit } from "react-icons/tb";
+import DeleteButton from "./DeleteButton";
 
 interface EditableFieldProps {
   question: StudyQuestion;
   variant?: "question" | "answer";
-  children?: React.ReactNode;
 }
 
 export default function EditableField({
   question,
   variant = "question",
-  children,
 }: EditableFieldProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [text, setText] = useState(
-    variant == "question" ? question.question : question.answer,
+    variant === "question" ? question.question : question.answer,
   );
-  const supabase = createClient();
+  const [complete, setComplete] = useState("");
+  const supabase = useMemo(() => createClient(), []);
 
   const handleBlur = async () => {
     setIsEditing(false);
@@ -33,14 +32,12 @@ export default function EditableField({
   };
 
   const inputStyles =
-    variant === "question"
-      ? "w-full font-medium text-foreground mb-3 bg-muted-hover px-3 py-2 rounded"
-      : "w-full font-medium text-foreground bg-muted-hover px-2 py-1 rounded";
+    variant === "question" ? "mb-3  px-3 py-2 " : " px-2 py-1 ";
 
   const displayStyles =
     variant === "question"
-      ? "flex justify-between items-center font-medium text-foreground mb-3"
-      : "flex justify-between items-center text-foreground/90";
+      ? " font-medium text-foreground mb-3"
+      : "  text-foreground/90";
 
   if (isEditing) {
     return (
@@ -48,7 +45,7 @@ export default function EditableField({
         type="text"
         value={text}
         onChange={(e) => setText(e.target.value)}
-        className={inputStyles}
+        className={` w-full font-medium text-foreground bg-muted-hover rounded ${inputStyles} ${complete}`}
         onBlur={handleBlur}
         autoFocus
       />
@@ -56,14 +53,34 @@ export default function EditableField({
   }
 
   return (
-    <div className={displayStyles}>
+    <div
+      className={`flex items-center justify-between ${displayStyles} ${complete}`}
+    >
       {text}
-      <div className="*:size-6 *:cursor-pointer flex items-center gap-1">
-        <TbEdit
-          className="  hover:text-secondary"
+      <div className="*:size-6 *:cursor-pointer flex items-center gap-1 *:hover:text-secondary">
+        <button
           onClick={() => setIsEditing(true)}
-        />
-        {children}
+          aria-label={`Edit ${variant}`}
+          className="hover:text-secondary"
+        >
+          <TbEdit />
+        </button>
+        {variant === "question" && (
+          <>
+            <button
+              onClick={() =>
+                setComplete((prev) =>
+                  prev === "" ? "line-through opacity-70" : "",
+                )
+              }
+              aria-label="Mark as complete"
+              className="hover:text-secondary"
+            >
+              <TbCheckbox />
+            </button>
+            <DeleteButton id={question.id} variant="question" />
+          </>
+        )}
       </div>
     </div>
   );

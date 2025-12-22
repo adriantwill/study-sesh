@@ -1,4 +1,5 @@
 "use client";
+import { useMemo, useState } from "react";
 import { createClient } from "../lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { TbTrash } from "react-icons/tb";
@@ -9,17 +10,42 @@ interface DeleteButtonProps {
 }
 
 export default function DeleteButton({ id, variant }: DeleteButtonProps) {
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
-  const deleteQuestion = async () => {
-    if (variant === "question") {
-      await supabase.from("questions").delete().eq("id", id);
-    } else {
-      await supabase.from("uploads").delete().eq("id", id);
-      await supabase.from("questions").delete().eq("upload_id", id);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const deleteItem = async () => {
+    if (isDeleting) return;
+    setIsDeleting(true);
+
+    try {
+      if (variant === "question") {
+        const { error } = await supabase.from("questions").delete().eq("id", id);
+        if (error) throw error;
+      } else {
+        const { error: uploadError } = await supabase
+          .from("uploads")
+          .delete()
+          .eq("id", id);
+        if (uploadError) throw uploadError;
+      }
+      router.refresh();
+    } catch (error) {
+      console.error("Delete error:", error);
+      alert(`Failed to delete ${variant}`);
+    } finally {
+      setIsDeleting(false);
     }
-    router.refresh();
   };
 
-  return <TbTrash onClick={deleteQuestion} className="hover:text-red-700 " />;
+  return (
+    <button
+      onClick={deleteItem}
+      disabled={isDeleting}
+      aria-label={`Delete ${variant}`}
+      className="hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      <TbTrash />
+    </button>
+  );
 }

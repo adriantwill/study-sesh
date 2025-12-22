@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import parseAPNG from "apng-js";
-
-export interface StudyQuestion {
-  id: string;
-  question: string;
-  answer: string;
-  pageNumber: number;
-}
+import { StudyQuestion } from "@/src/types";
 
 export async function POST(req: NextRequest) {
   try {

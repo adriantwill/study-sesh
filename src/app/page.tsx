@@ -1,15 +1,19 @@
 import UploadButton from "../components/UploadButton";
-import { createClient } from "../lib/supabase/client";
+import { createClient } from "../lib/supabase/server";
 import Link from "next/link";
 import DeleteButton from "../components/DeleteButton";
 
 export default async function Home() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase.from("uploads").select();
-  console.log(error);
-  if (error || !data) {
-    console.error("Error fetching uploads, using dummy data:", error);
-    return null;
+
+  if (error) {
+    console.error("Error fetching uploads:", error);
+    throw new Error("Failed to load uploads");
+  }
+
+  if (!data) {
+    throw new Error("No data returned from database");
   }
 
   return (
@@ -29,19 +33,19 @@ export default async function Home() {
                   Saved data:
                 </h2>
                 <ul className="space-y-1">
-                  {data.map((item, index) => (
-                    <div
-                      key={index}
-                      className="flex justify-between items-center cursor-pointer"
+                  {data.map((item) => (
+                    <li
+                      key={item.id}
+                      className="flex justify-between items-center"
                     >
                       <Link
-                        className=" text-muted-foreground  hover:text-foreground"
+                        className="text-muted-foreground hover:text-foreground"
                         href={`/review/${item.id}`}
                       >
                         {item.filename}
                       </Link>
-                      <DeleteButton id={item.id} variant={"upload"} />
-                    </div>
+                      <DeleteButton id={item.id} variant="upload" />
+                    </li>
                   ))}
                 </ul>
               </div>
