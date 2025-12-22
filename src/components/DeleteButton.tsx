@@ -20,7 +20,10 @@ export default function DeleteButton({ id, variant }: DeleteButtonProps) {
 
     try {
       if (variant === "question") {
-        const { error } = await supabase.from("questions").delete().eq("id", id);
+        const { error } = await supabase
+          .from("questions")
+          .delete()
+          .eq("id", id);
         if (error) throw error;
       } else {
         const { error: uploadError } = await supabase
@@ -43,7 +46,7 @@ export default function DeleteButton({ id, variant }: DeleteButtonProps) {
       onClick={deleteItem}
       disabled={isDeleting}
       aria-label={`Delete ${variant}`}
-      className="hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+      className="hover:text-secondary enabled:hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
     >
       <TbTrash />
     </button>

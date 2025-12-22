@@ -19,7 +19,9 @@ export default function EditableField({
   const [text, setText] = useState(
     variant === "question" ? question.question : question.answer,
   );
-  const [complete, setComplete] = useState("");
+  const [complete, setComplete] = useState<"" | "line-through opacity-70">(
+    question.completed === true ? "line-through opacity-70" : "",
+  );
   const supabase = useMemo(() => createClient(), []);
 
   const handleBlur = async () => {
@@ -30,7 +32,15 @@ export default function EditableField({
       .update({ [field]: text })
       .eq("id", question.id);
   };
-
+  const completeQuestion = async () => {
+    await supabase
+      .from("questions")
+      .update({
+        completed: complete === "line-through opacity-70" ? false : true,
+      })
+      .eq("id", question.id);
+    setComplete((prev) => (prev === "" ? "line-through opacity-70" : ""));
+  };
   const inputStyles =
     variant === "question" ? "mb-3  px-3 py-2 " : " px-2 py-1 ";
 
@@ -57,24 +67,19 @@ export default function EditableField({
       className={`flex items-center justify-between ${displayStyles} ${complete}`}
     >
       {text}
-      <div className="*:size-6 *:cursor-pointer flex items-center gap-1 *:hover:text-secondary">
+      <div className="*:size-6 *:cursor-pointer flex items-center gap-1 *enabled:hover:text-secondary *:disabled:cursor-auto">
         <button
           onClick={() => setIsEditing(true)}
           aria-label={`Edit ${variant}`}
-          className="hover:text-secondary"
+          disabled={complete === "line-through opacity-70"}
         >
           <TbEdit />
         </button>
         {variant === "question" && (
           <>
             <button
-              onClick={() =>
-                setComplete((prev) =>
-                  prev === "" ? "line-through opacity-70" : "",
-                )
-              }
+              onClick={() => completeQuestion()}
               aria-label="Mark as complete"
-              className="hover:text-secondary"
             >
               <TbCheckbox />
             </button>

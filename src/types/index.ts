@@ -3,4 +3,5 @@ export interface StudyQuestion {
   question: string;
   answer: string;
   pageNumber: number;
+  completed: boolean;
 }

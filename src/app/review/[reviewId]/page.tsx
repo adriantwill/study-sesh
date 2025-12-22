@@ -30,6 +30,7 @@ export default async function ReviewPage({
     question: q.question_text,
     answer: q.answer_text,
     pageNumber: q.page_number,
+    completed: q.completed,
   }));
 
   return (

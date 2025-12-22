@@ -120,6 +120,7 @@ Only return valid JSON, no additional text.`,
             question: q.question,
             answer: q.answer,
             pageNumber: index + 1,
+            completed: false,
           }));
         }
 
