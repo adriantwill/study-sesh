@@ -38,6 +38,12 @@ export async function POST(req: NextRequest) {
       if (index < 2) {
         return null;
       }
+      if (result.pages.length > 70) {
+        return NextResponse.json(
+          { error: "PDF file too large" },
+          { status: 400 },
+        );
+      }
 
       try {
         if (!frame.data) {

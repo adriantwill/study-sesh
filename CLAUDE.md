@@ -37,7 +37,6 @@ src/
 ### Image Processing
 - Upload PNG/APNG files (30MB max)
 - Extract APNG frames (multi-page PowerPoint exports)
-- **Hard limit: 3 pages** (line 50 in `route.ts`)
 - Base64 encode for Hyperbolic API
 
 ### AI Question Generation
