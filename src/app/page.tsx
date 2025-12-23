@@ -21,7 +21,7 @@ export default async function Home() {
       <div className="max-w-2xl mx-auto">
         <h1 className="text-4xl font-bold mb-2 text-foreground">Study Sesh</h1>
         <p className="text-muted-foreground mb-8">
-          Upload PowerPoint png to generate study questions
+          Upload PowerPoint PDF to generate study questions
         </p>
 
         <div className="bg-muted rounded-lg shadow p-8">

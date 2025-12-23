@@ -8,7 +8,7 @@ import DeleteButton from "./DeleteButton";
 
 interface EditableFieldProps {
   question: StudyQuestion;
-  variant?: "question" | "answer";
+  variant: "question" | "answer";
 }
 
 export default function EditableField({
@@ -49,44 +49,44 @@ export default function EditableField({
       ? " font-medium text-foreground mb-3"
       : "  text-foreground/90";
 
-  if (isEditing) {
-    return (
-      <input
-        type="text"
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        className={` w-full font-medium text-foreground bg-muted-hover rounded ${inputStyles} ${complete}`}
-        onBlur={handleBlur}
-        autoFocus
-      />
-    );
-  }
-
   return (
-    <div
-      className={`flex items-center justify-between ${displayStyles} ${complete}`}
-    >
-      {text}
-      <div className="*:size-6 *:cursor-pointer flex items-center gap-1 *enabled:hover:text-secondary *:disabled:cursor-auto">
-        <button
-          onClick={() => setIsEditing(true)}
-          aria-label={`Edit ${variant}`}
-          disabled={complete === "line-through opacity-70"}
+    <>
+      {isEditing ? (
+        <input
+          type="text"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          className={` w-full font-medium text-foreground bg-muted-hover rounded ${inputStyles} ${complete}`}
+          onBlur={handleBlur}
+          autoFocus
+        />
+      ) : (
+        <div
+          className={`flex items-center justify-between ${displayStyles} ${complete}`}
         >
-          <TbEdit />
-        </button>
-        {variant === "question" && (
-          <>
+          {text}
+          <div className="*:size-6 *:cursor-pointer flex items-center gap-1 *enabled:hover:text-secondary *:disabled:cursor-auto">
             <button
-              onClick={() => completeQuestion()}
-              aria-label="Mark as complete"
+              onClick={() => setIsEditing(true)}
+              aria-label={`Edit ${variant}`}
+              disabled={complete === "line-through opacity-70"}
             >
-              <TbCheckbox />
+              <TbEdit />
             </button>
-            <DeleteButton id={question.id} variant="question" />
-          </>
-        )}
-      </div>
-    </div>
+            {variant === "question" && (
+              <>
+                <button
+                  onClick={() => completeQuestion()}
+                  aria-label="Mark as complete"
+                >
+                  <TbCheckbox />
+                </button>
+                <DeleteButton id={question.id} variant="question" />
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </>
   );
 }

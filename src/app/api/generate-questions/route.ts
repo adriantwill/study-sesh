@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import parseAPNG from "apng-js";
 import { StudyQuestion } from "@/src/types";
+import { PDFParse } from "pdf-parse";
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,38 +18,34 @@ export async function POST(req: NextRequest) {
     );
 
     const formData = await req.formData();
-    const file = formData.get("png") as File;
+    const file = formData.get("pdf") as File;
     const arrayBuffer = await file.arrayBuffer();
-    const apng = parseAPNG(arrayBuffer);
-    if (apng instanceof Error) {
-      console.error("Not APNG");
-      return NextResponse.json(
-        { error: "No PNG/APNG file provided" },
-        { status: 400 },
-      );
-    }
+    const parser = new PDFParse({
+      data: arrayBuffer,
+    });
+
     if (!file) {
       return NextResponse.json(
-        { error: "No PNG/APNG file provided" },
+        { error: "No PDF file provided" },
         { status: 400 },
       );
     }
-    const files = apng.frames;
 
-    // Process all frames in parallel
-    const framePromises = files.map(async (frame, index) => {
+    const result = await parser.getScreenshot();
+    await parser.destroy();
+
+    const framePromises = result.pages.map(async (frame, index) => {
       if (index < 2) {
-        return null; // Skip first 2 frames
+        return null;
       }
 
       try {
-        if (!frame.imageData) {
+        if (!frame.data) {
           console.error(`No imageData for frame ${index}`);
           return null;
         }
 
-        const arrayBuffer = await frame.imageData.arrayBuffer();
-        const base64 = Buffer.from(arrayBuffer).toString("base64");
+        const base64 = Buffer.from(frame.data).toString("base64");
         const imageUrl = `data:${file.type};base64,${base64}`;
 
         const apiResponse = await fetch(
@@ -137,7 +133,7 @@ Only return valid JSON, no additional text.`,
       .filter((result) => result !== null)
       .flat();
 
-    return NextResponse.json({ questions });
+    return NextResponse.json(questions);
   } catch (error) {
     console.error("API error:", error);
     return NextResponse.json(

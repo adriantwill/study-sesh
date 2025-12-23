@@ -3,7 +3,6 @@ import { useState, useMemo } from "react";
 import { createClient } from "../lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { StudyQuestion } from "../types";
-import parseAPNG from "apng-js";
 
 export default function UploadButton() {
   const [file, setFile] = useState<File | null>(null);
@@ -20,29 +19,16 @@ export default function UploadButton() {
     setProgress(0);
 
     const formData = new FormData();
-    formData.append("png", file);
+    formData.append("pdf", file);
 
-    const png = formData.get("png") as File;
-    const arrayBuffer = await png.arrayBuffer();
-    const apng = parseAPNG(arrayBuffer);
-
-    if (apng instanceof Error) {
-      console.error("Not APNG");
-      setError("Invalid PNG/APNG file");
-      setLoading(false);
-      return;
-    }
-
-    const frameCount = apng.frames.length;
-    const totalTime = frameCount * 250;
-    const updateInterval = 100;
-    const totalTicks = totalTime / updateInterval;
+    const fileSizeMB = file.size / (1024 * 1024);
+    const estimatedSeconds = Math.max(5, fileSizeMB * 2);
+    const totalTicks = (estimatedSeconds * 1000) / 100;
     const incrementPerTick = 95 / totalTicks;
+
     const intervalId = setInterval(() => {
-      setProgress((prevProgress) =>
-        Math.min(prevProgress + incrementPerTick, 95),
-      );
-    }, updateInterval);
+      setProgress((prev) => Math.min(prev + incrementPerTick, 95));
+    }, 100);
 
     try {
       const res = await fetch("/api/generate-questions", {
@@ -63,14 +49,14 @@ export default function UploadButton() {
         }
       }
 
-      const data = await res.json();
+      const data: StudyQuestion[] = await res.json();
       console.log("API response:", data);
 
       const { data: upload, error: uploadError } = await supabase
         .from("uploads")
         .insert({
           filename: file.name,
-          page_count: data.questions.length,
+          page_count: data.length,
         })
         .select()
         .single();
@@ -83,7 +69,7 @@ export default function UploadButton() {
       const { error: questionsError } = await supabase
         .from("questions")
         .insert(
-          data.questions.map((q: StudyQuestion) => ({
+          data.map((q) => ({
             upload_id: upload.id,
             page_number: q.pageNumber,
             question_text: q.question,
@@ -144,18 +130,18 @@ export default function UploadButton() {
           <div>
             <input
               type="file"
-              accept="image/png"
+              accept="application/pdf"
               onChange={handleFileChange}
               className="hidden"
-              id="png-upload"
-              aria-label="Upload PNG file"
+              id="pdf-upload"
+              aria-label="Upload pdf file"
             />
             <label
-              htmlFor="png-upload"
+              htmlFor="pdf-upload"
               className="cursor-pointer text-muted-foreground hover:text-foreground"
             >
               <div className="text-4xl mb-4">📄</div>
-              <div className="font-medium">Click to upload png</div>
+              <div className="font-medium">Click to upload pdf</div>
               <div className="text-sm mt-2">or drag and drop</div>
             </label>
           </div>
