@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { StudyQuestion } from "../types";
 import { createClient } from "../lib/supabase/client";
 import { TbCheckbox, TbEdit } from "react-icons/tb";
@@ -23,6 +23,8 @@ export default function EditableField({
   const [complete, setComplete] = useState<"" | "line-through opacity-70">(
     question.completed === true ? "line-through opacity-70" : "",
   );
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const supabase = useMemo(() => createClient(), []);
 
   const handleBlur = async () => {
@@ -34,14 +36,49 @@ export default function EditableField({
       .eq("id", question.id);
   };
   const completeQuestion = async () => {
+    setComplete((prev) => (prev === "" ? "line-through opacity-70" : ""));
     await supabase
       .from("questions")
       .update({
         completed: complete === "line-through opacity-70" ? false : true,
       })
       .eq("id", question.id);
-    setComplete((prev) => (prev === "" ? "line-through opacity-70" : ""));
   };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${question.id}_${Date.now()}.${fileExt}`;
+      const filePath = `question-images/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("question-images")
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("question-images").getPublicUrl(filePath);
+
+      await supabase
+        .from("questions")
+        .update({ image_url: publicUrl })
+        .eq("id", question.id);
+
+      alert("Image uploaded successfully!");
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      alert("Failed to upload image");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const inputStyles =
     variant === "question" ? "mb-3  px-3 py-2 " : " px-2 py-1 ";
 
@@ -84,11 +121,19 @@ export default function EditableField({
                   <TbCheckbox />
                 </button>
                 <button
-                  onClick={() => {/* TODO: handle image upload */}}
+                  onClick={() => fileInputRef.current?.click()}
                   aria-label="Upload image"
+                  disabled={uploading}
                 >
                   <FaRegImage />
                 </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
                 <DeleteButton id={question.id} variant="question" />
               </>
             )}
