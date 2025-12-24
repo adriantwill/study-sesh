@@ -1,6 +1,9 @@
 import { createClient } from "../../../lib/supabase/server";
-import ResetUploadButton from "@/src/components/ResetUploadButton";
+import Image from "next/image";
+import testImage from "../../../../public/test.png";
+
 import EditableField from "@/src/components/EditableField";
+import Link from "next/link";
 
 export default async function ReviewPage({
   params,
@@ -45,7 +48,12 @@ export default async function ReviewPage({
               {questions.length} questions
             </p>
           </div>
-          <ResetUploadButton></ResetUploadButton>
+          <Link
+            href="/"
+            className="border border-border px-6 py-2 rounded-lg font-medium hover:bg-muted-hover"
+          >
+            New Upload
+          </Link>
         </div>
         <div className="space-y-4">
           {questions.map((q, idx) => (
@@ -59,7 +67,14 @@ export default async function ReviewPage({
                     Page {q.pageNumber}
                   </div>
                   <EditableField question={q} variant="question" />
-                  <details className="text-sm">
+                  <Image
+                    height={400}
+                    width={400}
+                    src={testImage}
+                    alt=""
+                    className="mt-4 rounded-lg border border-border w-1/2 h-auto object-contain"
+                  />
+                  <details className="text-sm mt-4">
                     <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
                       Show answer
                     </summary>

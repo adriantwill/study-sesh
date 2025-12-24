@@ -5,6 +5,7 @@ import { StudyQuestion } from "../types";
 import { createClient } from "../lib/supabase/client";
 import { TbCheckbox, TbEdit } from "react-icons/tb";
 import DeleteButton from "./DeleteButton";
+import { FaRegImage } from "react-icons/fa6";
 
 interface EditableFieldProps {
   question: StudyQuestion;
@@ -65,7 +66,8 @@ export default function EditableField({
           className={`flex items-center justify-between ${displayStyles} ${complete}`}
         >
           {text}
-          <div className="*:size-6 *:cursor-pointer flex items-center gap-1 *enabled:hover:text-secondary *:disabled:cursor-auto">
+
+          <div className="*:size-6 *:cursor-pointer flex items-center gap-1 *:hover:text-secondary *:disabled:cursor-auto">
             <button
               onClick={() => setIsEditing(true)}
               aria-label={`Edit ${variant}`}
@@ -80,6 +82,12 @@ export default function EditableField({
                   aria-label="Mark as complete"
                 >
                   <TbCheckbox />
+                </button>
+                <button
+                  onClick={() => {/* TODO: handle image upload */}}
+                  aria-label="Upload image"
+                >
+                  <FaRegImage />
                 </button>
                 <DeleteButton id={question.id} variant="question" />
               </>
