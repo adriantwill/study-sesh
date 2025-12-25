@@ -1,7 +1,4 @@
 import { createClient } from "../../../lib/supabase/server";
-import Image from "next/image";
-import testImage from "../../../../public/test.png";
-
 import EditableField from "@/src/components/EditableField";
 import Link from "next/link";
 
@@ -67,13 +64,7 @@ export default async function ReviewPage({
                     Page {q.pageNumber}
                   </div>
                   <EditableField question={q} variant="question" />
-                  <Image
-                    height={400}
-                    width={400}
-                    src={testImage}
-                    alt=""
-                    className="mt-4 rounded-lg border border-border w-1/2 h-auto object-contain"
-                  />
+
                   <details className="text-sm mt-4">
                     <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
                       Show answer
