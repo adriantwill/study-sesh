@@ -34,15 +34,16 @@ export async function POST(req: NextRequest) {
     const result = await parser.getScreenshot();
     await parser.destroy();
 
+    if (result.pages.length > 70) {
+      return NextResponse.json(
+        { error: "PDF file too large" },
+        { status: 400 },
+      );
+    }
+
     const framePromises = result.pages.map(async (frame, index) => {
       if (index < 2) {
         return null;
-      }
-      if (result.pages.length > 70) {
-        return NextResponse.json(
-          { error: "PDF file too large" },
-          { status: 400 },
-        );
       }
 
       try {

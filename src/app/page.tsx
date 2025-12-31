@@ -26,7 +26,13 @@ export default async function Home() {
 
         <div className="bg-muted rounded-lg shadow p-8">
           <UploadButton></UploadButton>
-          <div className="mt-6">
+          <div className="mt-6 flex flex-col gap-4">
+            <Link 
+              href="/test" 
+              className="text-center text-sm text-muted-foreground hover:text-foreground underline underline-offset-4"
+            >
+              Try with dummy data (offline mode)
+            </Link>
             {data.length > 0 && (
               <div>
                 <h2 className="font-semibold mb-2 text-foreground">
