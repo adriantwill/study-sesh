@@ -2,9 +2,14 @@
 import Link from "next/link";
 import { StudyQuestion } from "@/src/types";
 import { useState } from "react";
+import Flashcard from "@/src/components/Flashcard";
 
 export default function TestPage() {
-  const [isFlipped, setIsFlipped] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [direction, setDirection] = useState<"next" | "prev" | "initial">(
+    "initial",
+  );
+
   const questions: StudyQuestion[] = [
     {
       id: "dummy-1",
@@ -13,80 +18,87 @@ export default function TestPage() {
       pageNumber: 1,
       completed: false,
     },
-    // {
-    //   id: "dummy-2",
-    //   question: "What is 2 + 2?",
-    //   answer: "4",
-    //   pageNumber: 1,
-    //   completed: false,
-    // },
-    // {
-    //   id: "dummy-3",
-    //   question: "Explain the concept of photosynthesis.",
-    //   answer:
-    //     "Photosynthesis is the process by which green plants and some other organisms use sunlight to synthesize foods with the help of chlorophyll pigments. In this process, carbon dioxide and water are converted into glucose and oxygen.",
-    //   pageNumber: 2,
-    //   completed: false,
-    // },
-    // {
-    //   id: "dummy-4",
-    //   question: "Who wrote 'To Kill a Mockingbird'?",
-    //   answer: "Harper Lee",
-    //   pageNumber: 3,
-    //   completed: false,
-    // },
-    // {
-    //   id: "dummy-5",
-    //   question: "What is the chemical symbol for gold?",
-    //   answer: "Au",
-    //   pageNumber: 5,
-    //   completed: false,
-    // },
+    {
+      id: "dummy-2",
+      question: "What is 2 + 2?",
+      answer: "4",
+      pageNumber: 1,
+      completed: false,
+    },
+    {
+      id: "dummy-3",
+      question: "Explain the concept of photosynthesis.",
+      answer:
+        "Photosynthesis is the process by which green plants and some other organisms use sunlight to synthesize foods with the help of chlorophyll pigments. In this process, carbon dioxide and water are converted into glucose and oxygen.",
+      pageNumber: 2,
+      completed: false,
+    },
+    {
+      id: "dummy-4",
+      question: "Who wrote 'To Kill a Mockingbird'?",
+      answer: "Harper Lee",
+      pageNumber: 3,
+      completed: false,
+    },
+    {
+      id: "dummy-5",
+      question: "What is the chemical symbol for gold?",
+      answer: "Au",
+      pageNumber: 5,
+      completed: false,
+    },
   ];
+
+  const nextCard = () => {
+    setDirection("next");
+    setCurrentIndex((prev) => (prev + 1) % questions.length);
+  };
+
+  const prevCard = () => {
+    setDirection("prev");
+    setCurrentIndex((prev) => (prev - 1 + questions.length) % questions.length);
+  };
 
   return (
     <div className="min-h-screen bg-background p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
+      <div className="max-w-2xl mx-auto">
+        <div className="flex justify-between items-center mb-12">
           <div>
-            <h1 className="text-4xl font-bold text-foreground">
-              Study Questions (TEST MODE)
-            </h1>
-            <p className="text-muted-foreground mt-2">
-              {questions.length} dummy questions for UI testing
-            </p>
+            <h1 className="text-4xl font-bold text-foreground">Flashcards</h1>
+            <p className="text-muted-foreground mt-2">Test your knowledge</p>
           </div>
           <Link
             href="/"
-            className="border border-border px-6 py-2 rounded-lg font-medium hover:bg-muted-hover"
+            className="border border-border px-6 py-2 rounded-lg font-medium hover:bg-muted-hover transition-colors"
           >
             Back Home
           </Link>
         </div>
-        <div className="space-y-4">
-          {questions.map((q, idx) => (
-            <div
-              onClick={() => setIsFlipped(!isFlipped)}
-              className={`bg-muted rounded-lg shadow p-2 cursor-pointer transition duration-600 transform origin-center   ${isFlipped ? "rotate-y-180" : ""}`}
-              key={q.id}
+
+        <div className="relative group ">
+          <Flashcard
+            key={questions[currentIndex].id}
+            q={questions[currentIndex]}
+            direction={direction}
+          />
+
+          <div className="flex justify-between items-center mt-5">
+            <button
+              onClick={prevCard}
+              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors header"
             >
-              <div className="flex flex-col space-y-2 py-28 items-center justify-center h-full ">
-                <div className="font-bold text-4xl backface-hidden">
-                  {isFlipped ? q.answer : q.question}
-                </div>
-                <div className="text-2xl text-secondary font-light">
-                  Page {q.pageNumber}
-                </div>
-              </div>
+              ←
+            </button>
+            <div className="text-sm font-medium text-muted-foreground">
+              {currentIndex + 1} / {questions.length}
             </div>
-          ))}
-        </div>
-        <div className="mt-8 p-4 bg-yellow-900/20 border border-yellow-900 text-yellow-200 rounded-lg">
-          <p className="text-sm">
-            <strong>Note:</strong> In test mode, edits and status changes will
-            not persist because they attempt to call the Supabase API, which may
-            fail if you are offline.
-          </p>
+            <button
+              onClick={nextCard}
+              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors footer"
+            >
+              →
+            </button>
+          </div>
         </div>
       </div>
     </div>
