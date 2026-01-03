@@ -6,7 +6,7 @@ RUN apk add --no-cache libc6-compat python3 make g++ cairo-dev pango-dev jpeg-de
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci
+RUN npm ci && npm cache clean --force
 
 # Build
 FROM base AS builder
