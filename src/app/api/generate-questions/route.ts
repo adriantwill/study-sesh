@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { StudyQuestion } from "@/src/types";
 import { PDFParse } from "pdf-parse";
 
+export const maxDuration = 60; // Increase timeout for PDF processing
+
 export async function POST(req: NextRequest) {
   try {
     console.log("API route called");
@@ -19,11 +21,6 @@ export async function POST(req: NextRequest) {
 
     const formData = await req.formData();
     const file = formData.get("pdf") as File;
-    const arrayBuffer = await file.arrayBuffer();
-    const parser = new PDFParse({
-      data: arrayBuffer,
-    });
-
     if (!file) {
       return NextResponse.json(
         { error: "No PDF file provided" },
@@ -31,7 +28,25 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const result = await parser.getScreenshot();
+    const arrayBuffer = await file.arrayBuffer();
+    
+    console.log("Starting PDF parsing...");
+    const parser = new PDFParse({
+      data: arrayBuffer,
+    });
+
+    let result;
+    try {
+      result = await parser.getScreenshot();
+      console.log(`PDF parsed successfully. Pages: ${result?.pages?.length}`);
+    } catch (pdfError) {
+      console.error("PDF Screenshot generation failed:", pdfError);
+      return NextResponse.json(
+        { error: "Failed to parse PDF or generate screenshots. Ensure 'canvas' is installed if required." },
+        { status: 500 },
+      );
+    }
+    
     await parser.destroy();
 
     if (result.pages.length > 70) {

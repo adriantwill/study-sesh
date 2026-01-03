@@ -2,7 +2,7 @@ FROM node:20-alpine AS base
 
 # Install dependencies
 FROM base AS deps
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat python3 make g++ cairo-dev pango-dev jpeg-dev giflib-dev librsvg-dev
 WORKDIR /app
 
 COPY package*.json ./
@@ -24,6 +24,9 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+
+# Install runtime dependencies for canvas
+RUN apk add --no-cache cairo pango jpeg giflib librsvg
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
