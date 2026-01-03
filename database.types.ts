@@ -20,6 +20,7 @@ export type Database = {
           completed: boolean
           created_at: string | null
           id: string
+          image_url: string | null
           page_number: number
           question_text: string
           upload_id: string | null
@@ -29,6 +30,7 @@ export type Database = {
           completed?: boolean
           created_at?: string | null
           id?: string
+          image_url?: string | null
           page_number: number
           question_text: string
           upload_id?: string | null
@@ -38,6 +40,7 @@ export type Database = {
           completed?: boolean
           created_at?: string | null
           id?: string
+          image_url?: string | null
           page_number?: number
           question_text?: string
           upload_id?: string | null
