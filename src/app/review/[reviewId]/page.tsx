@@ -1,6 +1,7 @@
 import { createClient } from "../../../lib/supabase/server";
+import FlashcardView from "@/src/components/FlashcardView";
+import { StudyQuestion } from "@/src/types";
 import EditableField from "@/src/components/EditableField";
-import Link from "next/link";
 
 export default async function ReviewPage({
   params,
@@ -25,7 +26,7 @@ export default async function ReviewPage({
     throw new Error("No questions found");
   }
 
-  const questions = data.map((q) => ({
+  const questions: StudyQuestion[] = data.map((q) => ({
     id: q.id,
     question: q.question_text,
     answer: q.answer_text,
@@ -35,24 +36,19 @@ export default async function ReviewPage({
 
   return (
     <div className="min-h-screen bg-background p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
+      <div className="max-w-4xl space-y-10 mx-auto">
+        <div className="flex justify-between items-center ">
           <div>
-            <h1 className="text-4xl font-bold text-foreground">
-              Study Questions
-            </h1>
-            <p className="text-muted-foreground mt-2">
-              {questions.length} questions
-            </p>
+            <h1 className="text-4xl font-bold text-foreground">Study Sesh</h1>
           </div>
-          <Link
-            href="/"
-            className="border border-border px-6 py-2 rounded-lg font-medium hover:bg-muted-hover"
-          >
-            New Upload
-          </Link>
         </div>
+
+        <FlashcardView questions={questions} />
+        <div className="h-px opacity-40 bg-foreground"></div>
         <div className="space-y-4">
+          <h2 className="text-2xl font-medium text-foreground">
+            Question Bank
+          </h2>
           {questions.map((q, idx) => (
             <div className="bg-muted rounded-lg shadow p-6" key={q.id}>
               <div className="flex items-start gap-4">

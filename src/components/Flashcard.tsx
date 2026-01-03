@@ -49,7 +49,7 @@ export default function Flashcard({
         <Card text={q.answer} />
 
         {/* Front (Question) - Rendered last so it sits on top, no rotation */}
-        <Card text={q.question} subtext={`Page ${q.pageNumber}`} />
+        <Card text={q.question} subtext={`Slide ${q.pageNumber}`} />
       </div>
     </div>
   );

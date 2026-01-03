@@ -21,11 +21,12 @@
     --color-error: var(--error);
     --color-button-primary: var(--btn-primary);
     --color-button-primary-foreground: var(--btn-primary-fg);
-    --font-sans: var(--font-geist-sans);
-    --font-mono: var(--font-geist-mono);
-    --animate-slide-in-left: slide-in-left 1s cubic-bezier(0.16, 1, 0.3, 1)
+
+    --font-sans: var(--font-faustina);
+
+    --animate-slide-in-right: slide-in-right 0.3s cubic-bezier(0.16, 1, 0.3, 1)
         forwards;
-    --animate-slide-in-right: slide-in-right 1s cubic-bezier(0.16, 1, 0.3, 1)
+    --animate-slide-in-left: slide-in-left 0.3s cubic-bezier(0.16, 1, 0.3, 1)
         forwards;
     @keyframes slide-in-right {
         0% {
@@ -101,5 +102,5 @@
 body {
     background: var(--bg);
     color: var(--fg);
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: var(--font-faustina), ui-sans-serif, system-ui, serif;
 }

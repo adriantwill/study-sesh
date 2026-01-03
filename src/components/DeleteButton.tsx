@@ -1,54 +1,35 @@
 "use client";
-import { useMemo, useState } from "react";
-import { createClient } from "../lib/supabase/client";
-import { useRouter } from "next/navigation";
+
+import { useFormStatus } from "react-dom";
 import { TbTrash } from "react-icons/tb";
+import { deleteItemAction } from "../app/actions";
 
 interface DeleteButtonProps {
   id: string;
   variant: "upload" | "question";
 }
 
-export default function DeleteButton({ id, variant }: DeleteButtonProps) {
-  const supabase = useMemo(() => createClient(), []);
-  const router = useRouter();
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const deleteItem = async () => {
-    if (isDeleting) return;
-    setIsDeleting(true);
-
-    try {
-      if (variant === "question") {
-        const { error } = await supabase
-          .from("questions")
-          .delete()
-          .eq("id", id);
-        if (error) throw error;
-      } else {
-        const { error: uploadError } = await supabase
-          .from("uploads")
-          .delete()
-          .eq("id", id);
-        if (uploadError) throw uploadError;
-      }
-      router.refresh();
-    } catch (error) {
-      console.error("Delete error:", error);
-      alert(`Failed to delete ${variant}`);
-    } finally {
-      setIsDeleting(false);
-    }
-  };
+function SubmitButton({ variant }: { variant: string }) {
+  const { pending } = useFormStatus();
 
   return (
     <button
-      onClick={deleteItem}
-      disabled={isDeleting}
+      type="submit"
+      disabled={pending}
       aria-label={`Delete ${variant}`}
-      className="hover:text-secondary enabled:hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+      className="hover:text-secondary enabled:hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
     >
-      <TbTrash />
+      <TbTrash className={pending ? "animate-pulse" : ""} />
     </button>
+  );
+}
+
+export default function DeleteButton({ id, variant }: DeleteButtonProps) {
+  const deleteAction = deleteItemAction.bind(null, id, variant);
+
+  return (
+    <form action={deleteAction}>
+      <SubmitButton variant={variant} />
+    </form>
   );
 }
