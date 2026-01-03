@@ -2,6 +2,8 @@ import UploadButton from "../components/UploadButton";
 import { createClient } from "../lib/supabase/server";
 import Link from "next/link";
 import DeleteButton from "../components/DeleteButton";
+import EditField from "../components/EditField";
+import { Link as LinkIcon } from "lucide-react";
 
 export default async function Home() {
   const supabase = await createClient();
@@ -15,7 +17,7 @@ export default async function Home() {
   if (!data) {
     throw new Error("No data returned from database");
   }
-
+  //TODO disable when completed
   return (
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-2xl mx-auto">
@@ -38,11 +40,16 @@ export default async function Home() {
                       key={item.id}
                       className="flex justify-between items-center"
                     >
+                      <EditField
+                        variant={"filename"}
+                        textField={item.filename}
+                        id={item.id}
+                      />
                       <Link
-                        className="text-muted-foreground hover:text-foreground"
+                        className="hover:text-muted-foreground flex items-center justify-center"
                         href={`/review/${item.id}`}
                       >
-                        {item.filename}
+                        <LinkIcon size={16} />
                       </Link>
                       <DeleteButton id={item.id} variant="upload" />
                     </li>

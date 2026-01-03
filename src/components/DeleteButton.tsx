@@ -1,7 +1,4 @@
-"use client";
-
-import { useFormStatus } from "react-dom";
-import { TbTrash } from "react-icons/tb";
+import { Trash2 } from "lucide-react";
 import { deleteItemAction } from "../app/actions";
 
 interface DeleteButtonProps {
@@ -9,27 +6,18 @@ interface DeleteButtonProps {
   variant: "upload" | "question";
 }
 
-function SubmitButton({ variant }: { variant: string }) {
-  const { pending } = useFormStatus();
-
-  return (
-    <button
-      type="submit"
-      disabled={pending}
-      aria-label={`Delete ${variant}`}
-      className="hover:text-secondary enabled:hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-    >
-      <TbTrash className={pending ? "animate-pulse" : ""} />
-    </button>
-  );
-}
-
 export default function DeleteButton({ id, variant }: DeleteButtonProps) {
   const deleteAction = deleteItemAction.bind(null, id, variant);
 
   return (
-    <form action={deleteAction}>
-      <SubmitButton variant={variant} />
+    <form action={deleteAction} className="flex items-center">
+      <button
+        type="submit"
+        aria-label={`Delete ${variant}`}
+        className="flex items-center justify-center hover:text-secondary enabled:hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      >
+        <Trash2 size={16} />
+      </button>
     </form>
   );
 }

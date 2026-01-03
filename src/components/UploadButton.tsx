@@ -3,6 +3,7 @@ import { useState, useMemo } from "react";
 import { createClient } from "../lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { StudyQuestion } from "../types";
+import { FileUp } from "lucide-react";
 
 export default function UploadButton() {
   const [file, setFile] = useState<File | null>(null);
@@ -138,9 +139,9 @@ export default function UploadButton() {
             />
             <label
               htmlFor="pdf-upload"
-              className="cursor-pointer text-muted-foreground hover:text-foreground"
+              className="cursor-pointer text-muted-foreground hover:text-foreground flex flex-col items-center"
             >
-              <div className="text-4xl mb-4">📄</div>
+              <FileUp size={16} className="mb-4" />
               <div className="font-medium">Click to upload pdf</div>
               <div className="text-sm mt-2">or drag and drop</div>
             </label>
