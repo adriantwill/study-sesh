@@ -5,6 +5,44 @@ export const maxDuration = 60; // Increase timeout for PDF processing
 
 export async function POST(req: NextRequest) {
   try {
+    // MOCK MODE: Return dummy data if MOCK_AI is set
+    if (process.env.MOCK_AI === "true") {
+      console.log("MOCK_AI enabled: Returning dummy questions");
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate network delay
+      
+      const mockQuestions: StudyQuestion[] = [
+        {
+          id: "mock-1",
+          question: "What is the capital of France?",
+          answer: "Paris",
+          pageNumber: 1,
+          completed: false,
+        },
+        {
+          id: "mock-2",
+          question: "What is the powerhouse of the cell?",
+          answer: "Mitochondria",
+          pageNumber: 1,
+          completed: false,
+        },
+        {
+          id: "mock-3",
+          question: "Explain the concept of photosynthesis.",
+          answer: "Photosynthesis is the process by which green plants use sunlight to synthesize foods from carbon dioxide and water.",
+          pageNumber: 2,
+          completed: false,
+        },
+        {
+          id: "mock-4",
+          question: "Who wrote 'To Kill a Mockingbird'?",
+          answer: "Harper Lee",
+          pageNumber: 3,
+          completed: false,
+        },
+      ];
+      return NextResponse.json(mockQuestions);
+    }
+
     console.log("API route called");
 
     // Polyfill for pdfjs-dist in Node environment
