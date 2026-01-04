@@ -23,7 +23,7 @@ export default function UploadButton() {
     formData.append("pdf", file);
 
     const fileSizeMB = file.size / (1024 * 1024);
-    const estimatedSeconds = Math.max(5, fileSizeMB * 2);
+    const estimatedSeconds = Math.max(5, fileSizeMB * 5);
     const totalTicks = (estimatedSeconds * 1000) / 100;
     const incrementPerTick = 95 / totalTicks;
 
