@@ -1,12 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import { StudyQuestion } from "@/src/types";
-import { PDFParse } from "pdf-parse";
 
 export const maxDuration = 60; // Increase timeout for PDF processing
 
 export async function POST(req: NextRequest) {
   try {
     console.log("API route called");
+
+    // Polyfill for pdfjs-dist in Node environment
+    // This fixes "ReferenceError: DOMMatrix is not defined"
+    if (!global.DOMMatrix) {
+      try {
+        // @ts-ignore
+        const canvas = await import("canvas");
+        // @ts-ignore
+        global.DOMMatrix = canvas.DOMMatrix || canvas.default?.DOMMatrix;
+        // @ts-ignore
+        global.DOMPoint = canvas.DOMPoint || canvas.default?.DOMPoint;
+        // @ts-ignore
+        global.ImageData = canvas.ImageData || canvas.default?.ImageData;
+        
+        console.log("Polyfilled DOMMatrix and Canvas APIs");
+      } catch (e) {
+        console.error("Failed to polyfill Canvas APIs:", e);
+      }
+    }
+
     if (!process.env.HYPERBOLIC_API_KEY) {
       console.error("Missing HYPERBOLIC_API_KEY");
       return NextResponse.json(
@@ -31,6 +50,12 @@ export async function POST(req: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     
     console.log("Starting PDF parsing...");
+    
+    // Dynamically import PDFParse to ensure polyfills are active
+    const pdfModule = await import("pdf-parse");
+    const PDFParse = pdfModule.PDFParse;
+
+    // @ts-ignore
     const parser = new PDFParse({
       data: arrayBuffer,
     });
@@ -56,7 +81,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const framePromises = result.pages.map(async (frame, index) => {
+    const framePromises = result.pages.map(async (frame: any, index: number) => {
       if (index < 2) {
         return null;
       }
