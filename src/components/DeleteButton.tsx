@@ -19,7 +19,7 @@ export default function DeleteButton({
       <button
         type="submit"
         aria-label={`Delete ${variant}`}
-        className="flex items-center justify-center hover:text-secondary enabled:hover:cursor-pointer disabled:cursor-auto disabled:text-white"
+        className="flex items-center justify-center enabled:hover:text-secondary enabled:hover:cursor-pointer "
         disabled={completed}
       >
         <Trash2 size={16} />

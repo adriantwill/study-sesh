@@ -63,7 +63,7 @@ export default function EditField({
       <button
         onClick={() => setIsEditing(!isEditing)}
         aria-label={`Edit ${variant}`}
-        className="flex items-center justify-center cursor-pointer disabled:cursor-auto hover:text-secondary disabled:text-white"
+        className="flex items-center justify-center enabled:cursor-pointer  enabled:hover:text-secondary "
         disabled={completed}
       >
         {!isEditing ? <Pencil size={16} /> : <Check size={16} />}
