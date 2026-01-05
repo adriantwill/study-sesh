@@ -4,4 +4,5 @@ export interface StudyQuestion {
   answer: string;
   pageNumber: number;
   completed: boolean;
+  imageUrl?: string | null;
 }

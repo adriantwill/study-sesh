@@ -11,6 +11,16 @@ const nextConfig: NextConfig = {
     },
   },
   serverExternalPackages: ["node-poppler"],
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "ystrfizsczfvkcbwetpb.supabase.co",
+        port: "",
+        pathname: "/storage/v1/object/public/**",
+      },
+    ],
+  },
 };
 
 export default nextConfig;

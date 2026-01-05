@@ -1,4 +1,5 @@
 import { createClient } from "../../../lib/supabase/server";
+import Image from "next/image";
 import FlashcardView from "@/src/components/FlashcardView";
 import { StudyQuestion } from "@/src/types";
 import EditField from "@/src/components/EditField";
@@ -11,31 +12,66 @@ export default async function ReviewPage({
 }: {
   params: Promise<{ reviewId: string }>;
 }) {
-  const supabase = await createClient();
-  const param = await params;
-  const { data, error } = await supabase
-    .from("questions")
-    .select("*")
-    .eq("upload_id", param.reviewId)
-    .order("page_number", { ascending: true })
-    .order("created_at", { ascending: true });
+  let questions: StudyQuestion[] = [
+    {
+      id: "mock-1",
+      question: "What is the capital of France?",
+      answer: "Paris",
+      pageNumber: 1,
+      completed: true,
+    },
+    {
+      id: "mock-2",
+      question: "What is the powerhouse of the cell?",
+      answer: "Mitochondria",
+      pageNumber: 1,
+      completed: false,
+    },
+    {
+      id: "mock-3",
+      question: "Explain the concept of photosynthesis.",
+      answer:
+        "Photosynthesis is the process by which green plants use sunlight to synthesize foods from carbon dioxide and water.",
+      pageNumber: 2,
+      completed: false,
+    },
+    {
+      id: "mock-4",
+      question: "Who wrote 'To Kill a Mockingbird'?",
+      answer: "Harper Lee",
+      pageNumber: 3,
+      completed: false,
+    },
+  ];
+  if (process.env.MOCK_AI !== "true") {
+    const supabase = await createClient();
+    const param = await params;
+    const { data, error } = await supabase
+      .from("questions")
+      .select("*")
+      .eq("upload_id", param.reviewId)
+      .order("page_number", { ascending: true })
+      .order("created_at", { ascending: true })
+      .order("id", { ascending: true });
 
-  if (error) {
-    console.error("Error fetching questions:", error);
-    throw new Error("Failed to load questions");
+    if (error) {
+      console.error("Error fetching questions:", error);
+      throw new Error("Failed to load questions");
+    }
+
+    if (!data) {
+      throw new Error("No questions found");
+    }
+
+    questions = data.map((q) => ({
+      id: q.id,
+      question: q.question_text,
+      answer: q.answer_text,
+      pageNumber: q.page_number,
+      completed: q.completed,
+      imageUrl: q.image_url,
+    }));
   }
-
-  if (!data) {
-    throw new Error("No questions found");
-  }
-
-  const questions: StudyQuestion[] = data.map((q) => ({
-    id: q.id,
-    question: q.question_text,
-    answer: q.answer_text,
-    pageNumber: q.page_number,
-    completed: q.completed,
-  }));
   //TODO fix supabase RLS
   return (
     <div className="min-h-screen bg-background p-8">
@@ -73,9 +109,10 @@ export default async function ReviewPage({
                       className={`flex items-center justify-between  ? "font-medium text-foreground mb-3" ${q.completed ? "line-through opacity-70" : ""}`}
                     >
                       <EditField
-                        id={q.id}
                         variant={"question_text"}
                         textField={q.question}
+                        id={q.id}
+                        completed={q.completed}
                       />
                       <form
                         action={toggleCompleteParams}
@@ -83,17 +120,27 @@ export default async function ReviewPage({
                       >
                         <button
                           aria-label="Mark as complete"
-                          className="flex items-center justify-center"
+                          className="flex items-center justify-center cursor-pointer hover:text-secondary"
                         >
-                          <SquareCheck
-                            size={16}
-                            className={q.completed ? "text-success" : ""}
-                          />
+                          <SquareCheck size={16} />
                         </button>
                       </form>
 
-                      <DeleteButton id={q.id} variant="question" />
+                      <DeleteButton
+                        id={q.id}
+                        variant="question"
+                        completed={q.completed}
+                      />
                     </div>
+                    {q.imageUrl && !q.completed && (
+                      <Image
+                        src={q.imageUrl}
+                        alt="supporting image"
+                        width={500}
+                        height={500}
+                        className="mt-3 rounded-md border "
+                      />
+                    )}
                     {!q.completed && (
                       <details className="text-sm mt-4">
                         <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
@@ -104,6 +151,7 @@ export default async function ReviewPage({
                             variant={"answer_text"}
                             textField={q.answer}
                             id={q.id}
+                            completed={q.completed}
                           />
                         </div>
                       </details>

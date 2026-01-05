@@ -17,7 +17,6 @@ export default async function Home() {
   if (!data) {
     throw new Error("No data returned from database");
   }
-  //TODO disable when completed
   return (
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-2xl mx-auto">
@@ -44,6 +43,7 @@ export default async function Home() {
                         variant={"filename"}
                         textField={item.filename}
                         id={item.id}
+                        completed={true}
                       />
                       <Link
                         className="hover:text-muted-foreground flex items-center justify-center"
@@ -51,7 +51,11 @@ export default async function Home() {
                       >
                         <LinkIcon size={16} />
                       </Link>
-                      <DeleteButton id={item.id} variant="upload" />
+                      <DeleteButton
+                        id={item.id}
+                        variant="upload"
+                        completed={true}
+                      />
                     </li>
                   ))}
                 </ul>

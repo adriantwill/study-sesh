@@ -18,7 +18,8 @@ export async function uploadAndGenerateAction(formData: FormData) {
     .from("uploads")
     .insert({
       filename: file.name,
-      page_count: questions.length > 0 ? questions[questions.length - 1].pageNumber : 0, // Approx
+      page_count:
+        questions.length > 0 ? questions[questions.length - 1].pageNumber : 0, // Approx
     })
     .select()
     .single();
@@ -30,16 +31,14 @@ export async function uploadAndGenerateAction(formData: FormData) {
 
   // Insert questions
   if (questions.length > 0) {
-    const { error: questionsError } = await supabase
-      .from("questions")
-      .insert(
-        questions.map((q) => ({
-          upload_id: upload.id,
-          page_number: q.pageNumber,
-          question_text: q.question,
-          answer_text: q.answer,
-        })),
-      );
+    const { error: questionsError } = await supabase.from("questions").insert(
+      questions.map((q) => ({
+        upload_id: upload.id,
+        page_number: q.pageNumber,
+        question_text: q.question,
+        answer_text: q.answer,
+      })),
+    );
 
     if (questionsError) {
       console.error("Error inserting questions:", questionsError);
