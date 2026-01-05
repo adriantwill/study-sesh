@@ -2,8 +2,56 @@
 
 import { createClient } from "../lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { generateQuestions } from "../lib/ai/question-generator";
 
-// --- EXISTING DELETE ACTION ---
+export async function uploadAndGenerateAction(formData: FormData) {
+  const file = formData.get("pdf") as File;
+  if (!file) {
+    throw new Error("No file provided");
+  }
+
+  const questions = await generateQuestions(file);
+  const supabase = await createClient();
+
+  // Insert upload record
+  const { data: upload, error: uploadError } = await supabase
+    .from("uploads")
+    .insert({
+      filename: file.name,
+      page_count: questions.length > 0 ? questions[questions.length - 1].pageNumber : 0, // Approx
+    })
+    .select()
+    .single();
+
+  if (uploadError || !upload) {
+    console.error("Error inserting upload:", uploadError);
+    throw new Error("Failed to save upload to database");
+  }
+
+  // Insert questions
+  if (questions.length > 0) {
+    const { error: questionsError } = await supabase
+      .from("questions")
+      .insert(
+        questions.map((q) => ({
+          upload_id: upload.id,
+          page_number: q.pageNumber,
+          question_text: q.question,
+          answer_text: q.answer,
+        })),
+      );
+
+    if (questionsError) {
+      console.error("Error inserting questions:", questionsError);
+      // Optional: Cleanup upload if questions fail? For now, just throw.
+      throw new Error("Failed to save questions to database");
+    }
+  }
+
+  revalidatePath("/");
+  return { uploadId: upload.id };
+}
+
 export async function deleteItemAction(
   id: string,
   variant: "upload" | "question",
@@ -25,8 +73,6 @@ export async function deleteItemAction(
     throw new Error(`Failed to delete ${variant}`);
   }
 }
-
-// --- NEW ACTIONS ---
 
 export async function updateQuestionTextAction(
   id: string,

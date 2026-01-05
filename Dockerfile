@@ -2,9 +2,10 @@ FROM node:20-slim AS base
 
 # Install dependencies
 FROM base AS deps
+# python3 and make/g++ might still be needed for other native modules, 
+# but we removed the heavy graphics libraries
 RUN apt-get update && apt-get install -y \
     python3 make g++ \
-    libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -35,17 +36,15 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Install runtime dependencies for canvas
+# Install runtime dependencies for pdf-poppler
 RUN apt-get update && apt-get install -y \
-    libcairo2 libpango-1.0-0 libpangocairo-1.0-0 \
-    libjpeg62-turbo libgif7 librsvg2-2 \
-    fonts-liberation fontconfig libuuid1 \
+    poppler-utils \
     && rm -rf /var/lib/apt/lists/*
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy node_modules from deps stage (includes canvas)
+# Copy node_modules from deps stage
 COPY --from=deps --chown=nextjs:nodejs /app/node_modules ./node_modules
 
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./

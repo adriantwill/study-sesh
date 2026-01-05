@@ -1,9 +1,8 @@
 "use client";
-import { useState, useMemo } from "react";
-import { createClient } from "../lib/supabase/client";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { StudyQuestion } from "../types";
 import { FileUp } from "lucide-react";
+import { uploadAndGenerateAction } from "../app/actions";
 
 export default function UploadButton() {
   const [file, setFile] = useState<File | null>(null);
@@ -11,7 +10,6 @@ export default function UploadButton() {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const supabase = useMemo(() => createClient(), []);
 
   const handleUpload = async () => {
     if (!file) return;
@@ -32,60 +30,10 @@ export default function UploadButton() {
     }, 100);
 
     try {
-      const res = await fetch("/api/generate-questions", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!res.ok) {
-        const text = await res.text();
-        console.error("API error response:", text);
-        try {
-          const errorData = JSON.parse(text);
-          throw new Error(
-            errorData.error || errorData.details || "Unknown error",
-          );
-        } catch {
-          throw new Error(`API error (${res.status}): ${text}`);
-        }
-      }
-
-      const data: StudyQuestion[] = await res.json();
-      console.log("API response:", data);
-
-      const { data: upload, error: uploadError } = await supabase
-        .from("uploads")
-        .insert({
-          filename: file.name,
-          page_count: data.length,
-        })
-        .select()
-        .single();
-
-      if (uploadError || !upload) {
-        console.error("Error inserting upload:", uploadError);
-        throw new Error("Failed to save upload to database");
-      }
-
-      const { error: questionsError } = await supabase
-        .from("questions")
-        .insert(
-          data.map((q) => ({
-            upload_id: upload.id,
-            page_number: q.pageNumber,
-            question_text: q.question,
-            answer_text: q.answer,
-          })),
-        )
-        .select();
-
-      if (questionsError) {
-        console.error("Error inserting questions:", questionsError);
-        throw new Error("Failed to save questions to database");
-      }
+      const result = await uploadAndGenerateAction(formData);
 
       setProgress(100);
-      router.push(`/review/${upload.id}`);
+      router.push(`/review/${result.uploadId}`);
     } catch (err) {
       console.error("Upload error:", err);
       setError(

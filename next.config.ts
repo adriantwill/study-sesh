@@ -2,9 +2,6 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -13,7 +10,7 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "30mb",
     },
   },
-  serverExternalPackages: ["pdf-parse", "pdfjs-dist", "canvas"],
+  serverExternalPackages: ["node-poppler"],
 };
 
 export default nextConfig;
