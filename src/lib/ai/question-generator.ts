@@ -90,7 +90,7 @@ export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
     const options = {
       firstPageToConvert: 3,
       pngFile: true,
-      scaleTo: 1024, // Reasonable width for AI analysis
+      scalePageTo: 1024,
     };
 
     // Note: node-poppler's pdfToCairo might return a buffer if no output file is specified,

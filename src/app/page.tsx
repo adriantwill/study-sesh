@@ -43,7 +43,7 @@ export default async function Home() {
                         variant={"filename"}
                         textField={item.filename}
                         id={item.id}
-                        completed={true}
+                        completed={false}
                       />
                       <Link
                         className="hover:text-muted-foreground flex items-center justify-center"
