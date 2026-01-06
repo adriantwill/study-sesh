@@ -54,7 +54,7 @@ export default async function Home() {
                       <DeleteButton
                         id={item.id}
                         variant="upload"
-                        completed={true}
+                        completed={false}
                       />
                     </li>
                   ))}

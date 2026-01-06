@@ -1,8 +1,8 @@
-version: '3.8'
+version: "3.8"
 
 services:
   app:
-    build: .
+    build: adrianwill/study-sesh:latest
     ports:
       - "3000:3000"
     environment:
