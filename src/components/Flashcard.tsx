@@ -39,7 +39,7 @@ export default function Flashcard({
 
   return (
     <div
-      className={`group w-full h-80 perspective-distant cursor-pointer ${animationClass}`}
+      className={`group w-full h-96 perspective-distant cursor-pointer ${animationClass}`}
       onClick={() => setIsFlipped(!isFlipped)}
     >
       <div

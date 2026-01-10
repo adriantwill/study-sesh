@@ -12,6 +12,7 @@ export default async function ReviewPage({
 }: {
   params: Promise<{ reviewId: string }>;
 }) {
+  let title = "Test title";
   let questions: StudyQuestion[] = [
     {
       id: "mock-1",
@@ -63,6 +64,17 @@ export default async function ReviewPage({
       throw new Error("No questions found");
     }
 
+    const { data: studyTitle, error: titleError } = await supabase
+      .from("uploads")
+      .select("filename")
+      .eq("id", param.reviewId)
+      .single();
+
+    if (titleError) {
+      console.error("Error fetching title:", titleError);
+      throw new Error("Failed to load title");
+    }
+
     questions = data.map((q) => ({
       id: q.id,
       question: q.question_text,
@@ -71,6 +83,7 @@ export default async function ReviewPage({
       completed: q.completed,
       imageUrl: q.image_url,
     }));
+    title = studyTitle.filename;
   }
   //TODO fix supabase RLS
   return (
@@ -78,7 +91,7 @@ export default async function ReviewPage({
       <div className="max-w-4xl space-y-10 mx-auto">
         <div className="flex justify-between items-center ">
           <div>
-            <h1 className="text-4xl font-bold text-foreground">Study Sesh</h1>
+            <h1 className="text-4xl font-bold text-foreground">{title}</h1>
           </div>
         </div>
 
@@ -138,7 +151,7 @@ export default async function ReviewPage({
                         alt="supporting image"
                         width={500}
                         height={500}
-                        className="mt-3 rounded-md border "
+                        className="mt-3 rounded-md border border-muted-foreground/20"
                       />
                     )}
                     {!q.completed && (
