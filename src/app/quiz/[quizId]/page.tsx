@@ -1,13 +1,13 @@
 import QuizCard from "@/src/components/QuizCard";
 import { createClient } from "@/src/lib/supabase/server";
 import { StudyQuestion } from "@/src/types";
+import QuizClient from "./QuizClient";
 
 export default async function QuizPage({
   params,
 }: {
   params: Promise<{ quizId: string }>;
 }) {
-  let title = "Test title";
   let questions: StudyQuestion[] = [
     {
       id: "mock-1",
@@ -81,11 +81,14 @@ export default async function QuizPage({
               <div className="text-3xl font-medium text-center text-foreground">
                 {q.question}
               </div>
-              <textarea
-                rows={1}
-                className="w-full text-3xl px-6 py-3 font-medium text-foreground bg-muted-hover rounded resize-none border-none outline-none"
-                placeholder="Your answer..."
-              />
+              <div className="space-y-4">
+                <textarea
+                  rows={1}
+                  className="w-full text-2xl px-6 py-3 font-bold text-foreground bg-muted-hover rounded resize-none border-none outline-none"
+                  placeholder="Your answer..."
+                />
+                <QuizClient answer={q.answer} />
+              </div>
             </div>
             <div className="text-sm font-medium text-muted-foreground items-center justify-center flex">
               Slide {q.pageNumber}
