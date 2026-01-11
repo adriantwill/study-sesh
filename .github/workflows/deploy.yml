@@ -28,6 +28,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: docker/build-push-action@v5
+        id: build
         with:
           context: .
           push: true
@@ -37,6 +38,8 @@ jobs:
           build-args: |
             NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
             NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
 
   deploy:
     needs: build-push
@@ -49,10 +52,10 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            docker pull ghcr.io/adriantwill/study-sesh:latest
+            docker pull ghcr.io/adriantwill/study-sesh@${{ needs.build-push.outputs.digest }}
             docker stop study-sesh || true
             docker rm study-sesh || true
             docker run -d --name study-sesh -p 3000:3000 --restart unless-stopped \
               -e HYPERBOLIC_API_KEY=${{ secrets.HYPERBOLIC_API_KEY }} \
-              ghcr.io/adriantwill/study-sesh:latest
+              ghcr.io/adriantwill/study-sesh@${{ needs.build-push.outputs.digest }}
             docker image prune -f
