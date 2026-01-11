@@ -7,6 +7,7 @@ import DeleteButton from "@/src/components/DeleteButton";
 import { SquareCheck } from "lucide-react";
 import { toggleCompleteAction } from "../../actions";
 import Link from "next/link";
+import AddQuestionButton from "@/src/components/AddQuestionButton";
 
 export default async function ReviewPage({
   params,
@@ -87,6 +88,7 @@ export default async function ReviewPage({
     title = studyTitle.filename;
   }
   //TODO fix supabase RLS
+  const reviewId = (await params).reviewId;
   return (
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-4xl space-y-10 mx-auto">
@@ -94,7 +96,7 @@ export default async function ReviewPage({
           <h1 className="text-4xl font-bold text-foreground">{title}</h1>
           <Link
             href={`/quiz/${(await params).reviewId}`}
-            className="text-sm text-primary"
+            className="text-2xl text-primary hover:text-secondary"
           >
             Quiz
           </Link>
@@ -103,8 +105,9 @@ export default async function ReviewPage({
         <FlashcardView questions={questions} />
         <div className="h-px opacity-40 bg-foreground"></div>
         <div className="space-y-4">
-          <h2 className="text-2xl font-medium text-foreground">
+          <h2 className="text-2xl items-center flex justify-between font-medium text-foreground">
             Question Bank
+            <AddQuestionButton uploadId={reviewId} />
           </h2>
           {questions.map((q, idx) => {
             const toggleCompleteParams = toggleCompleteAction.bind(

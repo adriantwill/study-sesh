@@ -110,3 +110,9 @@
     }
 }
 /* Light mode values (default) */
+
+/* Firefox backface fix */
+.backface-hidden {
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+}

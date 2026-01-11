@@ -4,12 +4,12 @@ import { StudyQuestion } from "../types";
 function Card({ text, subtext }: { text: string; subtext?: string }) {
   return (
     <div
-      className={`absolute inset-0 w-full h-full bg-muted rounded-xl shadow-lg flex flex-col items-center justify-center p-8 backface-hidden ${
+      className={` absolute inset-0 w-full h-full bg-muted rounded-xl shadow-lg flex flex-col items-center justify-center p-8 backface-hidden rotate-x-0 ${
         !subtext ? "rotate-y-180 " : ""
       }`}
     >
       {subtext && (
-        <div className="text-xs text-muted-foreground absolute top-4 left-4">
+        <div className="text-xs text-muted-foreground absolute top-4 left-4 ">
           {subtext}
         </div>
       )}
@@ -43,7 +43,7 @@ export default function Flashcard({
       onClick={() => setIsFlipped(!isFlipped)}
     >
       <div
-        className={`group-has-[.header:hover]:translate-x-2 group-has-[.footer:hover]:-translate-x-2 relative w-full h-full transition-all duration-500 transform-3d ${isFlipped ? "-rotate-y-180" : "hover:-rotate-y-6"}`}
+        className={`group-has-[.header:hover]:translate-x-2 group-has-[.footer:hover]:-translate-x-2 relative w-full h-full transition-all duration-500 transform-3d ${isFlipped ? "-rotate-y-180" : "hover:-rotate-y-6"} `}
       >
         {/* Back (Answer) - Rendered first but rotated 180deg */}
         <Card text={q.answer} />

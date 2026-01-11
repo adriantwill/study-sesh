@@ -148,3 +148,26 @@ export async function uploadImageAction(
 
   revalidatePath("/review/[reviewId]", "page");
 }
+
+export async function addQuestionAction(
+  uploadId: string,
+  question: string,
+  answer: string,
+  pageNumber: number,
+) {
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("questions").insert({
+    upload_id: uploadId,
+    page_number: pageNumber,
+    question_text: question,
+    answer_text: answer,
+  });
+
+  if (error) {
+    console.error("Add question error:", error);
+    throw new Error("Failed to add question");
+  }
+
+  revalidatePath("/review/[reviewId]", "page");
+}
