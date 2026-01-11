@@ -6,6 +6,7 @@ import EditField from "@/src/components/EditField";
 import DeleteButton from "@/src/components/DeleteButton";
 import { SquareCheck } from "lucide-react";
 import { toggleCompleteAction } from "../../actions";
+import Link from "next/link";
 
 export default async function ReviewPage({
   params,
@@ -90,9 +91,13 @@ export default async function ReviewPage({
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-4xl space-y-10 mx-auto">
         <div className="flex justify-between items-center ">
-          <div>
-            <h1 className="text-4xl font-bold text-foreground">{title}</h1>
-          </div>
+          <h1 className="text-4xl font-bold text-foreground">{title}</h1>
+          <Link
+            href={`/quiz/${(await params).reviewId}`}
+            className="text-sm text-primary"
+          >
+            Quiz
+          </Link>
         </div>
 
         <FlashcardView questions={questions} />
