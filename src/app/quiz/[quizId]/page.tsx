@@ -1,7 +1,6 @@
 import QuizCard from "@/src/components/QuizCard";
 import { createClient } from "@/src/lib/supabase/server";
 import { StudyQuestion } from "@/src/types";
-import { ChevronDown, ChevronUp } from "lucide-react";
 
 export default async function QuizPage({
   params,
@@ -60,17 +59,6 @@ export default async function QuizPage({
       throw new Error("No questions found");
     }
 
-    const { data: studyTitle, error: titleError } = await supabase
-      .from("uploads")
-      .select("filename")
-      .eq("id", param.quizId)
-      .single();
-
-    if (titleError) {
-      console.error("Error fetching title:", titleError);
-      throw new Error("Failed to load title");
-    }
-
     questions = data.map((q) => ({
       id: q.id,
       question: q.question_text,
@@ -79,16 +67,33 @@ export default async function QuizPage({
       completed: q.completed,
       imageUrl: q.image_url,
     }));
-    title = studyTitle.filename;
   }
   return (
-    <div className="min-h-screen bg-background p-8 flex flex-col">
-      <div className="max-w-4xl mx-auto flex flex-col flex-1 w-full">
-        <div className="flex justify-between items-center mb-10">
-          <h1 className="text-4xl font-bold text-foreground">{title}</h1>
+    <div className="max-w-5xl mx-auto ">
+      {questions.map((q, i) => (
+        <div
+          key={q.id}
+          className="h-screen snap-start my-auto px-6 flex flex-col items-center justify-center"
+        >
+          <div className="px-12 py-6 w-full aspect-5/3 rounded-lg shadow bg-muted flex flex-col z-10">
+            <div className="text-muted-foreground">Question {i + 1}</div>
+            <div className="flex flex-col justify-center space-y-24 flex-1">
+              <div className="text-3xl font-medium text-center text-foreground">
+                {q.question}
+              </div>
+              <textarea
+                rows={1}
+                className="w-full text-3xl px-6 py-3 font-medium text-foreground bg-muted-hover rounded resize-none border-none outline-none"
+                placeholder="Your answer..."
+              />
+            </div>
+            <div className="text-sm font-medium text-muted-foreground items-center justify-center flex">
+              Slide {q.pageNumber}
+            </div>
+          </div>
         </div>
-        <QuizCard questions={questions} />
-      </div>
+      ))}
+      <QuizCard />
     </div>
   );
 }

@@ -1,6 +1,5 @@
 @import "tailwindcss";
 
-/* Tailwind theme tokens - reference CSS variables */
 @theme inline {
     --color-background: var(--bg);
     --color-foreground: var(--fg);
@@ -28,8 +27,6 @@
         forwards;
     --animate-slide-in-left: slide-in-left 0.3s cubic-bezier(0.16, 1, 0.3, 1)
         forwards;
-    --animate-scroll-up: scroll-up 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-    --animate-scroll-down: scroll-down 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 
     @keyframes slide-in-right {
         0% {
@@ -50,28 +47,6 @@
         100% {
             opacity: 1;
             transform: translateX(0) scale(1);
-        }
-    }
-
-    @keyframes scroll-up {
-        0% {
-            opacity: 0;
-            transform: translateY(100px);
-        }
-        100% {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    @keyframes scroll-down {
-        0% {
-            opacity: 0;
-            transform: translateY(-100px);
-        }
-        100% {
-            opacity: 1;
-            transform: translateY(0);
         }
     }
 }
@@ -122,10 +97,4 @@
         --btn-primary: #ffffff;
         --btn-primary-fg: #000000;
     }
-}
-
-body {
-    background: var(--bg);
-    color: var(--fg);
-    font-family: var(--font-faustina), ui-sans-serif, system-ui, serif;
 }
