@@ -46,7 +46,7 @@ export default function AddQuestionButton({ uploadId }: { uploadId: string }) {
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 text-xl overscroll-none">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 text-lg overscroll-none">
           <div className="bg-background rounded-lg p-6 max-w-lg w-full mx-4">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">Add New Question</h2>

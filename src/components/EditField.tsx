@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Check, Pencil, Image as ImageIcon } from "lucide-react";
 import { updateQuestionTextAction, uploadImageAction } from "../app/actions";
+import { parseMarkdown } from "../lib/markdown";
 
 interface EditFieldProps {
   variant: "question_text" | "answer_text" | "filename";
@@ -41,7 +42,6 @@ export default function EditField({
     setText(value);
   }
 
-  //TODO make sure that db doesnt change if text isnt different
   return (
     <>
       {isEditing ? (
@@ -49,14 +49,13 @@ export default function EditField({
           value={text}
           onChange={handleTextChange}
           className={`w-5/6 font-medium text-foreground bg-muted-hover rounded px-2 py-1`}
-          onBlur={updateQuestion}
           autoFocus
         />
       ) : (
         <span
           className={`w-5/6 ${variant === "answer_text" ? "whitespace-pre-wrap" : ""}`}
         >
-          {text}
+          {parseMarkdown(text)}
         </span>
       )}
       {variant === "question_text" && (
@@ -81,7 +80,12 @@ export default function EditField({
       )}
 
       <button
-        onClick={() => setIsEditing(!isEditing)}
+        onClick={() => {
+          if (text !== textField) {
+            updateQuestion();
+          }
+          setIsEditing(!isEditing);
+        }}
         aria-label={`Edit ${variant}`}
         className="flex items-center justify-center enabled:cursor-pointer  enabled:hover:text-secondary "
         disabled={completed}

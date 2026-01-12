@@ -2,6 +2,7 @@ import QuizCard from "@/src/components/QuizCard";
 import { createClient } from "@/src/lib/supabase/server";
 import { StudyQuestion } from "@/src/types";
 import QuizClient from "./QuizClient";
+import { parseMarkdown } from "@/src/lib/markdown";
 
 export default async function QuizPage({
   params,
@@ -72,13 +73,13 @@ export default async function QuizPage({
           <div className="px-12 py-6 w-full h-145 rounded-lg shadow bg-muted flex flex-col ">
             <div className="text-muted-foreground">Question {i + 1}</div>
             <div className="flex flex-col justify-center space-y-24 flex-1">
-              <div className="text-3xl font-medium text-center text-foreground">
-                {q.question}
+              <div className="text-3xl font-medium text-center text-foreground whitespace-pre-wrap">
+                {parseMarkdown(q.question)}
               </div>
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <textarea
                   rows={1}
-                  className="w-full text-2xl px-6 py-3 font-bold text-foreground bg-muted-hover rounded resize-none border-none outline-none"
+                  className="w-full text-2xl px-4 py-3 font-bold text-foreground bg-muted-hover rounded resize-none border-none outline-none"
                   placeholder="Your answer..."
                 />
                 <QuizClient answer={q.answer} />

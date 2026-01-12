@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { StudyQuestion } from "../types";
+import { parseMarkdown } from "../lib/markdown";
 
 function Card({ text, isBack }: { text: string; isBack?: boolean }) {
   return (
@@ -8,8 +9,8 @@ function Card({ text, isBack }: { text: string; isBack?: boolean }) {
         isBack ? "rotate-y-180 " : ""
       }`}
     >
-      <div className="text-3xl font-medium text-center text-foreground">
-        {text}
+      <div className="text-3xl font-medium text-center text-foreground whitespace-pre-wrap">
+        {parseMarkdown(text)}
       </div>
     </div>
   );
