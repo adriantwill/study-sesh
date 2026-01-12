@@ -6,13 +6,34 @@ import { addQuestionAction } from "../app/actions";
 
 export default function AddQuestionButton({ uploadId }: { uploadId: string }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [answer, setAnswer] = useState("");
 
   async function handleSubmit(formData: FormData) {
     const question = formData.get("question") as string;
-    const answer = formData.get("answer") as string;
 
     await addQuestionAction(uploadId, question, answer);
     setIsOpen(false);
+    setAnswer("");
+  }
+
+  function handleAnswerChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    const value = e.target.value;
+    const cursorPos = e.target.selectionStart;
+
+    if (value.endsWith("- ")) {
+      const beforeDash = value.slice(0, -2);
+      const isLineStart = beforeDash.length === 0 || beforeDash.endsWith("\n");
+
+      if (isLineStart) {
+        const newValue = beforeDash + "• ";
+        setAnswer(newValue);
+        setTimeout(() => {
+          e.target.selectionStart = e.target.selectionEnd = cursorPos + 1;
+        }, 0);
+        return;
+      }
+    }
+    setAnswer(value);
   }
 
   return (
@@ -54,6 +75,8 @@ export default function AddQuestionButton({ uploadId }: { uploadId: string }) {
                 <label className="block text-sm font-medium mb-1">Answer</label>
                 <textarea
                   name="answer"
+                  value={answer}
+                  onChange={handleAnswerChange}
                   required
                   rows={3}
                   className="w-full px-3 py-2 bg-muted rounded border border-muted-foreground/20 focus:outline-none focus:border-primary"

@@ -21,13 +21,33 @@ export default function EditField({
   const updateQuestion = updateQuestionTextAction.bind(null, id, text, variant);
   const uploadImageWithId = uploadImageAction.bind(null, id);
 
+  function handleTextChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    const value = e.target.value;
+    const cursorPos = e.target.selectionStart;
+
+    if (value.endsWith("- ")) {
+      const beforeDash = value.slice(0, -2);
+      const isLineStart = beforeDash.length === 0 || beforeDash.endsWith("\n");
+
+      if (isLineStart) {
+        const newValue = beforeDash + "• ";
+        setText(newValue);
+        setTimeout(() => {
+          e.target.selectionStart = e.target.selectionEnd = cursorPos + 1;
+        }, 0);
+        return;
+      }
+    }
+    setText(value);
+  }
+
   //TODO make sure that db doesnt change if text isnt different
   return (
     <>
       {isEditing ? (
         <textarea
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={handleTextChange}
           className={`w-5/6 font-medium text-foreground bg-muted-hover rounded px-2 py-1`}
           onBlur={updateQuestion}
           autoFocus
