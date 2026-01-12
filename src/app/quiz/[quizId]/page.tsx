@@ -13,14 +13,12 @@ export default async function QuizPage({
       id: "mock-1",
       question: "What is the capital of France?",
       answer: "Paris",
-      pageNumber: 1,
       completed: true,
     },
     {
       id: "mock-2",
       question: "What is the powerhouse of the cell?",
       answer: "Mitochondria",
-      pageNumber: 1,
       completed: false,
     },
     {
@@ -28,14 +26,12 @@ export default async function QuizPage({
       question: "Explain the concept of photosynthesis.",
       answer:
         "Photosynthesis is the process by which green plants use sunlight to synthesize foods from carbon dioxide and water.",
-      pageNumber: 2,
       completed: false,
     },
     {
       id: "mock-4",
       question: "Who wrote 'To Kill a Mockingbird'?",
       answer: "Harper Lee",
-      pageNumber: 3,
       completed: false,
     },
   ];
@@ -46,7 +42,6 @@ export default async function QuizPage({
       .from("questions")
       .select("*")
       .eq("upload_id", param.quizId)
-      .order("page_number", { ascending: true })
       .order("created_at", { ascending: true })
       .order("id", { ascending: true });
 
@@ -63,7 +58,6 @@ export default async function QuizPage({
       id: q.id,
       question: q.question_text,
       answer: q.answer_text,
-      pageNumber: q.page_number,
       completed: q.completed,
       imageUrl: q.image_url,
     }));
@@ -89,9 +83,6 @@ export default async function QuizPage({
                 />
                 <QuizClient answer={q.answer} />
               </div>
-            </div>
-            <div className="text-sm font-medium text-muted-foreground items-center justify-center flex">
-              Slide {q.pageNumber}
             </div>
           </div>
           <QuizCard />

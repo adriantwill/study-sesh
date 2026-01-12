@@ -1,18 +1,13 @@
 import { useState } from "react";
 import { StudyQuestion } from "../types";
 
-function Card({ text, subtext }: { text: string; subtext?: string }) {
+function Card({ text, isBack }: { text: string; isBack?: boolean }) {
   return (
     <div
       className={` absolute inset-0 w-full h-full bg-muted rounded-xl shadow-lg flex flex-col items-center justify-center p-8 backface-hidden rotate-x-0 ${
-        !subtext ? "rotate-y-180 " : ""
+        isBack ? "rotate-y-180 " : ""
       }`}
     >
-      {subtext && (
-        <div className="text-xs text-muted-foreground absolute top-4 left-4 ">
-          {subtext}
-        </div>
-      )}
       <div className="text-3xl font-medium text-center text-foreground">
         {text}
       </div>
@@ -46,10 +41,10 @@ export default function Flashcard({
         className={`group-has-[.header:hover]:translate-x-2 group-has-[.footer:hover]:-translate-x-2 relative w-full h-full transition-all duration-500 transform-3d ${isFlipped ? "-rotate-y-180" : "hover:-rotate-y-6"} `}
       >
         {/* Back (Answer) - Rendered first but rotated 180deg */}
-        <Card text={q.answer} />
+        <Card text={q.answer} isBack />
 
         {/* Front (Question) - Rendered last so it sits on top, no rotation */}
-        <Card text={q.question} subtext={`Slide ${q.pageNumber}`} />
+        <Card text={q.question} />
       </div>
     </div>
   );

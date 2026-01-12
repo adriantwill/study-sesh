@@ -15,14 +15,12 @@ export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
         id: "mock-1",
         question: "The capital of France",
         answer: "Paris",
-        pageNumber: 1,
         completed: false,
       },
       {
         id: "mock-2",
         question: "The powerhouse of the cell",
         answer: "Mitochondria",
-        pageNumber: 1,
         completed: false,
       },
       {
@@ -30,14 +28,12 @@ export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
         question: "Concept of photosynthesis",
         answer:
           "Photosynthesis is the process by which green plants use sunlight to synthesize foods from carbon dioxide and water.",
-        pageNumber: 2,
         completed: false,
       },
       {
         id: "mock-4",
         question: "Author of 'To Kill a Mockingbird'",
         answer: "Harper Lee",
-        pageNumber: 3,
         completed: false,
       },
     ];
@@ -66,23 +62,6 @@ export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
 
     const poppler = new Poppler();
 
-    // Get PDF Info to check page count
-    const pdfInfo = (await poppler.pdfInfo(pdfPath)) as string;
-
-    // Parse page count from string output (Pages:  X)
-    const pageMatch = pdfInfo.match(/Pages:\s+(\d+)/);
-    const pageCount = pageMatch ? parseInt(pageMatch[1], 10) : NaN;
-
-    if (isNaN(pageCount)) {
-      throw new Error("Could not determine page count from PDF");
-    }
-
-    console.log(`PDF parsed successfully. Pages: ${pageCount}`);
-
-    if (pageCount > 70) {
-      throw new Error("PDF file too large (max 70 pages)");
-    }
-
     // Convert PDF to PNGs using pdftocairo
     // We want to skip the first 2 pages, so we start converting from page 3.
     // pdftocairo options: -f (first page), -l (last page), -png
@@ -93,17 +72,7 @@ export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
       scalePageTo: 1024,
     };
 
-    // Note: node-poppler's pdfToCairo might return a buffer if no output file is specified,
-    // but typically it writes to files with the prefix.
-    // Documentation says: pdfToCairo(sourceFile, outputFile, options)
-    // If we provide outputFile, it acts as a prefix.
-
-    if (pageCount >= 3) {
-      await poppler.pdfToCairo(pdfPath, outputPrefix, options);
-    } else {
-      console.log("PDF has fewer than 3 pages, skipping processing.");
-      return [];
-    }
+    await poppler.pdfToCairo(pdfPath, outputPrefix, options);
 
     // Process each generated image by reading the directory
     const allFiles = await fs.readdir(tempDir);
@@ -113,10 +82,6 @@ export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
 
     const processPagePromises = imageFiles.map(async (fileName) => {
       const imagePath = path.join(tempDir, fileName);
-
-      // Extract page number from filename (e.g., slides-abc-3.png -> 3)
-      const pageNumberMatch = fileName.match(/-(\d+)\.png$/);
-      const pageNumber = pageNumberMatch ? parseInt(pageNumberMatch[1], 10) : 0;
 
       try {
         const imageBuffer = await fs.readFile(imagePath);
@@ -182,7 +147,7 @@ Only return valid JSON, no additional text.`,
         }
 
         const response = await apiResponse.json();
-        console.log(`Hyperbolic API response received for page ${pageNumber}`);
+        console.log(`Hyperbolic API response received`);
 
         const content = response.choices[0]?.message?.content || "";
         const jsonMatch = content.match(/\[[\s\S]*\]/);
@@ -197,13 +162,12 @@ Only return valid JSON, no additional text.`,
             id: "id", // Placeholder
             question: q.question,
             answer: q.answer,
-            pageNumber: pageNumber,
             completed: false,
           }));
         }
         return [];
       } catch (err) {
-        console.error(`Error processing page ${pageNumber}`, err);
+        console.error(`Error processing slide`, err);
         return [];
       }
     });

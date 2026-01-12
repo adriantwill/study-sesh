@@ -32,7 +32,6 @@ export async function uploadAndGenerateAction(formData: FormData) {
     const { error: questionsError } = await supabase.from("questions").insert(
       questions.map((q) => ({
         upload_id: upload.id,
-        page_number: q.pageNumber,
         question_text: q.question,
         answer_text: q.answer,
       })),
@@ -151,13 +150,11 @@ export async function addQuestionAction(
   uploadId: string,
   question: string,
   answer: string,
-  pageNumber: number,
 ) {
   const supabase = await createClient();
 
   const { error } = await supabase.from("questions").insert({
     upload_id: uploadId,
-    page_number: pageNumber,
     question_text: question,
     answer_text: answer,
   });

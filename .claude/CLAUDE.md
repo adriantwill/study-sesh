@@ -29,7 +29,7 @@ npm run start    # prod server
 
 ## DB Tables
 
-- `uploads` - PDF uploads (id, filename, page_count)
+- `uploads` - PDF uploads (id, filename)
 - `questions` - generated questions (upload_id, page_number, question_text, answer_text, completed, image_url)
 
 ## Env Vars

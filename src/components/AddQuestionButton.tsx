@@ -10,9 +10,8 @@ export default function AddQuestionButton({ uploadId }: { uploadId: string }) {
   async function handleSubmit(formData: FormData) {
     const question = formData.get("question") as string;
     const answer = formData.get("answer") as string;
-    const pageNumber = parseInt(formData.get("pageNumber") as string);
 
-    await addQuestionAction(uploadId, question, answer, pageNumber);
+    await addQuestionAction(uploadId, question, answer);
     setIsOpen(false);
   }
 
@@ -39,20 +38,6 @@ export default function AddQuestionButton({ uploadId }: { uploadId: string }) {
             </div>
 
             <form action={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Slide Number
-                </label>
-                <input
-                  type="number"
-                  name="pageNumber"
-                  defaultValue={1}
-                  min={1}
-                  required
-                  className="w-full px-3 py-2 bg-muted rounded border border-muted-foreground/20 focus:outline-none focus:border-primary"
-                />
-              </div>
-
               <div>
                 <label className="block text-sm font-medium mb-1">
                   Question

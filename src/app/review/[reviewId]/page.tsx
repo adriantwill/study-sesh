@@ -20,14 +20,12 @@ export default async function ReviewPage({
       id: "mock-1",
       question: "What is the capital of France?",
       answer: "Paris",
-      pageNumber: 1,
       completed: true,
     },
     {
       id: "mock-2",
       question: "What is the powerhouse of the cell?",
       answer: "Mitochondria",
-      pageNumber: 1,
       completed: false,
     },
     {
@@ -35,14 +33,12 @@ export default async function ReviewPage({
       question: "Explain the concept of photosynthesis.",
       answer:
         "Photosynthesis is the process by which green plants use sunlight to synthesize foods from carbon dioxide and water.",
-      pageNumber: 2,
       completed: false,
     },
     {
       id: "mock-4",
       question: "Who wrote 'To Kill a Mockingbird'?",
       answer: "Harper Lee",
-      pageNumber: 3,
       completed: false,
     },
   ];
@@ -53,7 +49,6 @@ export default async function ReviewPage({
       .from("questions")
       .select("*")
       .eq("upload_id", param.reviewId)
-      .order("page_number", { ascending: true })
       .order("created_at", { ascending: true })
       .order("id", { ascending: true });
 
@@ -81,7 +76,6 @@ export default async function ReviewPage({
       id: q.id,
       question: q.question_text,
       answer: q.answer_text,
-      pageNumber: q.page_number,
       completed: q.completed,
       imageUrl: q.image_url,
     }));
@@ -123,9 +117,6 @@ export default async function ReviewPage({
                     {idx + 1}
                   </div>
                   <div className="flex-1">
-                    <div className="text-xs text-muted-foreground mb-2">
-                      Page {q.pageNumber}
-                    </div>
                     <div
                       className={`flex items-center justify-between  ? "font-medium text-foreground mb-3" ${q.completed ? "line-through opacity-70" : ""}`}
                     >
