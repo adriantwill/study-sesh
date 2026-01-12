@@ -21,7 +21,6 @@ export type Database = {
           created_at: string | null
           id: string
           image_url: string | null
-          page_number: number
           question_text: string
           upload_id: string | null
         }
@@ -31,7 +30,6 @@ export type Database = {
           created_at?: string | null
           id?: string
           image_url?: string | null
-          page_number: number
           question_text: string
           upload_id?: string | null
         }
@@ -41,7 +39,6 @@ export type Database = {
           created_at?: string | null
           id?: string
           image_url?: string | null
-          page_number?: number
           question_text?: string
           upload_id?: string | null
         }
@@ -60,21 +57,18 @@ export type Database = {
           created_at: string | null
           filename: string
           id: string
-          page_count: number
           user_id: string | null
         }
         Insert: {
           created_at?: string | null
           filename: string
           id?: string
-          page_count: number
           user_id?: string | null
         }
         Update: {
           created_at?: string | null
           filename?: string
           id?: string
-          page_count?: number
           user_id?: string | null
         }
         Relationships: []

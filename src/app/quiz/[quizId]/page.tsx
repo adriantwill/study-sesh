@@ -69,13 +69,13 @@ export default async function QuizPage({
     }));
   }
   return (
-    <div className="max-w-5xl mx-auto ">
+    <div className="max-w-5xl mx-auto">
       {questions.map((q, i) => (
         <div
           key={q.id}
           className="h-screen snap-start my-auto px-6 flex flex-col items-center justify-center"
         >
-          <div className="px-12 py-6 w-full aspect-5/3 rounded-lg shadow bg-muted flex flex-col z-10">
+          <div className="px-12 py-6 w-full h-145 rounded-lg shadow bg-muted flex flex-col ">
             <div className="text-muted-foreground">Question {i + 1}</div>
             <div className="flex flex-col justify-center space-y-24 flex-1">
               <div className="text-3xl font-medium text-center text-foreground">
@@ -94,9 +94,9 @@ export default async function QuizPage({
               Slide {q.pageNumber}
             </div>
           </div>
+          <QuizCard />
         </div>
       ))}
-      <QuizCard />
     </div>
   );
 }

@@ -18,8 +18,6 @@ export async function uploadAndGenerateAction(formData: FormData) {
     .from("uploads")
     .insert({
       filename: file.name,
-      page_count:
-        questions.length > 0 ? questions[questions.length - 1].pageNumber : 0, // Approx
     })
     .select()
     .single();

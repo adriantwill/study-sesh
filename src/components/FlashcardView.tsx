@@ -33,7 +33,7 @@ export default function FlashcardView({
         />
         <NavigationButton direction="next" changeDirection={changeDirection} />
       </div>
-      <div className="text-sm font-medium text-muted-foreground flex justify-center">
+      <div className="mt-4 text-sm font-medium text-muted-foreground flex justify-center">
         {currentIndex + 1} / {questions.length}
       </div>
     </div>

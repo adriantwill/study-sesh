@@ -20,7 +20,7 @@ export default function AddQuestionButton({ uploadId }: { uploadId: string }) {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="flex text-xl items-center cursor-pointer px-4 py-1.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
+        className="flex text-lg items-center cursor-pointer px-4 py-1.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
       >
         Add Question
       </button>
