@@ -1,3 +1,5 @@
+import { JSX } from "react";
+
 export function parseMarkdown(text: string): (string | JSX.Element)[] {
   const parts: (string | JSX.Element)[] = [];
   let key = 0;

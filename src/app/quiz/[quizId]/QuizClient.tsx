@@ -1,6 +1,6 @@
 "use client";
 
-import { BookKey, BookLock, Eye } from "lucide-react";
+import { BookKey, BookLock } from "lucide-react";
 import { useState } from "react";
 import { parseMarkdown } from "@/src/lib/markdown";
 
