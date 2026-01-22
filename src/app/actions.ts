@@ -166,3 +166,18 @@ export async function addQuestionAction(
 
   revalidatePath("/review/[reviewId]", "page");
 }
+
+export async function addFolderAction(name: string) {
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("folders").insert({
+    name,
+  });
+
+  if (error) {
+    console.error("Add folder error:", error);
+    throw new Error("Failed to add folder");
+  }
+
+  revalidatePath("/");
+}

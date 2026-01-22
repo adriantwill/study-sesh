@@ -10,6 +10,7 @@ export default function UploadButton() {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [isPublic, setIsPublic] = useState(false);
 
   const handleUpload = async () => {
     if (!file) return;
@@ -98,14 +99,28 @@ export default function UploadButton() {
       </div>
 
       {file && (
-        <button
-          onClick={handleUpload}
-          disabled={loading}
-          className="w-full mt-6 bg-button-primary text-button-primary-foreground py-3 rounded-lg font-medium hover:opacity-85 disabled:opacity-50 disabled:cursor-not-allowed"
-          aria-label="Generate study questions from uploaded file"
-        >
-          {loading ? "Generating questions..." : "Generate Study Questions"}
-        </button>
+        <>
+          <div className="mt-6 flex items-center gap-2 justify-between">
+            <label htmlFor="public-checkbox" className="text-m text-foreground ">
+              Make public
+            </label>
+            <input
+              type="checkbox"
+              id="public-checkbox"
+              checked={isPublic}
+              onChange={(e) => setIsPublic(e.target.checked)}
+              className="size-4 rounded-2 bg-background  cursor-pointer"
+            />
+          </div>
+          <button
+            onClick={handleUpload}
+            disabled={loading}
+            className="w-full mt-6 bg-button-primary text-button-primary-foreground py-3 rounded-lg font-medium hover:opacity-85 disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label="Generate study questions from uploaded file"
+          >
+            {loading ? "Generating questions..." : "Generate Study Questions"}
+          </button>
+        </>
       )}
       {loading && (
         <div className="mt-6 space-y-2">

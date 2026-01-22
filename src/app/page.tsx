@@ -4,10 +4,20 @@ import Link from "next/link";
 import DeleteButton from "../components/DeleteButton";
 import EditField from "../components/EditField";
 import { Link as LinkIcon } from "lucide-react";
+import AddFolder from "../components/AddFolder";
+import FoldersList from "../components/FoldersList";
 
 export default async function Home() {
   const supabase = await createClient();
-  const { data, error } = await supabase.from("uploads").select();
+  const { data, error } = await supabase.from("uploads").select()
+  const { data: folders } = await supabase.from("folders").select();
+
+
+  const foldersWithUploads = folders?.map(folder => ({
+    ...folder,
+    uploads: data?.filter(u => u.folder_id === folder.id) || []
+  })) || [];
+
 
   if (error) {
     console.error("Error fetching uploads:", error);
@@ -17,6 +27,8 @@ export default async function Home() {
   if (!data) {
     throw new Error("No data returned from database");
   }
+
+
   return (
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-2xl mx-auto">
@@ -30,10 +42,11 @@ export default async function Home() {
           <div className="mt-6 flex flex-col gap-4">
             {data.length > 0 && (
               <div>
-                <h2 className="font-semibold mb-2 text-foreground">
+                <h2 className="font-semibold text-lg  text-foreground">
                   Saved data:
                 </h2>
                 <ul className="space-y-1">
+                  <FoldersList foldersWithUploads={foldersWithUploads} />
                   {data.map((item) => (
                     <li
                       key={item.id}
@@ -58,6 +71,7 @@ export default async function Home() {
                       />
                     </li>
                   ))}
+                  <AddFolder />
                 </ul>
               </div>
             )}

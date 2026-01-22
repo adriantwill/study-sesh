@@ -14,6 +14,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      folders: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       questions: {
         Row: {
           answer_text: string
@@ -56,22 +74,33 @@ export type Database = {
         Row: {
           created_at: string | null
           filename: string
+          folder_id: string | null
           id: string
           user_id: string | null
         }
         Insert: {
           created_at?: string | null
           filename: string
+          folder_id?: string | null
           id?: string
           user_id?: string | null
         }
         Update: {
           created_at?: string | null
           filename?: string
+          folder_id?: string | null
           id?: string
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "uploads_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "folders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
