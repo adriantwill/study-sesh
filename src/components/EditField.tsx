@@ -9,14 +9,12 @@ interface EditFieldProps {
   variant: "question_text" | "answer_text" | "filename";
   textField: string;
   id: string;
-  completed: boolean;
 }
 
 export default function EditField({
   variant,
   textField,
   id,
-  completed,
 }: EditFieldProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [text, setText] = useState(textField);
@@ -49,17 +47,17 @@ export default function EditField({
         <textarea
           value={text}
           onChange={handleTextChange}
-          className={`w-full font-medium text-foreground bg-muted-hover rounded px-2 py-1`}
+          className={`w-full font-medium h-7 text-foreground bg-muted-hover rounded px-2 py-1`}
           autoFocus
         />
       ) : variant === "filename" ? (
-        <Link href={`/review/${id}`}
+        <Link href={`/${id}`}
           className="w-full hover:text-muted-foreground">
           {text}
         </Link>
       ) : (
         <span
-          className={`w-full hover:text-muted-foreground ${variant === "answer_text" ? "whitespace-pre-wrap" : ""}`}
+          className={`w-full ${variant === "answer_text" ? "whitespace-pre-wrap" : ""}`}
         >
           {parseMarkdown(text)}
         </span>
@@ -69,12 +67,11 @@ export default function EditField({
           <label
             htmlFor={`file-upload-${id}`}
             aria-label="Upload image"
-            className={`flex items-center justify-center ${!completed ? "cursor-pointer hover:text-secondary" : ""}`}
+            className={`flex items-center justify-center cursor-pointer hover:text-secondary`}
           >
             <ImageIcon size={16} />
           </label>
           <input
-            disabled={completed}
             id={`file-upload-${id}`}
             name="file"
             type="file"
@@ -94,7 +91,6 @@ export default function EditField({
         }}
         aria-label={`Edit ${variant}`}
         className="flex items-center justify-center enabled:cursor-pointer  enabled:hover:text-secondary "
-        disabled={completed}
       >
         {!isEditing ? <Pencil size={16} /> : <Check size={16} />}
       </button>

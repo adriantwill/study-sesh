@@ -4,13 +4,11 @@ import { deleteItemAction } from "../app/actions";
 interface DeleteButtonProps {
   id: string;
   variant: "upload" | "question";
-  completed: boolean;
 }
 
 export default function DeleteButton({
   id,
   variant,
-  completed,
 }: DeleteButtonProps) {
   const deleteAction = deleteItemAction.bind(null, id, variant);
 
@@ -19,8 +17,7 @@ export default function DeleteButton({
       <button
         type="submit"
         aria-label={`Delete ${variant}`}
-        className="flex items-center justify-center enabled:hover:text-secondary enabled:hover:cursor-pointer "
-        disabled={completed}
+        className="flex items-center justify-center hover:text-secondary hover:cursor-pointer "
       >
         <Trash2 size={16} />
       </button>

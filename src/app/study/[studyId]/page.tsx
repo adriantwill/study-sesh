@@ -1,6 +1,6 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { StudyQuestion } from "@/src/types";
-import StudyClient from "./StudyClient";
+import FlashcardView from "@/src/components/FlashcardView";
 
 export default async function StudyPage({
   params,
@@ -51,8 +51,10 @@ export default async function StudyPage({
   }
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-background flex items-center justify-center">
-      <StudyClient questions={questions} />
+    <div className="flex justify-center items-center min-h-screen">
+      <div className="w-8/12">
+        <FlashcardView questions={questions} height="h-130" />
+      </div>
     </div>
   );
 }

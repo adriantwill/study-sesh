@@ -5,13 +5,9 @@ import { parseMarkdown } from "../lib/markdown";
 function Card({ text, isBack }: { text: string; isBack?: boolean }) {
   return (
     <div
-      className={` absolute inset-0 w-full h-full bg-muted rounded-xl shadow-lg flex flex-col items-center justify-center p-8 backface-hidden rotate-x-0 ${
-        isBack ? "rotate-y-180 " : ""
-      }`}
+      className={`text-4xl font-medium text-center text-foreground whitespace-pre-wrap absolute inset-0 w-full h-full bg-muted rounded-xl shadow-lg flex flex-col items-center justify-center p-8 backface-hidden rotate-x-0 ${isBack ? "rotate-y-180 " : ""}`}
     >
-      <div className="text-3xl font-medium text-center text-foreground whitespace-pre-wrap">
-        {parseMarkdown(text)}
-      </div>
+      {parseMarkdown(text)}
     </div>
   );
 }
@@ -19,9 +15,11 @@ function Card({ text, isBack }: { text: string; isBack?: boolean }) {
 export default function Flashcard({
   q,
   direction,
+  height = "h-104",
 }: {
   q: StudyQuestion;
   direction: "next" | "prev" | "initial";
+  height?: string;
 }) {
   const [isFlipped, setIsFlipped] = useState(false);
 
@@ -35,7 +33,7 @@ export default function Flashcard({
 
   return (
     <div
-      className={`group w-full h-96 perspective-distant cursor-pointer ${animationClass}`}
+      className={`group w-full ${height} perspective-distant cursor-pointer ${animationClass}`}
       onClick={() => setIsFlipped(!isFlipped)}
     >
       <div

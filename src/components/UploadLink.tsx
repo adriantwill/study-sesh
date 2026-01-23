@@ -22,7 +22,6 @@ export default function UploadLink({ upload, folders }: UploadLinkProps) {
         variant={"filename"}
         textField={upload.filename}
         id={upload.id}
-        completed={false}
       />
       <div className="relative cursor-pointer">
         <Folder size={16} />

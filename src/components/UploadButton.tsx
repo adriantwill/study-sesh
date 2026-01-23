@@ -34,7 +34,7 @@ export default function UploadButton() {
       const result = await uploadAndGenerateAction(formData);
 
       setProgress(100);
-      router.push(`/review/${result.uploadId}`);
+      router.push(`/${result.uploadId}`);
     } catch (err) {
       console.error("Upload error:", err);
       setError(

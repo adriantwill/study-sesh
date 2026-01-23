@@ -58,7 +58,7 @@ export async function deleteItemAction(
     if (variant === "question") {
       const { error } = await supabase.from("questions").delete().eq("id", id);
       if (error) throw error;
-      revalidatePath("/review/[reviewId]", "page");
+      revalidatePath("/[reviewId]", "page");
     } else {
       const { error } = await supabase.from("uploads").delete().eq("id", id);
       if (error) throw error;
@@ -88,7 +88,7 @@ export async function updateQuestionTextAction(
     throw new Error("Failed to update text");
   }
 
-  revalidatePath("/review/[reviewId]", "page");
+  revalidatePath("/[reviewId]", "page");
 }
 
 export async function toggleCompleteAction(id: string, currentStatus: boolean) {
@@ -104,7 +104,7 @@ export async function toggleCompleteAction(id: string, currentStatus: boolean) {
     throw new Error("Failed to toggle completion status");
   }
 
-  revalidatePath("/review/[reviewId]", "page");
+  revalidatePath("/[reviewId]", "page");
 }
 
 export async function setCompletedAction(id: string, completed: boolean) {
@@ -159,7 +159,7 @@ export async function uploadImageAction(
     throw new Error("Failed to link image to question");
   }
 
-  revalidatePath("/review/[reviewId]", "page");
+  revalidatePath("/[reviewId]", "page");
 }
 
 export async function addQuestionAction(
@@ -180,7 +180,7 @@ export async function addQuestionAction(
     throw new Error("Failed to add question");
   }
 
-  revalidatePath("/review/[reviewId]", "page");
+  revalidatePath("/[reviewId]", "page");
 }
 
 export async function addFolderAction(name: string) {

@@ -1,11 +1,11 @@
-import { createClient } from "../../../lib/supabase/server";
+import { createClient } from "../../lib/supabase/server";
 import Image from "next/image";
 import FlashcardView from "@/src/components/FlashcardView";
 import { StudyQuestion } from "@/src/types";
 import EditField from "@/src/components/EditField";
 import DeleteButton from "@/src/components/DeleteButton";
-import { SquareCheck } from "lucide-react";
-import { toggleCompleteAction } from "../../actions";
+
+import { toggleCompleteAction } from "../actions";
 import Link from "next/link";
 import AddQuestionButton from "@/src/components/AddQuestionButton";
 
@@ -112,12 +112,6 @@ export default async function ReviewPage({
             <AddQuestionButton uploadId={reviewId} />
           </h2>
           {questions.map((q, idx) => {
-            const toggleCompleteParams = toggleCompleteAction.bind(
-              null,
-              q.id,
-              q.completed,
-            );
-
             return (
               <div className="bg-muted rounded-lg shadow p-6" key={q.id}>
                 <div className="flex items-start gap-4">
@@ -126,33 +120,19 @@ export default async function ReviewPage({
                   </div>
                   <div className="flex-1">
                     <div
-                      className={`flex items-center justify-between  ? "font-medium text-foreground mb-3" ${q.completed ? "line-through opacity-70" : ""}`}
+                      className={`flex items-center justify-between  ? "font-medium text-foreground mb-3" `}
                     >
                       <EditField
                         variant={"question_text"}
                         textField={q.question}
                         id={q.id}
-                        completed={q.completed}
                       />
-                      <form
-                        action={toggleCompleteParams}
-                        className="flex items-center"
-                      >
-                        <button
-                          aria-label="Mark as complete"
-                          className="flex items-center justify-center cursor-pointer hover:text-secondary"
-                        >
-                          <SquareCheck size={16} />
-                        </button>
-                      </form>
-
                       <DeleteButton
                         id={q.id}
                         variant="question"
-                        completed={q.completed}
                       />
                     </div>
-                    {q.imageUrl && !q.completed && (
+                    {q.imageUrl && (
                       <Image
                         src={q.imageUrl}
                         alt="supporting image"
@@ -161,21 +141,18 @@ export default async function ReviewPage({
                         className="mt-3 rounded-md border border-muted-foreground/20"
                       />
                     )}
-                    {!q.completed && (
-                      <details className="text-sm mt-4">
-                        <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
-                          Show answer
-                        </summary>
-                        <div className="flex items-center justify-between mt-2 p-4 rounded-lg bg-muted-hover">
-                          <EditField
-                            variant={"answer_text"}
-                            textField={q.answer}
-                            id={q.id}
-                            completed={q.completed}
-                          />
-                        </div>
-                      </details>
-                    )}
+                    <details className="text-sm mt-4">
+                      <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+                        Show answer
+                      </summary>
+                      <div className="flex items-center justify-between mt-2 p-4 rounded-lg bg-muted-hover">
+                        <EditField
+                          variant={"answer_text"}
+                          textField={q.answer}
+                          id={q.id}
+                        />
+                      </div>
+                    </details>
                   </div>
                 </div>
               </div>
