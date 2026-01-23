@@ -3,9 +3,9 @@ import { createClient } from "../lib/supabase/server";
 import Link from "next/link";
 import DeleteButton from "../components/DeleteButton";
 import EditField from "../components/EditField";
-import { Link as LinkIcon } from "lucide-react";
 import AddFolder from "../components/AddFolder";
 import FoldersList from "../components/FoldersList";
+import UploadLink from "../components/UploadLink";
 
 export default async function Home() {
   const supabase = await createClient();
@@ -45,26 +45,10 @@ export default async function Home() {
                 <h2 className="font-semibold text-lg  text-foreground">
                   Saved data:
                 </h2>
-                <ul className="space-y-1 transition-transform duration-300">
+                <ul className="space-y-1 ">
                   <FoldersList foldersWithUploads={foldersWithUploads} />
                   {data.map((item) => (
-                    <Link
-                      href={`/review/${item.id}`}
-                      key={item.id}
-                      className="hover:text-muted-foreground flex justify-between items-center"
-                    >
-                      <EditField
-                        variant={"filename"}
-                        textField={item.filename}
-                        id={item.id}
-                        completed={false}
-                      />
-                      <DeleteButton
-                        id={item.id}
-                        variant="upload"
-                        completed={false}
-                      />
-                    </Link>
+                    <UploadLink key={item.id} upload={item} />
                   ))}
                   <AddFolder />
                 </ul>

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Check, Pencil, Image as ImageIcon } from "lucide-react";
 import { updateQuestionTextAction, uploadImageAction } from "../app/actions";
 import { parseMarkdown } from "../lib/markdown";
+import Link from "next/link";
 
 interface EditFieldProps {
   variant: "question_text" | "answer_text" | "filename";
@@ -51,9 +52,14 @@ export default function EditField({
           className={`w-full font-medium text-foreground bg-muted-hover rounded px-2 py-1`}
           autoFocus
         />
+      ) : variant === "filename" ? (
+        <Link href={`/review/${id}`}
+          className="w-full hover:text-muted-foreground">
+          {text}
+        </Link>
       ) : (
         <span
-          className={`w-full ${variant === "answer_text" ? "whitespace-pre-wrap" : ""}`}
+          className={`w-full hover:text-muted-foreground ${variant === "answer_text" ? "whitespace-pre-wrap" : ""}`}
         >
           {parseMarkdown(text)}
         </span>
