@@ -1,8 +1,5 @@
 import UploadButton from "../components/UploadButton";
 import { createClient } from "../lib/supabase/server";
-import Link from "next/link";
-import DeleteButton from "../components/DeleteButton";
-import EditField from "../components/EditField";
 import AddFolder from "../components/AddFolder";
 import FoldersList from "../components/FoldersList";
 import UploadLink from "../components/UploadLink";
@@ -47,8 +44,8 @@ export default async function Home() {
                 </h2>
                 <ul className="space-y-1 ">
                   <FoldersList foldersWithUploads={foldersWithUploads} />
-                  {data.map((item) => (
-                    <UploadLink key={item.id} upload={item} />
+                  {data.filter(item => item.folder_id === null).map((item) => (
+                    <UploadLink key={item.id} upload={item} folders={folders ?? []} />
                   ))}
                   <AddFolder />
                 </ul>

@@ -197,3 +197,22 @@ export async function addFolderAction(name: string) {
 
   revalidatePath("/");
 }
+
+export async function updateUploadFolderAction(
+  uploadId: string,
+  folderId: string | null,
+) {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("uploads")
+    .update({ folder_id: folderId })
+    .eq("id", uploadId);
+
+  if (error) {
+    console.error("Update folder error:", error);
+    throw new Error("Failed to update folder");
+  }
+
+  revalidatePath("/");
+}
