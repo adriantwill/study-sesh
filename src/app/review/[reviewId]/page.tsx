@@ -88,12 +88,20 @@ export default async function ReviewPage({
       <div className="max-w-4xl space-y-10 mx-auto">
         <div className="flex justify-between items-center ">
           <h1 className="text-3xl font-bold text-foreground">{title}</h1>
-          <Link
-            href={`/quiz/${(await params).reviewId}`}
-            className="text-2xl text-primary hover:text-secondary"
-          >
-            Quiz
-          </Link>
+          <div className="flex gap-6">
+            <Link
+              href={`/study/${(await params).reviewId}`}
+              className="text-2xl text-primary hover:text-secondary"
+            >
+              Study
+            </Link>
+            <Link
+              href={`/quiz/${(await params).reviewId}`}
+              className="text-2xl text-primary hover:text-secondary"
+            >
+              Quiz
+            </Link>
+          </div>
         </div>
 
         <FlashcardView questions={questions} />

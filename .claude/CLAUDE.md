@@ -52,3 +52,4 @@ npm run start    # prod server
 - Uses server actions for all mutations + revalidatePath() for cache
 - Docker uses poppler-utils runtime dep
 - No test suite
+- Firefox backface-visibility fix: add `rotate-x-0` to card faces when using `backface-hidden` with 3D transforms

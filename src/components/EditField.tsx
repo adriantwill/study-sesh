@@ -48,12 +48,12 @@ export default function EditField({
         <textarea
           value={text}
           onChange={handleTextChange}
-          className={`w-5/6 font-medium text-foreground bg-muted-hover rounded px-2 py-1`}
+          className={`w-full font-medium text-foreground bg-muted-hover rounded px-2 py-1`}
           autoFocus
         />
       ) : (
         <span
-          className={`w-5/6 ${variant === "answer_text" ? "whitespace-pre-wrap" : ""}`}
+          className={`w-full ${variant === "answer_text" ? "whitespace-pre-wrap" : ""}`}
         >
           {parseMarkdown(text)}
         </span>

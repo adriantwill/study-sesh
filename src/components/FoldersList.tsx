@@ -1,7 +1,7 @@
 "use client"
 import { useState } from "react";
 import { Tables } from "../types/database.types";
-import { Folder } from "lucide-react";
+import { Folder, FolderOpen } from "lucide-react";
 import Link from "next/link";
 import { Link as LinkIcon } from "lucide-react";
 import EditField from "./EditField";
@@ -19,23 +19,29 @@ export default function FoldersList({ foldersWithUploads }: FoldersListProps) {
   const [openFolder, setOpenFolder] = useState<string | null>(null);
 
   return (
-    <div>
+    <div className="transition-transform duration-300">
       {foldersWithUploads.map((folder) => (
-        <div key={folder.id}>
+        <div className="" key={folder.id}>
           <li
-            className="flex text-base items-end gap-2 cursor-pointer"
+            className="flex text-base items-end gap-2 cursor-pointer hover:text-muted-foreground transition-colors"
             onClick={() => setOpenFolder(openFolder === folder.id ? null : folder.id)}
           >
             <b>{folder.name}</b>
-            <Folder size={19} className="" />
+            {openFolder === folder.id ? (
+              <FolderOpen size={19} className="" />
+            ) : (
+              <Folder size={19} className=" hover:scale-110" />
+            )}
           </li>
 
-          {openFolder === folder.id && (
-            <ul className="space-y-1 pl-6">
+          <div className={`grid transition-all duration-200 ${openFolder === folder.id ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+            <ul className="space-y-1 pl-6 overflow-hidden min-h-0">
               {folder.uploads.map((upload) => (
-                <li
+                <Link
                   key={upload.id}
                   className="flex justify-between items-center"
+                  href={`/review/${upload.id}`}
+
                 >
                   <EditField
                     variant={"filename"}
@@ -43,23 +49,18 @@ export default function FoldersList({ foldersWithUploads }: FoldersListProps) {
                     id={upload.id}
                     completed={false}
                   />
-                  <Link
-                    className="hover:text-muted-foreground flex items-center justify-center"
-                    href={`/review/${upload.id}`}
-                  >
-                    <LinkIcon size={16} />
-                  </Link>
                   <DeleteButton
                     id={upload.id}
                     variant="upload"
                     completed={false}
                   />
-                </li>
+                </Link>
               ))}
             </ul>
-          )}
+          </div>
         </div>
-      ))}
-    </div>
+      ))
+      }
+    </div >
   );
 }

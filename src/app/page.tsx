@@ -45,12 +45,13 @@ export default async function Home() {
                 <h2 className="font-semibold text-lg  text-foreground">
                   Saved data:
                 </h2>
-                <ul className="space-y-1">
+                <ul className="space-y-1 transition-transform duration-300">
                   <FoldersList foldersWithUploads={foldersWithUploads} />
                   {data.map((item) => (
-                    <li
+                    <Link
+                      href={`/review/${item.id}`}
                       key={item.id}
-                      className="flex justify-between items-center"
+                      className="hover:text-muted-foreground flex justify-between items-center"
                     >
                       <EditField
                         variant={"filename"}
@@ -58,18 +59,12 @@ export default async function Home() {
                         id={item.id}
                         completed={false}
                       />
-                      <Link
-                        className="hover:text-muted-foreground flex items-center justify-center"
-                        href={`/review/${item.id}`}
-                      >
-                        <LinkIcon size={16} />
-                      </Link>
                       <DeleteButton
                         id={item.id}
                         variant="upload"
                         completed={false}
                       />
-                    </li>
+                    </Link>
                   ))}
                   <AddFolder />
                 </ul>

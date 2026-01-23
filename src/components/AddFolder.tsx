@@ -1,15 +1,18 @@
 "use client"
 import { FolderPlus, Save } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { addFolderAction } from "../app/actions";
 
 export default function AddFolder() {
   const [addFolderState, setAddFolderState] = useState(false);
   const [folderName, setFolderName] = useState("");
-
+  const inputRef = useRef<HTMLInputElement>(null);
+  const openField = () => {
+    setAddFolderState(true);
+    inputRef.current?.focus();
+  };
   const addFolder = async () => {
     if (!folderName.trim()) return;
-
     try {
       await addFolderAction(folderName);
       setFolderName("");
@@ -20,34 +23,31 @@ export default function AddFolder() {
   };
 
   return (
-    <div>
-      <li className="flex justify-between">
-        {addFolderState ? (
-          <input
-            type="text"
-            placeholder="Folder name..."
-            value={folderName}
-            onChange={(e) => setFolderName(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && addFolder()}
-            className="px-1  border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            autoFocus
-          />
-        ) : (
-          <div className="border border-transparent">
-            <em>Add Folder</em>
-          </div>
-        )}
-        <button
-          className="cursor-pointer"
-          onClick={() => addFolderState ? addFolder() : setAddFolderState(true)}
-        >
+    <li className={`flex items-center gap-5 translate-y-2 ${addFolderState ? 'justify-between' : 'justify-center'}`}>
+      <div className={`overflow-hidden transition-all duration-300 ${addFolderState ? 'w-full opacity-100' : 'w-0 opacity-0'}`}>
+        <input
+          ref={inputRef}
+          type="text"
+          placeholder="Folder name..."
+          value={folderName}
+          onChange={(e) => setFolderName(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && addFolder()}
+          className="px-1 py-0.5  w-full border border-border rounded outline-none "
+          onBlur={() => setAddFolderState(false)}
+        />
+      </div>
+      <button
+        className="cursor-pointer transition-transform duration-200 hover:scale-110"
+        onClick={() => addFolderState ? addFolder() : openField()}
+      >
+        <div className={`transition-transform duration-300 `}>
           {addFolderState ? (
-            <Save size={16} strokeWidth={2.5} />
+            <Save size={20} />
           ) : (
-            <FolderPlus strokeWidth={2.5} size={16} />
+            <FolderPlus size={28} />
           )}
-        </button>
-      </li>
-    </div>
+        </div>
+      </button>
+    </li>
   );
 }
