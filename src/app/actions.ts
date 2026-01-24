@@ -91,38 +91,6 @@ export async function updateQuestionTextAction(
   revalidatePath("/[reviewId]", "page");
 }
 
-export async function toggleCompleteAction(id: string, currentStatus: boolean) {
-  const supabase = await createClient();
-
-  const { error } = await supabase
-    .from("questions")
-    .update({ completed: !currentStatus })
-    .eq("id", id);
-
-  if (error) {
-    console.error("Toggle complete error:", error);
-    throw new Error("Failed to toggle completion status");
-  }
-
-  revalidatePath("/[reviewId]", "page");
-}
-
-export async function setCompletedAction(id: string, completed: boolean) {
-  const supabase = await createClient();
-
-  const { error } = await supabase
-    .from("questions")
-    .update({ completed })
-    .eq("id", id);
-
-  if (error) {
-    console.error("Set completed error:", error);
-    throw new Error("Failed to set completion status");
-  }
-
-  revalidatePath("/study/[studyId]", "page");
-}
-
 export async function uploadImageAction(
   questionId: string,
   formData: FormData,

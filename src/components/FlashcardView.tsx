@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { StudyQuestion } from "@/src/types";
 import Flashcard from "@/src/components/Flashcard";
 import NavigationButton from "./NavigationButton";
@@ -51,6 +51,22 @@ export default function FlashcardView({
     setCurrentIndex(0);
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const tag = document.activeElement?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      if (e.key === "ArrowRight") changeDirection(1);
+      if (isStudyMode) {
+        if (e.key === "ArrowLeft") handleComplete();
+      } else {
+        if (e.key === "ArrowLeft") changeDirection(-1);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  });
+
   if (filteredQuestions.length === 0) {
     return (
       <div className="text-center py-20">
@@ -88,16 +104,16 @@ export default function FlashcardView({
         <>
           <div className="justify-center flex gap-4 mt-10">
             <button
-              onClick={() => changeDirection(1)}
-              className="hover:bg-red-500/10 text-muted-foreground hover:text-red-500 p-4 rounded-full transition-all duration-200"
-            >
-              <X size={40} strokeWidth={2.5} />
-            </button>
-            <button
               onClick={handleComplete}
               className="hover:bg-green-500/10 text-muted-foreground hover:text-green-500 p-4 rounded-full transition-all duration-200"
             >
               <Check size={40} strokeWidth={2.5} />
+            </button>
+            <button
+              onClick={() => changeDirection(1)}
+              className="hover:bg-red-500/10 text-muted-foreground hover:text-red-500 p-4 rounded-full transition-all duration-200"
+            >
+              <X size={40} strokeWidth={2.5} />
             </button>
           </div>
           {completedIds.length > 0 && (

@@ -12,13 +12,11 @@ export default async function StudyPage({
       id: "mock-1",
       question: "What is the capital of France?",
       answer: "Paris",
-      completed: false,
     },
     {
       id: "mock-2",
       question: "What is the powerhouse of the cell?",
       answer: "Mitochondria",
-      completed: true,
     },
   ];
 
@@ -45,7 +43,6 @@ export default async function StudyPage({
       id: q.id,
       question: q.question_text,
       answer: q.answer_text,
-      completed: q.completed,
       imageUrl: q.image_url,
     }));
   }

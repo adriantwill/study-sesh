@@ -35,7 +35,6 @@ export type Database = {
       questions: {
         Row: {
           answer_text: string
-          completed: boolean
           created_at: string | null
           id: string
           image_url: string | null
@@ -44,7 +43,6 @@ export type Database = {
         }
         Insert: {
           answer_text: string
-          completed?: boolean
           created_at?: string | null
           id?: string
           image_url?: string | null
@@ -53,7 +51,6 @@ export type Database = {
         }
         Update: {
           answer_text?: string
-          completed?: boolean
           created_at?: string | null
           id?: string
           image_url?: string | null

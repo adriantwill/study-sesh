@@ -7,17 +7,17 @@ import EditField from "./EditField";
 import DeleteButton from "./DeleteButton";
 import UploadLink from "./UploadLink";
 
-type FolderWithUploads = Tables<"folders"> & {
-  uploads: Tables<"uploads">[];
-};
-
 interface FoldersListProps {
-  foldersWithUploads: FolderWithUploads[];
+  folders: Tables<"folders">[];
+  uploads: Tables<"uploads">[];
 }
 
-export default function FoldersList({ foldersWithUploads }: FoldersListProps) {
+export default function FoldersList({ folders, uploads }: FoldersListProps) {
   const [openFolder, setOpenFolder] = useState<string | null>(null);
-
+  const foldersWithUploads = folders?.map(folder => ({
+    ...folder,
+    uploads: uploads?.filter(u => u.folder_id === folder.id) || []
+  })) || [];
   return (
     <div className="transition-transform duration-300">
       {foldersWithUploads.map((folder) => (
@@ -37,7 +37,7 @@ export default function FoldersList({ foldersWithUploads }: FoldersListProps) {
           <div className={`grid transition-all duration-200 ${openFolder === folder.id ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
             <ul className="space-y-1 pl-6 overflow-hidden min-h-0">
               {folder.uploads.map((upload) => (
-                <UploadLink key={upload.id} upload={upload} />
+                <UploadLink key={upload.id} upload={upload} folders={foldersWithUploads} />
               ))}
             </ul>
           </div>

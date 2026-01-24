@@ -2,7 +2,7 @@
 import { Folder } from "lucide-react";
 import { Tables } from "../types/database.types";
 import DeleteButton from "./DeleteButton";
-import EditField from "./EditField";
+import Link from "next/link";
 import { updateUploadFolderAction } from "../app/actions";
 
 interface UploadLinkProps {
@@ -18,27 +18,27 @@ export default function UploadLink({ upload, folders }: UploadLinkProps) {
 
   return (
     <li className="flex justify-between items-center">
-      <EditField
-        variant={"filename"}
-        textField={upload.filename}
-        id={upload.id}
-      />
-      <div className="relative cursor-pointer">
-        <Folder size={16} />
-        <select
-          value={upload.folder_id ?? ""}
-          onChange={handleFolderChange}
-          className="absolute inset-0 opacity-0 cursor-pointer"
-        >
-          <option value="">No folder</option>
-          {folders && folders.map((folder) => (
-            <option key={folder.id} value={folder.id}>
-              {folder.name}
-            </option>
-          ))}
-        </select>
+      <Link href={`/${upload.id}`} className="hover:text-muted-foreground">
+        {upload.filename}
+      </Link>
+      <div className="flex gap-2">
+        <div className="relative cursor-pointer">
+          <Folder size={16} />
+          <select
+            value={upload.folder_id ?? ""}
+            onChange={handleFolderChange}
+            className="absolute inset-0 opacity-0 cursor-pointer"
+          >
+            <option value="">No folder</option>
+            {folders && folders.map((folder) => (
+              <option key={folder.id} value={folder.id}>
+                {folder.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <DeleteButton id={upload.id} variant="upload" />
       </div>
-      <DeleteButton id={upload.id} variant="upload" completed={false} />
     </li>
   );
 }

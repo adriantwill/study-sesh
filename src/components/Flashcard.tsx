@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { StudyQuestion } from "../types";
 import { parseMarkdown } from "../lib/markdown";
 
@@ -7,7 +7,7 @@ function Card({ text, isBack }: { text: string; isBack?: boolean }) {
     <div
       className={`text-4xl font-medium text-center text-foreground whitespace-pre-wrap absolute inset-0 w-full h-full bg-muted rounded-xl shadow-lg flex flex-col items-center justify-center p-8 backface-hidden rotate-x-0 ${isBack ? "rotate-y-180 " : ""}`}
     >
-      {parseMarkdown(text)}
+      <span>{parseMarkdown(text)}</span>
     </div>
   );
 }
@@ -22,6 +22,19 @@ export default function Flashcard({
   height?: string;
 }) {
   const [isFlipped, setIsFlipped] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const tag = document.activeElement?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      if (e.key === " ") {
+        e.preventDefault();
+        setIsFlipped((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   // Determine animation class based on direction
   const animationClass =

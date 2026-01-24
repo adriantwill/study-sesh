@@ -5,9 +5,9 @@ import { StudyQuestion } from "@/src/types";
 import EditField from "@/src/components/EditField";
 import DeleteButton from "@/src/components/DeleteButton";
 
-import { toggleCompleteAction } from "../actions";
 import Link from "next/link";
 import AddQuestionButton from "@/src/components/AddQuestionButton";
+import ImageUploadButton from "@/src/components/ImageUploadButton";
 
 export default async function ReviewPage({
   params,
@@ -20,26 +20,22 @@ export default async function ReviewPage({
       id: "mock-1",
       question: "What is the capital of France?",
       answer: "Paris",
-      completed: true,
     },
     {
       id: "mock-2",
       question: "What is the powerhouse of the cell?",
       answer: "Mitochondria",
-      completed: false,
     },
     {
       id: "mock-3",
       question: "Explain the concept of photosynthesis.",
       answer:
         "Photosynthesis is the process by which green plants use sunlight to synthesize foods from carbon dioxide and water.",
-      completed: false,
     },
     {
       id: "mock-4",
       question: "Who wrote 'To Kill a Mockingbird'?",
       answer: "Harper Lee",
-      completed: false,
     },
   ];
   if (process.env.MOCK_AI !== "true") {
@@ -76,7 +72,6 @@ export default async function ReviewPage({
       id: q.id,
       question: q.question_text,
       answer: q.answer_text,
-      completed: q.completed,
       imageUrl: q.image_url,
     }));
     title = studyTitle.filename;
@@ -87,7 +82,13 @@ export default async function ReviewPage({
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-4xl space-y-10 mx-auto">
         <div className="flex justify-between items-center ">
-          <h1 className="text-3xl font-bold text-foreground">{title}</h1>
+          <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
+            <EditField
+              variant="answer_text"
+              textField={title}
+              id={reviewId}
+            />
+          </h1>
           <div className="flex gap-6">
             <Link
               href={`/study/${(await params).reviewId}`}
@@ -120,13 +121,14 @@ export default async function ReviewPage({
                   </div>
                   <div className="flex-1">
                     <div
-                      className={`flex items-center justify-between  ? "font-medium text-foreground mb-3" `}
+                      className={`flex items-center gap-2 `}
                     >
                       <EditField
                         variant={"question_text"}
                         textField={q.question}
                         id={q.id}
                       />
+                      <ImageUploadButton id={q.id} />
                       <DeleteButton
                         id={q.id}
                         variant="question"

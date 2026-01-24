@@ -10,10 +10,7 @@ export default async function Home() {
   const { data: folders } = await supabase.from("folders").select();
 
 
-  const foldersWithUploads = folders?.map(folder => ({
-    ...folder,
-    uploads: data?.filter(u => u.folder_id === folder.id) || []
-  })) || [];
+
 
 
   if (error) {
@@ -43,7 +40,7 @@ export default async function Home() {
                   Saved data:
                 </h2>
                 <ul className="space-y-1 ">
-                  <FoldersList foldersWithUploads={foldersWithUploads} />
+                  <FoldersList folders={folders ?? []} uploads={data} />
                   {data.filter(item => item.folder_id === null).map((item) => (
                     <UploadLink key={item.id} upload={item} folders={folders ?? []} />
                   ))}
