@@ -2,9 +2,7 @@
 import { useState } from "react";
 import { Tables } from "../types/database.types";
 import { Folder, FolderOpen } from "lucide-react";
-import Link from "next/link";
-import EditField from "./EditField";
-import DeleteButton from "./DeleteButton";
+
 import UploadLink from "./UploadLink";
 
 interface FoldersListProps {

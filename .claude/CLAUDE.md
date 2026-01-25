@@ -53,3 +53,5 @@ npm run start    # prod server
 - Docker uses poppler-utils runtime dep
 - No test suite
 - Firefox backface-visibility fix: add `rotate-x-0` to card faces when using `backface-hidden` with 3D transforms
+- Storage abstracted in `src/lib/storage.ts` for future migration
+- See `.claude/MIGRATION.md` for migration guide (Neon, R2, Auth.js)

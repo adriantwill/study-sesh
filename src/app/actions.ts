@@ -3,6 +3,7 @@
 import { createClient } from "../lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { generateQuestions } from "../lib/ai/question-generator";
+import { uploadFile, getPublicUrl } from "../lib/storage";
 
 export async function uploadAndGenerateAction(formData: FormData) {
   const file = formData.get("pdf") as File;
@@ -104,18 +105,14 @@ export async function uploadImageAction(
   const fileName = `${questionId}_${Date.now()}.${fileExt}`;
   const filePath = `question-images/${fileName}`;
 
-  const { error: uploadError } = await supabase.storage
-    .from("question-images")
-    .upload(filePath, file);
+  const { error: uploadError } = await uploadFile(filePath, file);
 
   if (uploadError) {
     console.error("Storage upload error:", uploadError);
     throw new Error("Failed to upload image");
   }
 
-  const {
-    data: { publicUrl },
-  } = supabase.storage.from("question-images").getPublicUrl(filePath);
+  const publicUrl = await getPublicUrl(filePath);
 
   const { error: dbError } = await supabase
     .from("questions")
