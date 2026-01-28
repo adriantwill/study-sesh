@@ -15,26 +15,22 @@ export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
         id: "mock-1",
         question: "The capital of France",
         answer: "Paris",
-        completed: false,
       },
       {
         id: "mock-2",
         question: "The powerhouse of the cell",
         answer: "Mitochondria",
-        completed: false,
       },
       {
         id: "mock-3",
         question: "Concept of photosynthesis",
         answer:
           "Photosynthesis is the process by which green plants use sunlight to synthesize foods from carbon dioxide and water.",
-        completed: false,
       },
       {
         id: "mock-4",
         question: "Author of 'To Kill a Mockingbird'",
         answer: "Harper Lee",
-        completed: false,
       },
     ];
     return mockQuestions;
@@ -76,11 +72,12 @@ export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
 
     // Process each generated image by reading the directory
     const allFiles = await fs.readdir(tempDir);
-    const imageFiles = allFiles
-      .filter((f) => f.startsWith(`slides-${fileId}`) && f.endsWith(".png"))
-      .sort(); // Sorting ensures we process in order
+    const imageFiles = allFiles.filter(
+      (f) => f.startsWith(`slides-${fileId}`) && f.endsWith(".png")
+    );
 
     const processPagePromises = imageFiles.map(async (fileName) => {
+      const pageNumber = parseInt(fileName.match(/-(\d+)\.png$/)?.[1] || "0");
       const imagePath = path.join(tempDir, fileName);
 
       try {
@@ -89,8 +86,8 @@ export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
         const imageUrl = `data:image/png;base64,${base64Img}`;
 
         // Clean up image immediately after reading
-        await fs.unlink(imagePath).catch(() => {});
-        await fs.unlink(imagePath).catch(() => {});
+        await fs.unlink(imagePath).catch(() => { });
+        await fs.unlink(imagePath).catch(() => { });
 
         const apiResponse = await fetch(
           "https://api.hyperbolic.xyz/v1/chat/completions",
@@ -108,20 +105,27 @@ export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
                   content: [
                     {
                       type: "text",
-                      text: `Analyze this educational slide and generate 2-3 concise study prompts based on the key concepts.
+                      text: `Analyze this educational slide and generate 2-3 flashcard-style questions targeting key facts, definitions, and terms a student would need to memorize for an exam.
 
-The prompts should NOT be formatted as questions (e.g., avoid "What is...", "How does..."). Instead, they should be brief statements or phrases describing the information to be recalled.
-Make the answer as consise as possible.
+Focus on:
+- Definitions and terminology
+- Key facts, dates, or formulas
+- Lists or steps to memorize
 
-Format your response as JSON array:
+Skip if the slide has no testable content (title slides, "questions?" slides, images without text).
+
+Format as JSON array:
 [
-{
-    "question": "Concise statement or description of information",
-    "answer": "Brief answer here",
-}
+  {
+    "question": "Question here",
+    "answer": "Concise answer (1-2 sentences max)"
+  }
 ]
 
-Only return valid JSON, no additional text.`,
+Rules:
+- Only return valid JSON, no additional text
+- Return empty array [] if no testable content
+- Do not reiterate the question in the answer`,
                     },
                     {
                       type: "image_url",
@@ -163,6 +167,7 @@ Only return valid JSON, no additional text.`,
             question: q.question,
             answer: q.answer,
             completed: false,
+            pageNumber,
           }));
         }
         return [];
@@ -180,12 +185,12 @@ Only return valid JSON, no additional text.`,
   } finally {
     // Final Cleanup
     try {
-      await fs.unlink(pdfPath).catch(() => {});
+      await fs.unlink(pdfPath).catch(() => { });
       // Try to cleanup any remaining images
       const dirFiles = await fs.readdir(tempDir);
       for (const file of dirFiles) {
         if (file.startsWith(`slides-${fileId}`)) {
-          await fs.unlink(path.join(tempDir, file)).catch(() => {});
+          await fs.unlink(path.join(tempDir, file)).catch(() => { });
         }
       }
     } catch (cleanupError) {

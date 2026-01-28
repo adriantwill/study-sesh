@@ -35,6 +35,7 @@ export async function uploadAndGenerateAction(formData: FormData) {
         upload_id: upload.id,
         question_text: q.question,
         answer_text: q.answer,
+        page_number: q.pageNumber,
       })),
     );
 

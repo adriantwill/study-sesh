@@ -45,8 +45,7 @@ export default async function ReviewPage({
       .from("questions")
       .select("*")
       .eq("upload_id", param.reviewId)
-      .order("created_at", { ascending: true })
-      .order("id", { ascending: true });
+      .order("page_number", { ascending: true });
 
     if (error) {
       console.error("Error fetching questions:", error);

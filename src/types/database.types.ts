@@ -38,6 +38,7 @@ export type Database = {
           created_at: string | null
           id: string
           image_url: string | null
+          page_number: number | null
           question_text: string
           upload_id: string | null
         }
@@ -46,6 +47,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           image_url?: string | null
+          page_number?: number | null
           question_text: string
           upload_id?: string | null
         }
@@ -54,6 +56,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           image_url?: string | null
+          page_number?: number | null
           question_text?: string
           upload_id?: string | null
         }

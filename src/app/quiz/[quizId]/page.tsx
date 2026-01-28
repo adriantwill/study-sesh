@@ -43,8 +43,7 @@ export default async function QuizPage({
       .from("questions")
       .select("*")
       .eq("upload_id", param.quizId)
-      .order("created_at", { ascending: true })
-      .order("id", { ascending: true });
+      .order("page_number", { ascending: true });
 
     if (error) {
       console.error("Error fetching questions:", error);

@@ -27,8 +27,7 @@ export default async function StudyPage({
       .from("questions")
       .select("*")
       .eq("upload_id", param.studyId)
-      .order("created_at", { ascending: true })
-      .order("id", { ascending: true });
+      .order("page_number", { ascending: true });
 
     if (error) {
       console.error("Error fetching questions:", error);
