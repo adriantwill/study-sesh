@@ -136,26 +136,6 @@ export async function addQuestionAction(
 ) {
   const supabase = await createClient();
 
-  // First, ensure all questions have display_order (fix any nulls)
-  const { data: allQuestions } = await supabase
-    .from("questions")
-    .select("id, display_order")
-    .eq("upload_id", uploadId)
-    .order("display_order", { ascending: true, nullsFirst: false });
-
-  if (allQuestions) {
-    let order = 1;
-    for (const q of allQuestions) {
-      if (q.display_order === null) {
-        await supabase
-          .from("questions")
-          .update({ display_order: order })
-          .eq("id", q.id);
-      }
-      order++;
-    }
-  }
-
   // Shift existing questions at/after position
   const { data: toShift } = await supabase
     .from("questions")
@@ -220,4 +200,17 @@ export async function updateUploadFolderAction(
   }
 
   revalidatePath("/");
+}
+
+export async function reorderQuestionsAction(orderedIds: string[]) {
+  const supabase = await createClient();
+
+  for (let i = 0; i < orderedIds.length; i++) {
+    await supabase
+      .from("questions")
+      .update({ display_order: i + 1 })
+      .eq("id", orderedIds[i]);
+  }
+
+  revalidatePath("/[reviewId]", "page");
 }

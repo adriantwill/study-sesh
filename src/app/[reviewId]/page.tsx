@@ -1,13 +1,10 @@
 import { createClient } from "../../lib/supabase/server";
-import Image from "next/image";
 import FlashcardView from "@/src/components/FlashcardView";
 import { StudyQuestion } from "@/src/types";
 import EditField from "@/src/components/EditField";
-import DeleteButton from "@/src/components/DeleteButton";
 
 import Link from "next/link";
-import AddQuestionButton from "@/src/components/AddQuestionButton";
-import ImageUploadButton from "@/src/components/ImageUploadButton";
+import DNDContext from "@/src/components/DNDContext";
 
 export default async function ReviewPage({
   params,
@@ -109,61 +106,8 @@ export default async function ReviewPage({
         <div className="h-px opacity-40 bg-foreground"></div>
         <div className="space-y-4">
           <h2 className="text-2xl font-medium text-foreground">Question Bank</h2>
-          <AddQuestionButton
-            uploadId={reviewId}
-            insertAtPosition={1}
-            variant="inline"
-          />
-          {questions.map((q, idx) => {
-            return (
-              <div key={q.id}>
-                <div className="bg-muted rounded-lg shadow p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="shrink-0 w-8 h-8 bg-muted-hover rounded-full flex items-center justify-center text-sm font-medium">
-                      {idx + 1}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <EditField
-                          variant={"question_text"}
-                          textField={q.question}
-                          id={q.id}
-                        />
-                        <ImageUploadButton id={q.id} />
-                        <DeleteButton id={q.id} variant="question" />
-                      </div>
-                      {q.imageUrl && (
-                        <Image
-                          src={q.imageUrl}
-                          alt="supporting image"
-                          width={500}
-                          height={500}
-                          className="mt-3 rounded-md border border-muted-foreground/20"
-                        />
-                      )}
-                      <details className="text-sm mt-4">
-                        <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
-                          Show answer
-                        </summary>
-                        <div className="flex items-center justify-between mt-2 p-4 rounded-lg bg-muted-hover">
-                          <EditField
-                            variant={"answer_text"}
-                            textField={q.answer}
-                            id={q.id}
-                          />
-                        </div>
-                      </details>
-                    </div>
-                  </div>
-                </div>
-                <AddQuestionButton
-                  uploadId={reviewId}
-                  insertAtPosition={(q.displayOrder ?? idx) + 1}
-                  variant="inline"
-                />
-              </div>
-            );
-          })}
+
+          <DNDContext questions={questions} reviewId={reviewId} />
         </div>
       </div>
     </div>

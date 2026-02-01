@@ -18,12 +18,15 @@ export default function AddQuestionButton({
   const [isOpen, setIsOpen] = useState(false);
   const [answer, setAnswer] = useState("");
 
-  async function handleSubmit(formData: FormData) {
+  function handleSubmit(formData: FormData) {
     const question = formData.get("question") as string;
 
-    await addQuestionAction(uploadId, question, answer, insertAtPosition);
+    // Close modal immediately (optimistic)
     setIsOpen(false);
     setAnswer("");
+
+    // Fire server action without awaiting
+    addQuestionAction(uploadId, question, answer, insertAtPosition ?? 1);
   }
 
   function handleAnswerChange(e: React.ChangeEvent<HTMLTextAreaElement>) {

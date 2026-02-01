@@ -105,28 +105,25 @@ export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
                     {
                       type: "text",
                       text: `Analyze this educational slide and generate 2-3 flashcard-style questions targeting key facts, definitions, and terms a student would need to memorize for an exam.
+                      Focus on:
+                      - Definitions and terminology
+                      - Key facts, dates, or formulas
+                      - Lists or steps to memorize
 
-Focus on:
-- Definitions and terminology
-- Key facts, dates, or formulas
-- Lists or steps to memorize
+                      Format as JSON array:
+                      [
+                        {
+                          "question": "Question here",
+                          "answer": "Concise answer without repeating the question"
+                        }
+                      ]
 
-Skip if the slide has no testable content (title slides, "questions?" slides, images without text).
-
-Format as JSON array:
-[
-  {
-    "question": "Question here",
-    "answer": "Concise answer (1-2 sentences max)"
-  }
-]
-
-Rules:
-- Only return valid JSON, no additional text
-- Return empty array [] if no testable content
-- Do not reiterate the question in the answer`,
+                      Rules:
+                      - Only return valid JSON, no additional text
+                      - Do not reiterate the question in the answer in any way`,
                     },
                     {
+                      //maybe add: Skip if the slide has no testable content (title slides, "questions?" slides, images without text).
                       type: "image_url",
                       image_url: {
                         url: imageUrl,
