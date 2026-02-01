@@ -24,17 +24,12 @@ export default function EditField({
     const cursorPos = e.target.selectionStart;
 
     if (value.endsWith("- ")) {
-      const beforeDash = value.slice(0, -2);
-      const isLineStart = beforeDash.length === 0 || beforeDash.endsWith("\n");
-
-      if (isLineStart) {
-        const newValue = beforeDash + "• ";
-        setText(newValue);
-        setTimeout(() => {
-          e.target.selectionStart = e.target.selectionEnd = cursorPos + 1;
-        }, 0);
-        return;
-      }
+      const newValue = value.slice(0, -2) + "• ";
+      setText(newValue);
+      setTimeout(() => {
+        e.target.selectionStart = e.target.selectionEnd = cursorPos;
+      }, 0);
+      return;
     }
     setText(value);
   }
@@ -45,7 +40,7 @@ export default function EditField({
         <textarea
           value={text}
           onChange={handleTextChange}
-          rows={1}
+          rows={Math.max(1, text.split('\n').length)}
           className={`w-full h-full font-medium text-foreground bg-muted-hover rounded px-2 py-1 resize-none focus:outline-none focus:ring-1 focus:border-ring`}
           autoFocus
         />
