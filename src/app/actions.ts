@@ -31,11 +31,11 @@ export async function uploadAndGenerateAction(formData: FormData) {
   // Insert questions
   if (questions.length > 0) {
     const { error: questionsError } = await supabase.from("questions").insert(
-      questions.map((q) => ({
+      questions.map((q, idx) => ({
         upload_id: upload.id,
         question_text: q.question,
         answer_text: q.answer,
-        page_number: q.pageNumber,
+        display_order: idx + 1,
       })),
     );
 
@@ -132,13 +132,52 @@ export async function addQuestionAction(
   uploadId: string,
   question: string,
   answer: string,
+  insertAtPosition: number,
 ) {
   const supabase = await createClient();
+
+  // First, ensure all questions have display_order (fix any nulls)
+  const { data: allQuestions } = await supabase
+    .from("questions")
+    .select("id, display_order")
+    .eq("upload_id", uploadId)
+    .order("display_order", { ascending: true, nullsFirst: false });
+
+  if (allQuestions) {
+    let order = 1;
+    for (const q of allQuestions) {
+      if (q.display_order === null) {
+        await supabase
+          .from("questions")
+          .update({ display_order: order })
+          .eq("id", q.id);
+      }
+      order++;
+    }
+  }
+
+  // Shift existing questions at/after position
+  const { data: toShift } = await supabase
+    .from("questions")
+    .select("id, display_order")
+    .eq("upload_id", uploadId)
+    .gte("display_order", insertAtPosition)
+    .order("display_order", { ascending: false });
+
+  if (toShift) {
+    for (const q of toShift) {
+      await supabase
+        .from("questions")
+        .update({ display_order: (q.display_order ?? 0) + 1 })
+        .eq("id", q.id);
+    }
+  }
 
   const { error } = await supabase.from("questions").insert({
     upload_id: uploadId,
     question_text: question,
     answer_text: answer,
+    display_order: insertAtPosition,
   });
 
   if (error) {

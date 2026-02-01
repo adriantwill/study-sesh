@@ -45,7 +45,7 @@ export default async function ReviewPage({
       .from("questions")
       .select("*")
       .eq("upload_id", param.reviewId)
-      .order("page_number", { ascending: true });
+      .order("display_order", { ascending: true });
 
     if (error) {
       console.error("Error fetching questions:", error);
@@ -72,6 +72,7 @@ export default async function ReviewPage({
       question: q.question_text,
       answer: q.answer_text,
       imageUrl: q.image_url,
+      displayOrder: q.display_order,
     }));
     title = studyTitle.filename;
   }
@@ -107,55 +108,59 @@ export default async function ReviewPage({
         <FlashcardView questions={questions} />
         <div className="h-px opacity-40 bg-foreground"></div>
         <div className="space-y-4">
-          <h2 className="text-2xl items-center flex justify-between font-medium text-foreground">
-            Question Bank
-            <AddQuestionButton uploadId={reviewId} />
-          </h2>
+          <h2 className="text-2xl font-medium text-foreground">Question Bank</h2>
+          <AddQuestionButton
+            uploadId={reviewId}
+            insertAtPosition={1}
+            variant="inline"
+          />
           {questions.map((q, idx) => {
             return (
-              <div className="bg-muted rounded-lg shadow p-6" key={q.id}>
-                <div className="flex items-start gap-4">
-                  <div className="shrink-0 w-8 h-8 bg-muted-hover rounded-full flex items-center justify-center text-sm font-medium">
-                    {idx + 1}
-                  </div>
-                  <div className="flex-1">
-                    <div
-                      className={`flex items-center gap-2 `}
-                    >
-                      <EditField
-                        variant={"question_text"}
-                        textField={q.question}
-                        id={q.id}
-                      />
-                      <ImageUploadButton id={q.id} />
-                      <DeleteButton
-                        id={q.id}
-                        variant="question"
-                      />
+              <div key={q.id}>
+                <div className="bg-muted rounded-lg shadow p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="shrink-0 w-8 h-8 bg-muted-hover rounded-full flex items-center justify-center text-sm font-medium">
+                      {idx + 1}
                     </div>
-                    {q.imageUrl && (
-                      <Image
-                        src={q.imageUrl}
-                        alt="supporting image"
-                        width={500}
-                        height={500}
-                        className="mt-3 rounded-md border border-muted-foreground/20"
-                      />
-                    )}
-                    <details className="text-sm mt-4">
-                      <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
-                        Show answer
-                      </summary>
-                      <div className="flex items-center justify-between mt-2 p-4 rounded-lg bg-muted-hover">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
                         <EditField
-                          variant={"answer_text"}
-                          textField={q.answer}
+                          variant={"question_text"}
+                          textField={q.question}
                           id={q.id}
                         />
+                        <ImageUploadButton id={q.id} />
+                        <DeleteButton id={q.id} variant="question" />
                       </div>
-                    </details>
+                      {q.imageUrl && (
+                        <Image
+                          src={q.imageUrl}
+                          alt="supporting image"
+                          width={500}
+                          height={500}
+                          className="mt-3 rounded-md border border-muted-foreground/20"
+                        />
+                      )}
+                      <details className="text-sm mt-4">
+                        <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+                          Show answer
+                        </summary>
+                        <div className="flex items-center justify-between mt-2 p-4 rounded-lg bg-muted-hover">
+                          <EditField
+                            variant={"answer_text"}
+                            textField={q.answer}
+                            id={q.id}
+                          />
+                        </div>
+                      </details>
+                    </div>
                   </div>
                 </div>
+                <AddQuestionButton
+                  uploadId={reviewId}
+                  insertAtPosition={(q.displayOrder ?? idx) + 1}
+                  variant="inline"
+                />
               </div>
             );
           })}

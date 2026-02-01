@@ -72,16 +72,15 @@ export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
 
     // Process each generated image by reading the directory
     const allFiles = await fs.readdir(tempDir);
-    const imageFiles = allFiles.filter(
-      (f) => f.startsWith(`slides-${fileId}`) && f.endsWith(".png")
-    );
+    const imageFiles = allFiles
+      .filter((f) => f.startsWith(`slides-${fileId}`) && f.endsWith(".png"))
 
     const processPagePromises = imageFiles.map(async (fileName) => {
-      const pageNumber = parseInt(fileName.match(/-(\d+)\.png$/)?.[1] || "0");
       const imagePath = path.join(tempDir, fileName);
 
       try {
         const imageBuffer = await fs.readFile(imagePath);
+
         const base64Img = imageBuffer.toString("base64");
         const imageUrl = `data:image/png;base64,${base64Img}`;
 
@@ -166,8 +165,7 @@ Rules:
             id: "id", // Placeholder
             question: q.question,
             answer: q.answer,
-            completed: false,
-            pageNumber,
+
           }));
         }
         return [];

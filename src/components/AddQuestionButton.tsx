@@ -1,17 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import { X } from "lucide-react";
+import { X, Plus } from "lucide-react";
 import { addQuestionAction } from "../app/actions";
 
-export default function AddQuestionButton({ uploadId }: { uploadId: string }) {
+interface AddQuestionButtonProps {
+  uploadId: string;
+  insertAtPosition?: number;
+  variant?: "header" | "inline";
+}
+
+export default function AddQuestionButton({
+  uploadId,
+  insertAtPosition,
+  variant = "header",
+}: AddQuestionButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [answer, setAnswer] = useState("");
 
   async function handleSubmit(formData: FormData) {
     const question = formData.get("question") as string;
 
-    await addQuestionAction(uploadId, question, answer);
+    await addQuestionAction(uploadId, question, answer, insertAtPosition);
     setIsOpen(false);
     setAnswer("");
   }
@@ -38,12 +48,21 @@ export default function AddQuestionButton({ uploadId }: { uploadId: string }) {
 
   return (
     <>
-      <button
-        onClick={() => setIsOpen(true)}
-        className="flex text-lg items-center cursor-pointer px-4 py-1.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
-      >
-        Add Question
-      </button>
+      {variant === "header" ? (
+        <button
+          onClick={() => setIsOpen(true)}
+          className="flex text-lg items-center cursor-pointer px-4 py-1.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
+        >
+          Add Question
+        </button>
+      ) : (
+        <button
+          onClick={() => setIsOpen(true)}
+          className="w-full py-2 text-muted-foreground hover:text-primary flex justify-center cursor-pointer"
+        >
+          <Plus size={20} />
+        </button>
+      )}
 
       {isOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 text-lg overscroll-none">

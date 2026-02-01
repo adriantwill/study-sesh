@@ -3,5 +3,5 @@ export interface StudyQuestion {
   question: string;
   answer: string;
   imageUrl?: string | null;
-  pageNumber?: number | null;
+  displayOrder?: number | null;
 }

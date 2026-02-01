@@ -36,27 +36,27 @@ export type Database = {
         Row: {
           answer_text: string
           created_at: string | null
+          display_order: number | null
           id: string
           image_url: string | null
-          page_number: number | null
           question_text: string
           upload_id: string | null
         }
         Insert: {
           answer_text: string
           created_at?: string | null
+          display_order?: number | null
           id?: string
           image_url?: string | null
-          page_number?: number | null
           question_text: string
           upload_id?: string | null
         }
         Update: {
           answer_text?: string
           created_at?: string | null
+          display_order?: number | null
           id?: string
           image_url?: string | null
-          page_number?: number | null
           question_text?: string
           upload_id?: string | null
         }
