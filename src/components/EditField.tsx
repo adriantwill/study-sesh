@@ -1,11 +1,14 @@
 "use client";
 import { Check, Pencil } from "lucide-react";
 import { useState } from "react";
-import { updateQuestionTextAction } from "../app/actions";
+import {
+	updateFolderNameAction,
+	updateQuestionTextAction,
+} from "../app/actions";
 import { parseMarkdown } from "../lib/markdown";
 
 interface EditFieldProps {
-	variant: "question_text" | "answer_text";
+	variant: "question_text" | "answer_text" | "folder_name";
 	textField: string;
 	id: string;
 }
@@ -13,13 +16,12 @@ interface EditFieldProps {
 export default function EditField({ variant, textField, id }: EditFieldProps) {
 	const [isEditing, setIsEditing] = useState(false);
 	const [text, setText] = useState(textField);
-	const updateQuestion = updateQuestionTextAction.bind(null, id, text, variant);
 
 	function handleTextChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
 		const value = e.target.value;
 		const cursorPos = e.target.selectionStart;
 
-		if (value.endsWith("- ")) {
+		if (variant !== "folder_name" && value.endsWith("- ")) {
 			const newValue = `${value.slice(0, -2)}• `;
 			setText(newValue);
 			setTimeout(() => {
@@ -28,6 +30,17 @@ export default function EditField({ variant, textField, id }: EditFieldProps) {
 			return;
 		}
 		setText(value);
+	}
+
+	async function handleSave() {
+		if (text !== textField) {
+			if (variant === "folder_name") {
+				await updateFolderNameAction(id, text);
+			} else {
+				await updateQuestionTextAction(id, text, variant);
+			}
+		}
+		setIsEditing(!isEditing);
 	}
 
 	return (
@@ -41,17 +54,12 @@ export default function EditField({ variant, textField, id }: EditFieldProps) {
 				/>
 			) : (
 				<span className={`w-full whitespace-pre-wrap }`}>
-					{parseMarkdown(text)}
+					{variant === "folder_name" ? text : parseMarkdown(text)}
 				</span>
 			)}
 			<button
 				type="button"
-				onClick={() => {
-					if (text !== textField) {
-						updateQuestion();
-					}
-					setIsEditing(!isEditing);
-				}}
+				onClick={handleSave}
 				aria-label={`Edit text`}
 				className="flex items-center justify-center enabled:cursor-pointer enabled:hover:text-secondary "
 			>
