@@ -15,7 +15,10 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
 	const foldersWithUploads =
 		folders?.map((folder) => ({
 			...folder,
-			uploads: uploads?.filter((u) => u.folder_id === folder.id) || [],
+			uploads:
+				uploads
+					?.filter((u) => u.folder_id === folder.id)
+					.sort((a, b) => a.filename.localeCompare(b.filename)) || [],
 		})) || [];
 	return (
 		<div className="transition-transform duration-300">

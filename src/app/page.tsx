@@ -38,6 +38,7 @@ export default async function Home() {
 									<FoldersList folders={folders ?? []} uploads={data} />
 									{data
 										.filter((item) => item.folder_id === null)
+										.sort((a, b) => a.filename.localeCompare(b.filename))
 										.map((item) => (
 											<UploadLink
 												key={item.id}
