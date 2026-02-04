@@ -1,10 +1,9 @@
-import { createClient } from "../../lib/supabase/server";
-import FlashcardView from "@/src/components/FlashcardView";
-import { StudyQuestion } from "@/src/types";
-import EditField from "@/src/components/EditField";
-
 import Link from "next/link";
-import DNDContext from "@/src/components/DNDContext";
+import DNDContext from "../../components/DNDContext";
+import EditField from "../../components/EditField";
+import FlashcardView from "../../components/FlashcardView";
+import { createClient } from "../../lib/supabase/server";
+import type { StudyQuestion } from "../../types";
 
 export default async function ReviewPage({
   params,
@@ -80,11 +79,7 @@ export default async function ReviewPage({
       <div className="max-w-4xl space-y-10 mx-auto">
         <div className="flex justify-between items-center ">
           <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
-            <EditField
-              variant="answer_text"
-              textField={title}
-              id={reviewId}
-            />
+            <EditField variant="filename" textField={title} id={reviewId} />
           </h1>
           <div className="flex gap-6">
             <Link
@@ -105,7 +100,9 @@ export default async function ReviewPage({
         <FlashcardView questions={questions} />
         <div className="h-px opacity-40 bg-foreground"></div>
         <div className="space-y-4">
-          <h2 className="text-2xl font-medium text-foreground">Question Bank</h2>
+          <h2 className="text-2xl font-medium text-foreground">
+            Question Bank
+          </h2>
 
           <DNDContext questions={questions} reviewId={reviewId} />
         </div>

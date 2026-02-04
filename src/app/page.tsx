@@ -1,56 +1,57 @@
-import UploadButton from "../components/UploadButton";
-import { createClient } from "../lib/supabase/server";
 import AddFolder from "../components/AddFolder";
 import FoldersList from "../components/FoldersList";
+import UploadButton from "../components/UploadButton";
 import UploadLink from "../components/UploadLink";
+import { createClient } from "../lib/supabase/server";
 
 export default async function Home() {
-  const supabase = await createClient();
-  const { data, error } = await supabase.from("uploads").select()
-  const { data: folders } = await supabase.from("folders").select();
+	const supabase = await createClient();
+	const { data, error } = await supabase.from("uploads").select();
+	const { data: folders } = await supabase.from("folders").select();
 
+	if (error) {
+		console.error("Error fetching uploads:", error);
+		throw new Error("Failed to load uploads");
+	}
 
+	if (!data) {
+		throw new Error("No data returned from database");
+	}
 
+	return (
+		<div className="min-h-screen bg-background p-8">
+			<div className="max-w-2xl mx-auto">
+				<h1 className="text-4xl font-bold mb-2 text-foreground">Study Sesh</h1>
+				<p className="text-muted-foreground mb-8">
+					Upload PowerPoint PDF to generate study questions
+				</p>
 
-
-  if (error) {
-    console.error("Error fetching uploads:", error);
-    throw new Error("Failed to load uploads");
-  }
-
-  if (!data) {
-    throw new Error("No data returned from database");
-  }
-
-
-  return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-4xl font-bold mb-2 text-foreground">Study Sesh</h1>
-        <p className="text-muted-foreground mb-8">
-          Upload PowerPoint PDF to generate study questions
-        </p>
-
-        <div className="bg-muted rounded-lg shadow p-8">
-          <UploadButton></UploadButton>
-          <div className="mt-6 flex flex-col gap-4">
-            {data.length > 0 && (
-              <div>
-                <h2 className="font-semibold text-lg  text-foreground">
-                  Saved data:
-                </h2>
-                <ul className="space-y-1 ">
-                  <FoldersList folders={folders ?? []} uploads={data} />
-                  {data.filter(item => item.folder_id === null).map((item) => (
-                    <UploadLink key={item.id} upload={item} folders={folders ?? []} />
-                  ))}
-                  <AddFolder />
-                </ul>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+				<div className="bg-muted rounded-lg shadow p-8">
+					<UploadButton></UploadButton>
+					<div className="mt-6 flex flex-col gap-4">
+						{data.length > 0 && (
+							<div>
+								<h2 className="font-semibold text-lg  text-foreground">
+									Saved data:
+								</h2>
+								<ul className="space-y-1 ">
+									<FoldersList folders={folders ?? []} uploads={data} />
+									{data
+										.filter((item) => item.folder_id === null)
+										.map((item) => (
+											<UploadLink
+												key={item.id}
+												upload={item}
+												folders={folders ?? []}
+											/>
+										))}
+									<AddFolder />
+								</ul>
+							</div>
+						)}
+					</div>
+				</div>
+			</div>
+		</div>
+	);
 }
