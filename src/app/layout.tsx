@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Faustina } from "next/font/google";
+import ChunkErrorHandler from "@/src/components/ChunkErrorHandler";
 import "./globals.css";
 
 const faustina = Faustina({
@@ -22,6 +23,7 @@ export default function RootLayout({
 			<body
 				className={`bg-background text-foreground font-sans ${faustina.variable} antialiased`}
 			>
+				<ChunkErrorHandler />
 				{children}
 			</body>
 		</html>

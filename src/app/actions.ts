@@ -214,3 +214,19 @@ export async function reorderQuestionsAction(orderedIds: string[]) {
 
 	revalidatePath("/[reviewId]", "page");
 }
+
+export async function updateFolderNameAction(folderId: string, name: string) {
+	const supabase = await createClient();
+
+	const { error } = await supabase
+		.from("folders")
+		.update({ name })
+		.eq("id", folderId);
+
+	if (error) {
+		console.error("Update folder name error:", error);
+		throw new Error("Failed to update folder name");
+	}
+
+	revalidatePath("/");
+}
