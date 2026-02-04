@@ -22,12 +22,6 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
           <div className="" key={folder.id}>
             <li
               className="flex text-base items-end gap-2 "
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  setOpenFolder(openFolder === folder.id ? null : folder.id);
-                }
-              }}
             >
               <button
                 type="button"
