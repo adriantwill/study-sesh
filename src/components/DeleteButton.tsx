@@ -11,7 +11,7 @@ interface DeleteButtonProps {
 
 export default function DeleteButton({ id, variant, name }: DeleteButtonProps) {
   async function handleDelete() {
-    const confirmed = confirm(`Delete this ${name}? Make sure folder is empty`);
+    const confirmed = confirm(`Delete this ${variant} "${name}"?`);
     if (confirmed) {
       await deleteItemAction(id, variant);
     }
