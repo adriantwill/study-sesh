@@ -76,35 +76,41 @@ export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
       (f) => f.startsWith(`slides-${fileId}`) && f.endsWith(".png"),
     );
 
-    const processPagePromises = imageFiles.map(async (fileName) => {
-      const imagePath = path.join(tempDir, fileName);
+    const allQuestions: StudyQuestion[] = [];
 
-      try {
-        const imageBuffer = await fs.readFile(imagePath);
+    // Process in batches of 2 to avoid rate limiting
+    for (let i = 0; i < imageFiles.length; i += 2) {
+      const batch = imageFiles.slice(i, i + 2);
+      const batchResults = await Promise.all(
+        batch.map(async (fileName) => {
+          const imagePath = path.join(tempDir, fileName);
 
-        const base64Img = imageBuffer.toString("base64");
-        const imageUrl = `data:image/png;base64,${base64Img}`;
+          try {
+            const imageBuffer = await fs.readFile(imagePath);
 
-        // Clean up image immediately after reading
-        await fs.unlink(imagePath).catch(() => { });
+            const base64Img = imageBuffer.toString("base64");
+            const imageUrl = `data:image/png;base64,${base64Img}`;
 
-        const apiResponse = await fetch(
-          "https://api.hyperbolic.xyz/v1/chat/completions",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${process.env.HYPERBOLIC_API_KEY}`,
-            },
-            body: JSON.stringify({
-              model: "Qwen/Qwen2.5-VL-7B-Instruct",
-              messages: [
-                {
-                  role: "user",
-                  content: [
+            // Clean up image immediately after reading
+            await fs.unlink(imagePath).catch(() => { });
+
+            const apiResponse = await fetch(
+              "https://api.hyperbolic.xyz/v1/chat/completions",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${process.env.HYPERBOLIC_API_KEY}`,
+                },
+                body: JSON.stringify({
+                  model: "Qwen/Qwen2.5-VL-7B-Instruct",
+                  messages: [
                     {
-                      type: "text",
-                      text: `Analyze this educational slide and generate 2-3 flashcard-style questions targeting key facts, definitions, and terms a student would need to memorize for an exam.
+                      role: "user",
+                      content: [
+                        {
+                          type: "text",
+                          text: `Analyze this educational slide and generate 2-3 flashcard-style questions targeting key facts, definitions, and terms a student would need to memorize for an exam.
                       Focus on:
                       - Definitions and terminology
                       - Key facts, dates, or formulas
@@ -121,58 +127,60 @@ export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
                       Rules:
                       - Only return valid JSON, no additional text
                       - Do not reiterate the question in the answer in any way`,
-                    },
-                    {
-                      //maybe add: Skip if the slide has no testable content (title slides, "questions?" slides, images without text).
-                      type: "image_url",
-                      image_url: {
-                        url: imageUrl,
-                      },
+                        },
+                        {
+                          //maybe add: Skip if the slide has no testable content (title slides, "questions?" slides, images without text).
+                          type: "image_url",
+                          image_url: {
+                            url: imageUrl,
+                          },
+                        },
+                      ],
                     },
                   ],
-                },
-              ],
-              max_tokens: 512,
-              temperature: 0.1,
-              top_p: 0.001,
-              stream: false,
-            }),
-          },
-        );
+                  max_tokens: 512,
+                  temperature: 0.1,
+                  top_p: 0.001,
+                  stream: false,
+                }),
+              },
+            );
 
-        if (!apiResponse.ok) {
-          throw new Error(
-            `API error: ${apiResponse.status} ${apiResponse.statusText}`,
-          );
-        }
+            if (!apiResponse.ok) {
+              throw new Error(
+                `API error: ${apiResponse.status} ${apiResponse.statusText}`,
+              );
+            }
 
-        const response = await apiResponse.json();
-        console.log(`Hyperbolic API response received`);
+            const response = await apiResponse.json();
+            console.log(`Hyperbolic API response received`);
 
-        const content = response.choices[0]?.message?.content || "";
-        const jsonMatch = content.match(/\[[\s\S]*\]/);
+            const content = response.choices[0]?.message?.content || "";
+            const jsonMatch = content.match(/\[[\s\S]*\]/);
 
-        if (jsonMatch) {
-          const pageQuestions = JSON.parse(jsonMatch[0]) as Array<{
-            question: string;
-            answer: string;
-          }>;
+            if (jsonMatch) {
+              const pageQuestions = JSON.parse(jsonMatch[0]) as Array<{
+                question: string;
+                answer: string;
+              }>;
 
-          return pageQuestions.map((q) => ({
-            id: "id", // Placeholder
-            question: q.question,
-            answer: q.answer,
-          }));
-        }
-        return [];
-      } catch (err) {
-        console.error(`Error processing slide`, err);
-        return [];
-      }
-    });
+              return pageQuestions.map((q) => ({
+                id: "id", // Placeholder
+                question: q.question,
+                answer: q.answer,
+              }));
+            }
+            return [];
+          } catch (err) {
+            console.error(`Error processing slide`, err);
+            return [];
+          }
+        }),
+      );
+      allQuestions.push(...batchResults.flat());
+    }
 
-    const results = await Promise.all(processPagePromises);
-    return results.flat();
+    return allQuestions;
   } catch (error) {
     console.error("Error in generateQuestions:", error);
     throw error;

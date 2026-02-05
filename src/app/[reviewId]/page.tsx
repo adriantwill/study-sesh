@@ -1,5 +1,5 @@
-import { notFound } from "next/navigation";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import DNDContext from "../../components/DNDContext";
 import EditField from "../../components/EditField";
 import FlashcardView from "../../components/FlashcardView";
@@ -83,6 +83,9 @@ export default async function ReviewPage({
       <div className="max-w-4xl space-y-10 mx-auto">
         <div className="flex justify-between items-center ">
           <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
+            <Link href={"/"}>
+              🏠
+            </Link>
             <EditField variant="filename" textField={title} id={reviewId} />
           </h1>
           <div className="flex gap-6">

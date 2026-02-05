@@ -62,6 +62,15 @@ export async function deleteItemAction(
       if (error) throw error;
       revalidatePath("/[reviewId]", "page");
     } else if (variant === "folder") {
+      const { count } = await supabase
+        .from("uploads")
+        .select("*", { count: "exact", head: true })
+        .eq("folder_id", id);
+
+      if (count && count > 0) {
+        throw new Error("Folder not empty");
+      }
+
       const { error } = await supabase.from("folders").delete().eq("id", id);
       if (error) throw error;
       revalidatePath("/");
