@@ -31,7 +31,7 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
                 <FolderIcon size={19} className="hover:scale-110" />
               </button>
               <EditField variant="folder_name" textField={folder.name} id={folder.id} />
-              <DeleteButton variant="folder" id={folder.id} />
+              <DeleteButton variant="folder" id={folder.id} name={folder.name} />
             </li>
 
             <div

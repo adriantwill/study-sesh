@@ -39,7 +39,7 @@ export default function UploadLink({ upload, folders }: UploadLinkProps) {
 						))}
 					</select>
 				</div>
-				<DeleteButton id={upload.id} variant="upload" />
+				<DeleteButton id={upload.id} variant="upload" name={upload.filename} />
 			</div>
 		</li>
 	);

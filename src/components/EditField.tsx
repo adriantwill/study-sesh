@@ -49,6 +49,7 @@ export default function EditField({ variant, textField, id }: EditFieldProps) {
         <textarea
           value={text}
           onChange={handleTextChange}
+          onPointerDown={(e) => e.stopPropagation()}
           rows={Math.max(1, text.split("\n").length)}
           className={`w-full h-full font-medium text-foreground bg-muted-hover rounded px-2 py-1 resize-none focus:outline-none focus:ring-1 focus:border-ring`}
         />

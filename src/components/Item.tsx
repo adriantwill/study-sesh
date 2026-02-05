@@ -25,7 +25,7 @@ export default function Item({ idx, q }: ItemProps) {
                 id={q.id}
               />
               <ImageUploadButton id={q.id} />
-              <DeleteButton id={q.id} variant="question" />
+              <DeleteButton id={q.id} variant="question" name={q.question} />
             </div>
             {q.imageUrl && (
               <Image
