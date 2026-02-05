@@ -14,6 +14,58 @@
 - Replace Supabase client with Drizzle or Prisma
 - Queries are standard CRUD, map 1:1
 
+### Database: Supabase → Self-hosted Postgres (VPS)
+Best for learning SQL, Linux sysadmin, and database management.
+
+**Setup on VPS:**
+```bash
+sudo apt install postgresql
+sudo -u postgres createuser studysesh -P  # prompts for password
+sudo -u postgres createdb studysesh -O studysesh
+```
+
+**Connection from Docker app:**
+```bash
+# .env
+DATABASE_URL="postgresql://studysesh:password@host.docker.internal:5432/studysesh"
+# or use Docker bridge IP: 172.17.0.1
+```
+
+**Allow Docker connections** (edit `/etc/postgresql/*/main/pg_hba.conf`):
+```
+host    studysesh    studysesh    172.17.0.0/16    scram-sha-256
+```
+
+**Restart Postgres:**
+```bash
+sudo systemctl restart postgresql
+```
+
+**Replace Supabase client with postgres.js:**
+```typescript
+// src/lib/db.ts
+import postgres from 'postgres'
+const sql = postgres(process.env.DATABASE_URL!)
+export default sql
+
+// Usage in actions.ts
+const questions = await sql`SELECT * FROM questions WHERE upload_id = ${id}`
+```
+
+**Backup cron job** (add to `/etc/cron.daily/pg-backup`):
+```bash
+#!/bin/bash
+pg_dump -U studysesh studysesh | gzip > /backups/studysesh-$(date +%Y%m%d).sql.gz
+find /backups -mtime +7 -delete  # keep 7 days
+```
+
+**Migration steps:**
+1. Export from Supabase: Dashboard → Settings → Database → Connection string → `pg_dump`
+2. Import: `psql -U studysesh -d studysesh < dump.sql`
+3. Install postgres.js: `npm install postgres`
+4. Replace Supabase queries with raw SQL
+5. Update env vars
+
 ### Storage: Supabase → Cloudflare R2
 - R2 has zero egress fees
 - S3-compatible API
@@ -58,6 +110,7 @@ export async function getPublicUrl(path: string): Promise<string> {
 |---------|-----------|------|
 | Supabase | 500MB DB, 1GB storage | $25/mo minimum |
 | Neon | 512MB, scales to zero | Pay-per-use |
+| VPS Postgres | Free (uses VPS resources) | - |
 | R2 | 10GB storage, free egress | $0.015/GB storage |
 | Auth.js | Free (self-hosted) | - |
 
@@ -65,6 +118,7 @@ export async function getPublicUrl(path: string): Promise<string> {
 - Approaching Supabase free limits
 - Adding auth (natural breakpoint)
 - Frustrated with Supabase pricing/reliability
+- Want to learn SQL/sysadmin (self-hosted Postgres)
 
 ## Current Lock-in Points
 - `src/lib/storage.ts` - storage abstraction (ready to swap)

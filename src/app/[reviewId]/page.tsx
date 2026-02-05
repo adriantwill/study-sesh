@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import Link from "next/link";
 import DNDContext from "../../components/DNDContext";
 import EditField from "../../components/EditField";
@@ -5,11 +6,16 @@ import FlashcardView from "../../components/FlashcardView";
 import { createClient } from "../../lib/supabase/server";
 import type { StudyQuestion } from "../../types";
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export default async function ReviewPage({
   params,
 }: {
   params: Promise<{ reviewId: string }>;
 }) {
+  const { reviewId } = await params;
+  if (!UUID_REGEX.test(reviewId)) notFound();
+
   let title = "Test title";
   let questions: StudyQuestion[] = [
     {
@@ -36,11 +42,10 @@ export default async function ReviewPage({
   ];
   if (process.env.MOCK_AI !== "true") {
     const supabase = await createClient();
-    const param = await params;
     const { data, error } = await supabase
       .from("questions")
       .select("*")
-      .eq("upload_id", param.reviewId)
+      .eq("upload_id", reviewId)
       .order("display_order", { ascending: true });
 
     if (error) {
@@ -55,7 +60,7 @@ export default async function ReviewPage({
     const { data: studyTitle, error: titleError } = await supabase
       .from("uploads")
       .select("filename")
-      .eq("id", param.reviewId)
+      .eq("id", reviewId)
       .single();
 
     if (titleError) {
@@ -73,7 +78,6 @@ export default async function ReviewPage({
     title = studyTitle.filename;
   }
   //TODO fix supabase RLS
-  const reviewId = (await params).reviewId;
   return (
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-4xl space-y-10 mx-auto">
@@ -83,13 +87,13 @@ export default async function ReviewPage({
           </h1>
           <div className="flex gap-6">
             <Link
-              href={`/study/${(await params).reviewId}`}
+              href={`/study/${reviewId}`}
               className="text-2xl text-primary hover:text-secondary"
             >
               Study
             </Link>
             <Link
-              href={`/quiz/${(await params).reviewId}`}
+              href={`/quiz/${reviewId}`}
               className="text-2xl text-primary hover:text-secondary"
             >
               Quiz

@@ -1,14 +1,20 @@
+import { notFound } from "next/navigation";
 import QuizCard from "@/src/components/QuizCard";
 import { parseMarkdown } from "@/src/lib/markdown";
 import { createClient } from "@/src/lib/supabase/server";
 import type { StudyQuestion } from "@/src/types";
 import QuizClient from "./QuizClient";
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export default async function QuizPage({
   params,
 }: {
   params: Promise<{ quizId: string }>;
 }) {
+  const { quizId } = await params;
+  if (!UUID_REGEX.test(quizId)) notFound();
+
   let questions: StudyQuestion[] = [
     {
       id: "mock-1",
@@ -34,11 +40,10 @@ export default async function QuizPage({
   ];
   if (process.env.MOCK_AI !== "true") {
     const supabase = await createClient();
-    const param = await params;
     const { data, error } = await supabase
       .from("questions")
       .select("*")
-      .eq("upload_id", param.quizId)
+      .eq("upload_id", quizId)
       .order("display_order", { ascending: true });
 
     if (error) {
