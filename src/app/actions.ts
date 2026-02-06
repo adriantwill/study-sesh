@@ -102,7 +102,7 @@ export async function updateQuestionTextAction(
     console.error("Update text error:", error);
     throw new Error("Failed to update text");
   }
-
+  //change type
   revalidatePath("/[reviewId]", "page");
 }
 
