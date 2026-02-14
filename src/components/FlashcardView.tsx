@@ -8,141 +8,149 @@ import { getItem, removeItem, setItem } from "../utils/localStorage";
 import NavigationButton from "./NavigationButton";
 
 export default function FlashcardView({
-	questions,
-	height,
+  questions,
+  height,
 }: {
-	questions: StudyQuestion[];
-	height?: string;
+  questions: StudyQuestion[];
+  height?: string;
 }) {
-	const isStudyMode = height === "h-130";
+  const isStudyMode = height === "h-130";
 
-	const [completedIds, setCompletedIds] = useState<string[]>(() => {
-		if (!isStudyMode) return [];
-		return questions.filter((q) => getItem(q.id)).map((q) => q.id);
-	});
+  const [completedIds, setCompletedIds] = useState<string[]>(() => {
+    if (!isStudyMode) return [];
+    return questions.filter((q) => getItem(q.id)).map((q) => q.id);
+  });
 
-	const filteredQuestions = useMemo(() => {
-		if (!isStudyMode) return questions;
-		return questions.filter((q) => !completedIds.includes(q.id));
-	}, [questions, isStudyMode, completedIds]);
+  const filteredQuestions = useMemo(() => {
+    if (!isStudyMode) return questions;
+    return questions.filter((q) => !completedIds.includes(q.id));
+  }, [questions, isStudyMode, completedIds]);
 
-	const [currentIndex, setCurrentIndex] = useState(0);
-	const [direction, setDirection] = useState<"next" | "prev" | "initial">(
-		"initial",
-	);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [direction, setDirection] = useState<"next" | "prev" | "initial">(
+    "initial",
+  );
 
-	const changeDirection = (dir: -1 | 1) => {
-		setDirection(dir === 1 ? "next" : "prev");
-		setCurrentIndex(
-			(prev) =>
-				(prev + dir + filteredQuestions.length) % filteredQuestions.length,
-		);
-	};
+  const changeDirection = (dir: -1 | 1) => {
+    setDirection(dir === 1 ? "next" : "prev");
+    setCurrentIndex(
+      (prev) =>
+        (prev + dir + filteredQuestions.length) % filteredQuestions.length,
+    );
+  };
 
-	const handleComplete = () => {
-		const id = filteredQuestions[currentIndex].id;
-		setItem(id, true);
-		setCompletedIds([...completedIds, id]);
-		if (currentIndex >= filteredQuestions.length - 1) {
-			setCurrentIndex(0);
-		}
-	};
+  const handleComplete = () => {
+    const id = filteredQuestions[currentIndex].id;
+    setItem(id, true);
+    setCompletedIds([...completedIds, id]);
+    if (currentIndex >= filteredQuestions.length - 1) {
+      setCurrentIndex(0);
+    }
+  };
 
-	const handleReset = () => {
-		for (const id of completedIds) {
-			removeItem(id);
-		}
-		setCompletedIds([]);
-		setCurrentIndex(0);
-	};
+  const handleReset = () => {
+    for (const id of completedIds) {
+      removeItem(id);
+    }
+    setCompletedIds([]);
+    setCurrentIndex(0);
+  };
 
-	useEffect(() => {
-		const handleKeyDown = (e: KeyboardEvent) => {
-			const tag = document.activeElement?.tagName;
-			if (tag === "INPUT" || tag === "TEXTAREA") return;
-			if (e.key === "ArrowRight") changeDirection(1);
-			if (isStudyMode) {
-				if (e.key === "ArrowLeft") handleComplete();
-			} else {
-				if (e.key === "ArrowLeft") changeDirection(-1);
-			}
-		};
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const tag = document.activeElement?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      if (e.key === "ArrowRight") changeDirection(1);
+      if (isStudyMode) {
+        if (e.key === "ArrowLeft") handleComplete();
+      } else {
+        if (e.key === "ArrowLeft") changeDirection(-1);
+      }
+    };
 
-		window.addEventListener("keydown", handleKeyDown);
-		return () => window.removeEventListener("keydown", handleKeyDown);
-	});
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  });
 
-	if (filteredQuestions.length === 0) {
-		return (
-			<div className="text-center py-20">
-				<p className="text-muted-foreground mb-4">All questions completed!</p>
-				<button
-					type="button"
-					onClick={handleReset}
-					className="text-sm text-muted-foreground hover:text-foreground underline"
-				>
-					Reset progress
-				</button>
-			</div>
-		);
-	}
+  if (filteredQuestions.length === 0) {
+    return (
+      <div className="text-center py-20">
+        <p className="text-muted-foreground mb-4">All questions completed!</p>
+        <button
+          type="button"
+          onClick={handleReset}
+          className="text-sm text-muted-foreground hover:text-foreground underline"
+        >
+          Reset progress
+        </button>
+      </div>
+    );
+  }
 
-	return (
-		<div className="mx-auto">
-			<div className="flex gap-4 transition-transform duration-300 ease-out peer-hover/prev:-translate-x-2 peer-hover/next:translate-x-2">
-				{!isStudyMode && (
-					<NavigationButton
-						direction="prev"
-						changeDirection={changeDirection}
-					/>
-				)}
-				<Flashcard
-					key={filteredQuestions[currentIndex].id}
-					q={filteredQuestions[currentIndex]}
-					direction={direction}
-					height={height}
-				/>
-				{!isStudyMode && (
-					<NavigationButton
-						direction="next"
-						changeDirection={changeDirection}
-					/>
-				)}
-			</div>
-			<div className="mt-4 text-sm font-medium text-muted-foreground flex justify-center">
-				{currentIndex + 1} / {filteredQuestions.length}
-			</div>
-			{isStudyMode && (
-				<>
-					<div className="justify-center flex gap-4 mt-10">
-						<button
-							type="button"
-							onClick={handleComplete}
-							className="hover:bg-green-500/10 text-muted-foreground hover:text-green-500 p-4 rounded-full transition-all duration-200"
-						>
-							<Check size={40} strokeWidth={2.5} />
-						</button>
-						<button
-							type="button"
-							onClick={() => changeDirection(1)}
-							className="hover:bg-red-500/10 text-muted-foreground hover:text-red-500 p-4 rounded-full transition-all duration-200"
-						>
-							<X size={40} strokeWidth={2.5} />
-						</button>
-					</div>
-					{completedIds.length > 0 && (
-						<div className="text-center mt-6">
-							<button
-								type="button"
-								onClick={handleReset}
-								className="text-sm text-muted-foreground hover:text-foreground underline"
-							>
-								Reset progress
-							</button>
-						</div>
-					)}
-				</>
-			)}
-		</div>
-	);
+  return (
+    <div className="mx-auto">
+      <div className="flex gap-4 transition-transform duration-300 ease-out peer-hover/prev:-translate-x-2 peer-hover/next:translate-x-2">
+        {!isStudyMode && (
+          <NavigationButton
+            direction="prev"
+            changeDirection={changeDirection}
+          />
+        )}
+        <Flashcard
+          key={filteredQuestions[currentIndex].id}
+          q={filteredQuestions[currentIndex]}
+          direction={direction}
+          height={height}
+        />
+        {!isStudyMode && (
+          <NavigationButton
+            direction="next"
+            changeDirection={changeDirection}
+          />
+        )}
+      </div>
+      <div className="mt-4 flex justify-center">
+        {!isStudyMode ? (
+          <div className="text-sm font-medium text-muted-foreground">
+            {currentIndex + 1} / {filteredQuestions.length}
+          </div>
+        ) : (
+          <div className="text-xl font-medium ">
+            {completedIds.length} Known | {questions.length - completedIds.length} Unknown
+          </div>
+        )}
+      </div>
+      {isStudyMode && (
+        <>
+          <div className="justify-center flex gap-4 mt-10">
+            <button
+              type="button"
+              onClick={handleComplete}
+              className="hover:bg-green-500/10 text-muted-foreground hover:text-green-500 p-4 rounded-full transition-all duration-200"
+            >
+              <Check size={40} strokeWidth={2.5} />
+            </button>
+            <button
+              type="button"
+              onClick={() => changeDirection(1)}
+              className="hover:bg-red-500/10 text-muted-foreground hover:text-red-500 p-4 rounded-full transition-all duration-200"
+            >
+              <X size={40} strokeWidth={2.5} />
+            </button>
+          </div>
+          {completedIds.length > 0 && (
+            <div className="text-center mt-6">
+              <button
+                type="button"
+                onClick={handleReset}
+                className="text-sm text-muted-foreground hover:text-foreground underline"
+              >
+                Reset progress
+              </button>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
 }

@@ -1,13 +1,9 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import type { Tables } from "@/src/types/database.types";
 import DNDContext from "../../components/DNDContext";
 import EditField from "../../components/EditField";
 import FlashcardView from "../../components/FlashcardView";
 import { createClient } from "../../lib/supabase/server";
-import type { StudyQuestion } from "../../types";
-import { Tables } from "@/src/types/database.types";
-
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export default async function ReviewPage({
   params,
@@ -15,7 +11,6 @@ export default async function ReviewPage({
   params: Promise<{ reviewId: string }>;
 }) {
   const { reviewId } = await params;
-  if (!UUID_REGEX.test(reviewId)) notFound();
 
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -39,7 +34,6 @@ export default async function ReviewPage({
     .eq("id", reviewId)
     .single();
 
-
   if (uploadError) {
     console.error("Error fetching title:", uploadError);
     throw new Error("Failed to load title");
@@ -53,7 +47,9 @@ export default async function ReviewPage({
     displayOrder: q.display_order,
   }));
   const title = upload.filename;
-  const description = upload.description ? upload.description : "No description provided";
+  const description = upload.description
+    ? upload.description
+    : "No description provided";
   //TODO fix supabase RLS
   return (
     <div className="min-h-screen bg-background p-8">
@@ -61,9 +57,7 @@ export default async function ReviewPage({
         <div className="space-y-2">
           <div className="flex justify-between items-center ">
             <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
-              <Link href={"/"}>
-                🏠
-              </Link>
+              <Link href={"/"}>🏠</Link>
               <EditField variant="filename" textField={title} id={reviewId} />
             </h1>
             <div className="flex gap-6">
@@ -83,7 +77,11 @@ export default async function ReviewPage({
           </div>
           <div className="flex">
             <div className="flex gap-2">
-              <EditField variant="description" textField={description} id={reviewId} />
+              <EditField
+                variant="description"
+                textField={description}
+                id={reviewId}
+              />
             </div>
           </div>
         </div>

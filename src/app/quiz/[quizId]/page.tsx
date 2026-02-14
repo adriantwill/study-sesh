@@ -1,11 +1,8 @@
-import { notFound } from "next/navigation";
 import QuizCard from "@/src/components/QuizCard";
 import { parseMarkdown } from "@/src/lib/markdown";
 import { createClient } from "@/src/lib/supabase/server";
 import type { StudyQuestion } from "@/src/types";
 import QuizClient from "./QuizClient";
-
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export default async function QuizPage({
   params,
@@ -13,7 +10,6 @@ export default async function QuizPage({
   params: Promise<{ quizId: string }>;
 }) {
   const { quizId } = await params;
-  if (!UUID_REGEX.test(quizId)) notFound();
 
   let questions: StudyQuestion[] = [
     {
