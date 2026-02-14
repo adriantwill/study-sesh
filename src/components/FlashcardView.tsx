@@ -109,9 +109,17 @@ export default function FlashcardView({
           />
         )}
       </div>
-      {!isStudyMode && (<div className="mt-4 text-sm font-medium text-muted-foreground flex justify-center">
-        {currentIndex + 1} / {filteredQuestions.length}
-      </div>)}
+      <div className="mt-4 flex justify-center">
+        {!isStudyMode ? (
+          <div className="text-sm font-medium text-muted-foreground">
+            {currentIndex + 1} / {filteredQuestions.length}
+          </div>
+        ) : (
+          <div className="text-xl font-medium ">
+            {completedIds.length} Known | {questions.length - completedIds.length} Unknown
+          </div>
+        )}
+      </div>
       {isStudyMode && (
         <>
           <div className="justify-center flex gap-4 mt-10">
