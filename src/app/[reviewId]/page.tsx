@@ -58,7 +58,7 @@ export default async function ReviewPage({
   return (
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-4xl space-y-10 mx-auto">
-        <div className="">
+        <div className="space-y-2">
           <div className="flex justify-between items-center ">
             <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
               <Link href={"/"}>
@@ -81,8 +81,10 @@ export default async function ReviewPage({
               </Link>
             </div>
           </div>
-          <div className="flex items-center gap-2 whitespace-nowrap">
-            <EditField variant="description" textField={description} id={reviewId} />
+          <div className="flex">
+            <div className="flex gap-2">
+              <EditField variant="description" textField={description} id={reviewId} />
+            </div>
           </div>
         </div>
         <FlashcardView questions={questions} />
