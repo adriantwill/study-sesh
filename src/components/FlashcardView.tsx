@@ -17,10 +17,10 @@ export default function FlashcardView({
   const isStudyMode = height === "h-130";
   const [lastAction, setLastAction] = useState<
     | {
-        type: "complete" | "skip";
-        id: string;
-        prevIndex: number;
-      }
+      type: "complete" | "skip";
+      id: string;
+      prevIndex: number;
+    }
     | null
   >(null);
 
@@ -184,8 +184,8 @@ export default function FlashcardView({
               <X size={40} strokeWidth={2.5} />
             </button>
           </div>
-          {completedIds.length > 0 && (
-            <div className="text-center mt-6">
+          <div className="flex justify-center mt-6 gap-6">
+            {completedIds.length > 0 && (
               <button
                 type="button"
                 onClick={handleReset}
@@ -193,8 +193,17 @@ export default function FlashcardView({
               >
                 Reset progress
               </button>
-            </div>
-          )}
+            )}
+            {lastAction && (
+              <button
+                type="button"
+                onClick={handleUndo}
+                className="text-sm text-muted-foreground hover:text-foreground underline"
+              >
+                Undo
+              </button>
+            )}
+          </div>
         </>
       )}
     </div>
