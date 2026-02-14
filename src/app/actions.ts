@@ -88,10 +88,10 @@ export async function deleteItemAction(
 export async function updateQuestionTextAction(
   id: string,
   text: string,
-  variant: "question_text" | "answer_text" | "filename",
+  variant: "question_text" | "answer_text" | "filename" | "description",
 ) {
   const supabase = await createClient();
-  const database = variant === "filename" ? "uploads" : "questions";
+  const database = variant === "filename" || variant === "description" ? "uploads" : "questions";
 
   const { error } = await supabase
     .from(database)
