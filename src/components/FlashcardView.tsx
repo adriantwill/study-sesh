@@ -94,24 +94,22 @@ export default function FlashcardView({
     }
     setCompletedIds([]);
     setCurrentIndex(0);
+    setLastAction(null);
   };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const tag = document.activeElement?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA") return;
-      if (e.key === "ArrowRight") {
-        if (isStudyMode) {
-          handleSkip();
-        } else {
-          changeDirection(1);
-        }
-      }
+      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+
       if (isStudyMode) {
-        if (e.key === "ArrowLeft") handleComplete();
-      } else {
-        if (e.key === "ArrowLeft") changeDirection(-1);
+        if (e.key === "ArrowRight") handleSkip();
+        else handleComplete();
+        return;
       }
+
+      changeDirection(e.key === "ArrowRight" ? 1 : -1);
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -156,51 +154,41 @@ export default function FlashcardView({
         )}
       </div>
       <div className="mt-4 flex justify-center">
-        {!isStudyMode ? (
-          <div className="text-sm font-medium text-muted-foreground">
-            {currentIndex + 1} / {filteredQuestions.length}
-          </div>
-        ) : (
-          <div className="text-xl font-medium ">
-            {completedIds.length} Known | {questions.length - completedIds.length} Unknown
-          </div>
-        )}
+        <div
+          className={`font-medium ${isStudyMode ? "text-xl" : "text-sm text-muted-foreground"}`}
+        >
+          {isStudyMode
+            ? `${completedIds.length} Known | ${questions.length - completedIds.length} Unknown`
+            : `${currentIndex + 1} / ${filteredQuestions.length}`}
+        </div>
       </div>
       {isStudyMode && (
         <>
           <div className="justify-center flex gap-4 mt-10">
-            <button
-              type="button"
-              onClick={handleComplete}
-              className="hover:bg-green-500/10 text-muted-foreground hover:text-green-500 p-4 rounded-full transition-all duration-200"
-            >
-              <Check size={40} strokeWidth={2.5} />
-            </button>
-            <button
-              type="button"
-              onClick={handleSkip}
-              className="hover:bg-red-500/10 text-muted-foreground hover:text-red-500 p-4 rounded-full transition-all duration-200"
-            >
-              <X size={40} strokeWidth={2.5} />
-            </button>
+            {[0, 1].map((index) => {
+              const Icon = index === 0 ? Check : X;
+              return (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={index === 0 ? handleComplete : handleSkip}
+                  className={`text-muted-foreground p-4 rounded-full transition-all duration-200 ${index === 0
+                    ? "hover:bg-green-500/10 hover:text-green-500"
+                    : "hover:bg-red-500/10 hover:text-red-500"
+                    }`}
+                >
+                  <Icon size={40} strokeWidth={2.5} />
+                </button>
+              );
+            })}
           </div>
-          <div className="flex justify-center mt-6 gap-6">
-            {completedIds.length > 0 && (
+          <div className="text-sm text-muted-foreground hover:text-foreground underline flex justify-center mt-6 gap-6">
+            {(completedIds.length > 0 || lastAction) && (
               <button
                 type="button"
-                onClick={handleReset}
-                className="text-sm text-muted-foreground hover:text-foreground underline"
+                onClick={lastAction ? handleUndo : handleReset}
               >
-                Reset progress
-              </button>
-            )}
-            {lastAction && (
-              <button
-                type="button"
-                onClick={handleUndo}
-                className="text-sm text-muted-foreground hover:text-foreground underline"
-              >
-                Undo
+                {lastAction ? "Undo" : "Reset progress"}
               </button>
             )}
           </div>
