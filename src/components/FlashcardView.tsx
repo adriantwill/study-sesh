@@ -15,6 +15,14 @@ export default function FlashcardView({
   height?: string;
 }) {
   const isStudyMode = height === "h-130";
+  const [lastAction, setLastAction] = useState<
+    | {
+        type: "complete" | "skip";
+        id: string;
+        prevIndex: number;
+      }
+    | null
+  >(null);
 
   const [completedIds, setCompletedIds] = useState<string[]>(() => {
     if (!isStudyMode) return [];
@@ -41,10 +49,42 @@ export default function FlashcardView({
 
   const handleComplete = () => {
     const id = filteredQuestions[currentIndex].id;
+    setLastAction({ type: "complete", id, prevIndex: currentIndex });
     setItem(id, true);
     setCompletedIds([...completedIds, id]);
     if (currentIndex >= filteredQuestions.length - 1) {
       setCurrentIndex(0);
+    }
+  };
+
+  const handleSkip = () => {
+    const id = filteredQuestions[currentIndex].id;
+    setLastAction({ type: "skip", id, prevIndex: currentIndex });
+    changeDirection(1);
+  };
+
+  const handleUndo = () => {
+    if (!lastAction) return;
+
+    if (lastAction.type === "complete") {
+      removeItem(lastAction.id);
+      const nextCompletedIds = completedIds.filter((id) => id !== lastAction.id);
+      setCompletedIds(nextCompletedIds);
+
+      const nextFilteredQuestions = questions.filter(
+        (q) => !nextCompletedIds.includes(q.id),
+      );
+      const targetIndex = nextFilteredQuestions.findIndex(
+        (q) => q.id === lastAction.id,
+      );
+
+      setCurrentIndex(targetIndex === -1 ? 0 : targetIndex);
+      setLastAction(null);
+      return;
+    } else {
+      const targetIndex = Math.max(0, Math.min(lastAction.prevIndex, filteredQuestions.length - 1));
+      setCurrentIndex(targetIndex);
+      setLastAction(null);
     }
   };
 
@@ -60,7 +100,13 @@ export default function FlashcardView({
     const handleKeyDown = (e: KeyboardEvent) => {
       const tag = document.activeElement?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA") return;
-      if (e.key === "ArrowRight") changeDirection(1);
+      if (e.key === "ArrowRight") {
+        if (isStudyMode) {
+          handleSkip();
+        } else {
+          changeDirection(1);
+        }
+      }
       if (isStudyMode) {
         if (e.key === "ArrowLeft") handleComplete();
       } else {
@@ -132,7 +178,7 @@ export default function FlashcardView({
             </button>
             <button
               type="button"
-              onClick={() => changeDirection(1)}
+              onClick={handleSkip}
               className="hover:bg-red-500/10 text-muted-foreground hover:text-red-500 p-4 rounded-full transition-all duration-200"
             >
               <X size={40} strokeWidth={2.5} />
