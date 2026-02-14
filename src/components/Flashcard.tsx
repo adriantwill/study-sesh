@@ -12,7 +12,7 @@ function Card({
     <div
       className={`text-4xl font-medium text-center text-foreground whitespace-pre-wrap absolute inset-0 w-full h-full bg-muted rounded-xl shadow-lg flex flex-col items-center justify-center p-8 backface-hidden rotate-x-0 ${isBack ? "rotate-y-180 " : ""}`}
     >
-      <span>{parseMarkdown(text)}</span>
+      <span className="text-justify">{parseMarkdown(text)}</span>
       {imageUrl && (
         <Image
           src={imageUrl}
