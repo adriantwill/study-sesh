@@ -15,6 +15,14 @@ export default function FlashcardView({
   height?: string;
 }) {
   const isStudyMode = height === "h-130";
+  const [lastAction, setLastAction] = useState<
+    | {
+      type: "complete" | "skip";
+      id: string;
+      prevIndex: number;
+    }
+    | null
+  >(null);
 
   const [completedIds, setCompletedIds] = useState<string[]>(() => {
     if (!isStudyMode) return [];
@@ -41,10 +49,42 @@ export default function FlashcardView({
 
   const handleComplete = () => {
     const id = filteredQuestions[currentIndex].id;
+    setLastAction({ type: "complete", id, prevIndex: currentIndex });
     setItem(id, true);
     setCompletedIds([...completedIds, id]);
     if (currentIndex >= filteredQuestions.length - 1) {
       setCurrentIndex(0);
+    }
+  };
+
+  const handleSkip = () => {
+    const id = filteredQuestions[currentIndex].id;
+    setLastAction({ type: "skip", id, prevIndex: currentIndex });
+    changeDirection(1);
+  };
+
+  const handleUndo = () => {
+    if (!lastAction) return;
+
+    if (lastAction.type === "complete") {
+      removeItem(lastAction.id);
+      const nextCompletedIds = completedIds.filter((id) => id !== lastAction.id);
+      setCompletedIds(nextCompletedIds);
+
+      const nextFilteredQuestions = questions.filter(
+        (q) => !nextCompletedIds.includes(q.id),
+      );
+      const targetIndex = nextFilteredQuestions.findIndex(
+        (q) => q.id === lastAction.id,
+      );
+
+      setCurrentIndex(targetIndex === -1 ? 0 : targetIndex);
+      setLastAction(null);
+      return;
+    } else {
+      const targetIndex = Math.max(0, Math.min(lastAction.prevIndex, filteredQuestions.length - 1));
+      setCurrentIndex(targetIndex);
+      setLastAction(null);
     }
   };
 
@@ -54,18 +94,22 @@ export default function FlashcardView({
     }
     setCompletedIds([]);
     setCurrentIndex(0);
+    setLastAction(null);
   };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const tag = document.activeElement?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA") return;
-      if (e.key === "ArrowRight") changeDirection(1);
+      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+
       if (isStudyMode) {
-        if (e.key === "ArrowLeft") handleComplete();
-      } else {
-        if (e.key === "ArrowLeft") changeDirection(-1);
+        if (e.key === "ArrowRight") handleSkip();
+        else handleComplete();
+        return;
       }
+
+      changeDirection(e.key === "ArrowRight" ? 1 : -1);
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -110,45 +154,44 @@ export default function FlashcardView({
         )}
       </div>
       <div className="mt-4 flex justify-center">
-        {!isStudyMode ? (
-          <div className="text-sm font-medium text-muted-foreground">
-            {currentIndex + 1} / {filteredQuestions.length}
-          </div>
-        ) : (
-          <div className="text-xl font-medium ">
-            {completedIds.length} Known | {questions.length - completedIds.length} Unknown
-          </div>
-        )}
+        <div
+          className={`font-medium ${isStudyMode ? "text-xl" : "text-sm text-muted-foreground"}`}
+        >
+          {isStudyMode
+            ? `${completedIds.length} Known | ${questions.length - completedIds.length} Unknown`
+            : `${currentIndex + 1} / ${filteredQuestions.length}`}
+        </div>
       </div>
       {isStudyMode && (
         <>
           <div className="justify-center flex gap-4 mt-10">
-            <button
-              type="button"
-              onClick={handleComplete}
-              className="hover:bg-green-500/10 text-muted-foreground hover:text-green-500 p-4 rounded-full transition-all duration-200"
-            >
-              <Check size={40} strokeWidth={2.5} />
-            </button>
-            <button
-              type="button"
-              onClick={() => changeDirection(1)}
-              className="hover:bg-red-500/10 text-muted-foreground hover:text-red-500 p-4 rounded-full transition-all duration-200"
-            >
-              <X size={40} strokeWidth={2.5} />
-            </button>
+            {[0, 1].map((index) => {
+              const Icon = index === 0 ? Check : X;
+              return (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={index === 0 ? handleComplete : handleSkip}
+                  className={`text-muted-foreground p-4 rounded-full transition-all duration-200 ${index === 0
+                    ? "hover:bg-green-500/10 hover:text-green-500"
+                    : "hover:bg-red-500/10 hover:text-red-500"
+                    }`}
+                >
+                  <Icon size={40} strokeWidth={2.5} />
+                </button>
+              );
+            })}
           </div>
-          {completedIds.length > 0 && (
-            <div className="text-center mt-6">
+          <div className="text-sm text-muted-foreground hover:text-foreground underline flex justify-center mt-6 gap-6">
+            {(completedIds.length > 0 || lastAction) && (
               <button
                 type="button"
-                onClick={handleReset}
-                className="text-sm text-muted-foreground hover:text-foreground underline"
+                onClick={lastAction ? handleUndo : handleReset}
               >
-                Reset progress
+                {lastAction ? "Undo" : "Reset progress"}
               </button>
-            </div>
-          )}
+            )}
+          </div>
         </>
       )}
     </div>
