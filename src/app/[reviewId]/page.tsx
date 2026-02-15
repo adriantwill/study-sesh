@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Tables } from "@/src/types/database.types";
-import DNDContext from "../../components/DNDContext";
+import Test from "../../components/Test";
 import EditField from "../../components/EditField";
 import FlashcardView from "../../components/FlashcardView";
 import { createClient } from "../../lib/supabase/server";
@@ -45,6 +45,7 @@ export default async function ReviewPage({
     answer: q.answer_text,
     imageUrl: q.image_url,
     displayOrder: q.display_order,
+    options: q.options,
   }));
   const title = upload.filename;
   const description = upload.description
@@ -92,7 +93,7 @@ export default async function ReviewPage({
             Question Bank
           </h2>
 
-          <DNDContext questions={questions} reviewId={reviewId} />
+          <Test questions={questions} reviewId={reviewId} />
         </div>
       </div>
     </div>
