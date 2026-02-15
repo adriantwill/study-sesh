@@ -45,6 +45,7 @@ export default async function ReviewPage({
     answer: q.answer_text,
     imageUrl: q.image_url,
     displayOrder: q.display_order,
+    options: q.options
   }));
   const title = upload.filename;
   const description = upload.description

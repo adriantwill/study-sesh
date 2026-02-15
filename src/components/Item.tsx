@@ -47,6 +47,29 @@ export default function Item({ idx, q }: ItemProps) {
                   id={q.id}
                 />
               </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="flex items-center justify-between mt-2 p-4 rounded-lg bg-muted-hover">
+                  <EditField
+                    variant={"answer_text"}
+                    textField={q.options[0]}
+                    id={q.id}
+                  />
+                </div>
+                <div className="flex items-center justify-between mt-2 p-4 rounded-lg bg-muted-hover">
+                  <EditField
+                    variant={"answer_text"}
+                    textField={q.answer}
+                    id={q.id}
+                  />
+                </div>
+                <div className="flex items-center justify-between mt-2 p-4 rounded-lg bg-muted-hover">
+                  <EditField
+                    variant={"answer_text"}
+                    textField={q.answer}
+                    id={q.id}
+                  />
+                </div>
+              </div>
             </details>
           </div>
         </div>
