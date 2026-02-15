@@ -1,6 +1,6 @@
 "use client";
 import { Check, Pencil } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   updateFolderNameAction,
   updateQuestionTextAction,
@@ -17,10 +17,6 @@ interface EditFieldProps {
 export default function EditField({ variant, textField, id, onEditingChange }: EditFieldProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [text, setText] = useState(textField);
-
-  useEffect(() => {
-    onEditingChange?.(isEditing);
-  }, [isEditing, onEditingChange]);
 
   function handleTextChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
     const value = e.target.value;
@@ -40,6 +36,7 @@ export default function EditField({ variant, textField, id, onEditingChange }: E
   async function handleSave() {
     if (!isEditing) {
       setIsEditing(true);
+      onEditingChange?.(true);
       return;
     }
 
@@ -51,6 +48,7 @@ export default function EditField({ variant, textField, id, onEditingChange }: E
       }
     }
     setIsEditing(false);
+    onEditingChange?.(false);
   }
 
   return (
