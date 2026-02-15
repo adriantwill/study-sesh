@@ -47,6 +47,32 @@ export default function Item({ idx, q }: ItemProps) {
                   id={q.id}
                 />
               </div>
+              <div className="text-sm mt-4">
+                Wrong Options
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="flex items-center justify-between mt-2 p-4 rounded-lg bg-muted-hover">
+                  <EditField
+                    variant={0}
+                    textField={q.options?.[0] ?? ""}
+                    id={q.id}
+                  />
+                </div>
+                <div className="flex items-center justify-between mt-2 p-4 rounded-lg bg-muted-hover">
+                  <EditField
+                    variant={1}
+                    textField={q.options?.[1] ?? ""}
+                    id={q.id}
+                  />
+                </div>
+                <div className="flex items-center justify-between mt-2 p-4 rounded-lg bg-muted-hover">
+                  <EditField
+                    variant={2}
+                    textField={q.options?.[2] ?? ""}
+                    id={q.id}
+                  />
+                </div>
+              </div>
             </details>
           </div>
         </div>

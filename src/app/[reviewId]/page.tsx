@@ -47,18 +47,19 @@ export default async function ReviewPage({
     displayOrder: q.display_order,
     options: q.options,
   }));
+
   const title = upload.filename;
   const description = upload.description
     ? upload.description
     : "No description provided";
-  //TODO fix supabase RLS
+
   return (
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-4xl space-y-10 mx-auto">
         <div className="space-y-2">
           <div className="flex justify-between items-center ">
             <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
-              <Link href={"/"}>🏠</Link>
+              <Link href="/">🏠</Link>
               <EditField variant="filename" textField={title} id={reviewId} />
             </h1>
             <div className="flex gap-6">

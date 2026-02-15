@@ -5,37 +5,6 @@ import type { StudyQuestion } from "@/src/types";
 
 //TODO optimize the pdf cario thing
 export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
-  // MOCK MODE: Return dummy data if MOCK_AI is set
-  if (process.env.MOCK_AI === "true") {
-    console.log("MOCK_AI enabled: Returning dummy questions");
-    await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate network delay
-
-    const mockQuestions: StudyQuestion[] = [
-      {
-        id: "mock-1",
-        question: "The capital of France",
-        answer: "Paris",
-      },
-      {
-        id: "mock-2",
-        question: "The powerhouse of the cell",
-        answer: "Mitochondria",
-      },
-      {
-        id: "mock-3",
-        question: "Concept of photosynthesis",
-        answer:
-          "Photosynthesis is the process by which green plants use sunlight to synthesize foods from carbon dioxide and water.",
-      },
-      {
-        id: "mock-4",
-        question: "Author of 'To Kill a Mockingbird'",
-        answer: "Harper Lee",
-      },
-    ];
-    return mockQuestions;
-  }
-
   if (!process.env.HYPERBOLIC_API_KEY) {
     throw new Error("HYPERBOLIC_API_KEY not configured");
   }
@@ -116,11 +85,20 @@ export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
                       - Key facts, dates, or formulas
                       - Lists or steps to memorize
 
+                      For each question, generate exactly 3 wrong but plausible options based on the slide.
+                      Rules for options:
+                      - Must be incorrect
+                      - Do not paraphrase or restate the correct answer
+                      - Do not use “all/none of the above”
+                      - Keep length similar to correct answer
+                      - Avoid copying long phrases verbatim from the slide
+
                       Format as JSON array:
                       [
                         {
                           "question": "Question here",
-                          "answer": "Concise answer without repeating the question"
+                          "answer": "Concise answer without repeating the question",
+                          "options": ["Wrong but plausible 1", "Wrong but plausible 2", "Wrong but plausible 3"]
                         }
                       ]
 
