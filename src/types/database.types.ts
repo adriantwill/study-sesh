@@ -39,6 +39,7 @@ export type Database = {
           display_order: number | null
           id: string
           image_url: string | null
+          options: string[]
           question_text: string
           upload_id: string | null
         }
@@ -48,6 +49,7 @@ export type Database = {
           display_order?: number | null
           id?: string
           image_url?: string | null
+          options?: string[]
           question_text: string
           upload_id?: string | null
         }
@@ -57,6 +59,7 @@ export type Database = {
           display_order?: number | null
           id?: string
           image_url?: string | null
+          options?: string[]
           question_text?: string
           upload_id?: string | null
         }

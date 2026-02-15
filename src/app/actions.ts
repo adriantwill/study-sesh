@@ -36,12 +36,12 @@ export async function uploadAndGenerateAction(formData: FormData) {
         question_text: q.question,
         answer_text: q.answer,
         display_order: idx + 1,
+        options: q.options,
       })),
     );
 
     if (questionsError) {
       console.error("Error inserting questions:", questionsError);
-      // Optional: Cleanup upload if questions fail? For now, just throw.
       throw new Error("Failed to save questions to database");
     }
   }
@@ -88,21 +88,51 @@ export async function deleteItemAction(
 export async function updateQuestionTextAction(
   id: string,
   text: string,
-  variant: "question_text" | "answer_text" | "filename" | "description",
+  variant: "question_text" | "answer_text" | "filename" | "description" | 0 | 1 | 2,
 ) {
   const supabase = await createClient();
-  const database = variant === "filename" || variant === "description" ? "uploads" : "questions";
 
-  const { error } = await supabase
-    .from(database)
-    .update({ [variant]: text })
-    .eq("id", id);
+  if (variant === 0 || variant === 1 || variant === 2) {
+    const { data, error: fetchError } = await supabase
+      .from("questions")
+      .select("options")
+      .eq("id", id)
+      .single();
 
-  if (error) {
-    console.error("Update text error:", error);
-    throw new Error("Failed to update text");
+    if (fetchError) {
+      console.error("Update options fetch error:", fetchError);
+      throw new Error("Failed to load options");
+    }
+
+    const updatedOptions = [...(data.options ?? [])];
+    updatedOptions[variant] = text;
+
+    const { error: optionError } = await supabase
+      .from("questions")
+      .update({ options: updatedOptions })
+      .eq("id", id);
+
+    if (optionError) {
+      console.error("Update option error:", optionError);
+      throw new Error("Failed to update option");
+    }
+  } else {
+    const database =
+      variant === "filename" || variant === "description"
+        ? "uploads"
+        : "questions";
+
+    const { error } = await supabase
+      .from(database)
+      .update({ [variant]: text })
+      .eq("id", id);
+
+    if (error) {
+      console.error("Update text error:", error);
+      throw new Error("Failed to update text");
+    }
   }
-  //change type
+
   revalidatePath("/[reviewId]", "page");
 }
 
