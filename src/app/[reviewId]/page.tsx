@@ -1,10 +1,9 @@
 import Link from "next/link";
 import type { Tables } from "@/src/types/database.types";
-import DNDContext from "../../components/DNDContext";
+import Test from "../../components/Test";
 import EditField from "../../components/EditField";
 import FlashcardView from "../../components/FlashcardView";
 import { createClient } from "../../lib/supabase/server";
-import Test from "@/src/components/Test";
 
 export default async function ReviewPage({
   params,
@@ -46,20 +45,21 @@ export default async function ReviewPage({
     answer: q.answer_text,
     imageUrl: q.image_url,
     displayOrder: q.display_order,
-    options: q.options
+    options: q.options,
   }));
+
   const title = upload.filename;
   const description = upload.description
     ? upload.description
     : "No description provided";
-  //TODO fix supabase RLS
+
   return (
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-4xl space-y-10 mx-auto">
         <div className="space-y-2">
           <div className="flex justify-between items-center ">
             <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
-              <Link href={"/"}>🏠</Link>
+              <Link href="/">🏠</Link>
               <EditField variant="filename" textField={title} id={reviewId} />
             </h1>
             <div className="flex gap-6">
@@ -94,8 +94,7 @@ export default async function ReviewPage({
             Question Bank
           </h2>
 
-          {/*<DNDContext questions={questions} reviewId={reviewId} />*/}
-          <Test />
+          <Test questions={questions} reviewId={reviewId} />
         </div>
       </div>
     </div>
