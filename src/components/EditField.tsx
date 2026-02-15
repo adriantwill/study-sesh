@@ -8,7 +8,7 @@ import {
 import { parseMarkdown } from "../lib/markdown";
 
 interface EditFieldProps {
-  variant: "question_text" | "answer_text" | "folder_name" | "filename" | "description" | "question[0]";
+  variant: "question_text" | "answer_text" | "folder_name" | "filename" | "description" | 0 | 1 | 2;
   textField: string;
   id: string;
 }

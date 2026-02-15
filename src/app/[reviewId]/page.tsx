@@ -4,6 +4,7 @@ import DNDContext from "../../components/DNDContext";
 import EditField from "../../components/EditField";
 import FlashcardView from "../../components/FlashcardView";
 import { createClient } from "../../lib/supabase/server";
+import Test from "@/src/components/Test";
 
 export default async function ReviewPage({
   params,
@@ -93,7 +94,8 @@ export default async function ReviewPage({
             Question Bank
           </h2>
 
-          <DNDContext questions={questions} reviewId={reviewId} />
+          {/*<DNDContext questions={questions} reviewId={reviewId} />*/}
+          <Test />
         </div>
       </div>
     </div>

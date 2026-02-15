@@ -89,19 +89,32 @@ export async function deleteItemAction(
 export async function updateQuestionTextAction(
   id: string,
   text: string,
-  variant: "question_text" | "answer_text" | "filename" | "description",
+  variant: "question_text" | "answer_text" | "filename" | "description" | 0 | 1 | 2,
 ) {
   const supabase = await createClient();
-  const database = variant === "filename" || variant === "description" ? "uploads" : "questions";
+  const database =
+    variant === "filename" || variant === "description"
+      ? "uploads"
+      : "questions";
+  if (variant === 0 || variant === 1 || variant === 2) {
+    const { data, error } = await supabase.from("questions").select("options").eq("id", id).single();
+    if (error) throw error;
+    data.options[variant] = text;
+    const { error: optionError } = await supabase
+      .from(database)
+      .update({ options: data.options })
+      .eq("id", id);
+    if (optionError) throw optionError;
+  } else {
+    const { error } = await supabase
+      .from(database)
+      .update({ [variant]: text })
+      .eq("id", id);
+    if (error) {
+      console.error("Update text error:", error);
+      throw new Error("Failed to update text");
+    }
 
-  const { error } = await supabase
-    .from(database)
-    .update({ [variant]: text })
-    .eq("id", id);
-
-  if (error) {
-    console.error("Update text error:", error);
-    throw new Error("Failed to update text");
   }
   //change type
   revalidatePath("/[reviewId]", "page");
