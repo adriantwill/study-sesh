@@ -28,6 +28,7 @@
 	--animate-slide-in-left: slide-in-left 0.3s cubic-bezier(0.16, 1, 0.3, 1)
 		forwards;
 	--animate-fade-slide-in: fade-slide-in 0.3s ease-out forwards;
+	--animate-choice-border-sweep: choice-border-sweep 280ms ease-out forwards;
 
 	@keyframes slide-in-right {
 		0% {
@@ -59,6 +60,15 @@
 		to {
 			opacity: 1;
 			transform: translateY(0);
+		}
+	}
+
+	@keyframes choice-border-sweep {
+		from {
+			clip-path: inset(0 100% 0 0);
+		}
+		to {
+			clip-path: inset(0 0 0 0);
 		}
 	}
 }
@@ -115,4 +125,29 @@
 .backface-hidden {
 	-webkit-backface-visibility: hidden;
 	backface-visibility: hidden;
+}
+
+.choice-border-anim {
+	position: relative;
+	overflow: hidden;
+}
+
+.choice-border-anim::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	border: 1px solid transparent;
+	border-radius: inherit;
+	pointer-events: none;
+	clip-path: inset(0 100% 0 0);
+}
+
+.choice-border-correct::after {
+	border-color: var(--color-success);
+	animation: var(--animate-choice-border-sweep);
+}
+
+.choice-border-wrong::after {
+	border-color: var(--color-error);
+	animation: var(--animate-choice-border-sweep);
 }

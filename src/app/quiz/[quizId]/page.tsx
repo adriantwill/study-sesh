@@ -1,3 +1,4 @@
+import MultipleChoice from "@/src/components/MultipleChoice";
 import QuizCard from "@/src/components/QuizCard";
 import { parseMarkdown } from "@/src/lib/markdown";
 import { createClient } from "@/src/lib/supabase/server";
@@ -56,12 +57,11 @@ export default async function QuizPage({
               </div>
               <div className="grid grid-cols-2 gap-3">
                 {q.choices.map((choice, choiceIdx) => (
-                  <div
-                    key={`${q.id}-${choiceIdx}`}
-                    className="bg-muted w-full overflow-y-visible rounded py-3 whitespace-pre-wrap flex justify-between text-xl text-foreground px-4 items-center animate-fade-slide-in border border-border gap-3"
-                  >
-                    {parseMarkdown(choice)}
-                  </div>
+                  <MultipleChoice
+                    correct={choice === q.answer}
+                    key={`${choiceIdx}-${choice}`}
+                    choice={choice}
+                  />
                 ))}
               </div>
             </div>
