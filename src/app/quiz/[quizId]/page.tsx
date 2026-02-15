@@ -1,8 +1,15 @@
 import QuizCard from "@/src/components/QuizCard";
 import { parseMarkdown } from "@/src/lib/markdown";
 import { createClient } from "@/src/lib/supabase/server";
-import type { StudyQuestion } from "@/src/types";
-import QuizClient from "./QuizClient";
+
+function shuffleArray(items: string[]): string[] {
+  const shuffled = [...items];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
 
 export default async function QuizPage({
   params,
@@ -32,6 +39,7 @@ export default async function QuizPage({
     question: q.question_text,
     answer: q.answer_text,
     imageUrl: q.image_url,
+    choices: shuffleArray([...(q.options ?? []), q.answer_text]).slice(0, 4),
   }));
   return (
     <div className="max-w-5xl mx-auto">
@@ -46,23 +54,15 @@ export default async function QuizPage({
               <div className="text-3xl font-medium text-center text-foreground whitespace-pre-wrap">
                 {parseMarkdown(q.question)}
               </div>
-              <div className="space-y-3">
-                <div className="flex gap-3">
-                  <div className="bg-muted w-full overflow-y-visible rounded py-3 whitespace-pre-wrap flex justify-between text-xl text-foreground px-4 items-center animate-fade-slide-in border border-border gap-3">
-                    {parseMarkdown(q.answer)}
+              <div className="grid grid-cols-2 gap-3">
+                {q.choices.map((choice, choiceIdx) => (
+                  <div
+                    key={`${q.id}-${choiceIdx}`}
+                    className="bg-muted w-full overflow-y-visible rounded py-3 whitespace-pre-wrap flex justify-between text-xl text-foreground px-4 items-center animate-fade-slide-in border border-border gap-3"
+                  >
+                    {parseMarkdown(choice)}
                   </div>
-                  <div className="bg-muted w-full overflow-y-visible rounded py-3 whitespace-pre-wrap flex justify-between text-xl text-foreground px-4 items-center animate-fade-slide-in border border-border gap-3">
-                    {parseMarkdown(q.answer)}
-                  </div>
-                </div>
-                <div className="flex gap-3">
-                  <div className="bg-muted w-full overflow-y-visible rounded py-3 whitespace-pre-wrap flex justify-between text-xl text-foreground px-4 items-center animate-fade-slide-in border border-border gap-3">
-                    {parseMarkdown(q.answer)}
-                  </div>
-                  <div className="bg-muted w-full overflow-y-visible rounded py-3 whitespace-pre-wrap flex justify-between text-xl text-foreground px-4 items-center animate-fade-slide-in border border-border gap-3">
-                    {parseMarkdown(q.answer)}
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
           </div>

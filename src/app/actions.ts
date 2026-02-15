@@ -36,6 +36,7 @@ export async function uploadAndGenerateAction(formData: FormData) {
         question_text: q.question,
         answer_text: q.answer,
         display_order: idx + 1,
+        options: q.options,
       })),
     );
 
