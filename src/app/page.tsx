@@ -27,7 +27,7 @@ export default async function Home() {
         </p>
 
         <div className="bg-muted rounded-lg shadow p-8">
-          <UploadButton></UploadButton>
+          <UploadButton />
           <div className="mt-6 flex flex-col gap-4">
             {data.length > 0 && (
               <div>
