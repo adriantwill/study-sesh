@@ -2,7 +2,8 @@
 import { FileUp } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { uploadAndGenerateAction } from "../app/actions";
+import { uploadAndGenerateAction, uploadRecordAction } from "../app/actions";
+import type { StudyQuestion } from "../types";
 
 export default function UploadSwitcher() {
   const [selectedOption, setSelectedOption] = useState<0 | 1>(0);
@@ -11,9 +12,10 @@ export default function UploadSwitcher() {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [textInput, setTextInput] = useState("");
   const showGenerateButton = Boolean(file) || selectedOption === 1;
 
-  const handleUpload = async () => {
+  async function handleUpload() {
     if (!file) return;
     setLoading(true);
     setError(null);
@@ -51,9 +53,30 @@ export default function UploadSwitcher() {
       setFile(e.target.files[0]);
     }
   };
-  
-  function handleGenerate(){
-    
+
+  async function handleGenerate() {
+    const questionList: StudyQuestion[] = textInput
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0)
+      .map((line) => {
+        const colonIndex = line.indexOf(":");
+        if (colonIndex === -1) {
+          return null;
+        }
+
+        return {
+          id: crypto.randomUUID(),
+          question: line.slice(0, colonIndex).trim(),
+          answer: line.slice(colonIndex + 1).trim(),
+        };
+      })
+      .filter(
+        (pair): pair is { id: string; question: string; answer: string } =>
+          pair !== null,
+      );
+    const upload = await uploadRecordAction("Untitled", questionList);
+    router.push(`/${upload.id}`);
   }
   return (
     <>
@@ -92,7 +115,10 @@ export default function UploadSwitcher() {
         {selectedOption === 1 ? (
           <textarea
             className="h-full w-full resize-none rounded-lg bg-transparent p-4 outline-none"
-            placeholder="Paste your text here..."
+            value={textInput}
+            onChange={(e) => setTextInput(e.target.value)}
+            placeholder={`Question 1:Answer 1
+Question 2: Answer 2`}
           />
         ) : file ? (
           <div className="flex h-full flex-col items-center justify-center">
@@ -128,7 +154,6 @@ export default function UploadSwitcher() {
           </div>
         )}
       </div>
-
       <div
         className={`origin-center overflow-hidden transition-[height] duration-300 ease-out ${showGenerateButton
           ? " h-12"
@@ -163,7 +188,6 @@ export default function UploadSwitcher() {
           </div>
         </div>
       )}
-
     </>
   );
 }

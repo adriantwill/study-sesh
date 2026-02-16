@@ -4,21 +4,25 @@ import { revalidatePath } from "next/cache";
 import { generateQuestions } from "../lib/ai/question-generator";
 import { getPublicUrl, uploadFile } from "../lib/storage";
 import { createClient } from "../lib/supabase/server";
+import type { StudyQuestion } from "../types";
 
 export async function uploadAndGenerateAction(formData: FormData) {
   const file = formData.get("pdf") as File;
   if (!file) {
     throw new Error("No file provided");
   }
-
   const questions = await generateQuestions(file);
-  const supabase = await createClient();
+  const upload = await uploadRecordAction(file.name, questions);
+  revalidatePath("/");
+  return { uploadId: upload.id };
+}
 
-  // Insert upload record
+export async function uploadRecordAction(name: string, questions: StudyQuestion[]) {
+  const supabase = await createClient();
   const { data: upload, error: uploadError } = await supabase
     .from("uploads")
     .insert({
-      filename: file.name,
+      filename: name,
     })
     .select()
     .single();
@@ -44,10 +48,9 @@ export async function uploadAndGenerateAction(formData: FormData) {
       console.error("Error inserting questions:", questionsError);
       throw new Error("Failed to save questions to database");
     }
-  }
 
-  revalidatePath("/");
-  return { uploadId: upload.id };
+  }
+  return upload;
 }
 
 export async function deleteItemAction(
