@@ -1,6 +1,5 @@
 import AddFolder from "../components/AddFolder";
 import FoldersList from "../components/FoldersList";
-import UploadButton from "../components/UploadButton";
 import UploadLink from "../components/UploadLink";
 import UploadSwitcher from "../components/UploadSwitcher";
 import { createClient } from "../lib/supabase/server";

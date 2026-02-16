@@ -37,7 +37,7 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
             <div
               className={`grid transition-all duration-200 ${openFolder === folder.id ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
             >
-              <ul className="space-y-1 pl-6 overflow-hidden min-h-0">
+              <ul className="pl-6 overflow-hidden min-h-0">
                 {uploads.filter((upload) => upload.folder_id === folder.id).map((upload) => (
                   <UploadLink
                     key={upload.id}
