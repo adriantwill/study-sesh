@@ -30,7 +30,7 @@ export default async function Home() {
           <UploadSwitcher />
           <div className="flex flex-col gap-4">
             {data.length > 0 && (
-              <div>
+              <div className="transition-[height] duration-300">
                 <h2 className="font-semibold text-lg  text-foreground">
                   Saved data:
                 </h2>
