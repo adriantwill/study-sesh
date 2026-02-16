@@ -2,6 +2,7 @@ import AddFolder from "../components/AddFolder";
 import FoldersList from "../components/FoldersList";
 import UploadButton from "../components/UploadButton";
 import UploadLink from "../components/UploadLink";
+import UploadSwitcher from "../components/UploadSwitcher";
 import { createClient } from "../lib/supabase/server";
 
 export default async function Home() {
@@ -26,9 +27,9 @@ export default async function Home() {
           Upload PowerPoint PDF to generate study questions
         </p>
 
-        <div className="bg-muted rounded-lg shadow p-8">
-          <UploadButton />
-          <div className="mt-6 flex flex-col gap-4">
+        <div className="bg-muted rounded-lg shadow p-8 space-y-6">
+          <UploadSwitcher />
+          <div className="flex flex-col gap-4">
             {data.length > 0 && (
               <div>
                 <h2 className="font-semibold text-lg  text-foreground">
