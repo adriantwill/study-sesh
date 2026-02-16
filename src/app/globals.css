@@ -143,11 +143,13 @@
 }
 
 .choice-border-correct::after {
-	border-color: var(--color-success);
+	border-color: var(--color-success, #22c55e);
+	opacity: 1;
 	animation: var(--animate-choice-border-sweep);
 }
 
 .choice-border-wrong::after {
-	border-color: var(--color-error);
+	border-color: var(--color-error, #ef4444);
+	opacity: 1;
 	animation: var(--animate-choice-border-sweep);
 }
