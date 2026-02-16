@@ -35,7 +35,6 @@ export default function UploadSwitcher() {
 
     try {
       const result = await uploadAndGenerateAction(formData);
-
       setProgress(100);
       router.push(`/${result.uploadId}`);
     } catch (err) {
@@ -55,6 +54,8 @@ export default function UploadSwitcher() {
   };
 
   async function handleGenerate() {
+    setLoading(true);
+    setError(null);
     const questionList: StudyQuestion[] = textInput
       .split(/\r?\n/)
       .map((line) => line.trim())
@@ -75,8 +76,17 @@ export default function UploadSwitcher() {
         (pair): pair is { id: string; question: string; answer: string } =>
           pair !== null,
       );
-    const upload = await uploadRecordAction("Untitled", questionList);
-    router.push(`/${upload.id}`);
+    try {
+      const upload = await uploadRecordAction("Untitled", questionList);
+      router.push(`/${upload.id}`);
+    } catch (err) {
+      console.error("Upload error:", err);
+      setError(
+        err instanceof Error ? err.message : "Failed to generate questions",
+      );
+    } finally {
+      setLoading(false);
+    }
   }
   return (
     <>
@@ -118,7 +128,7 @@ export default function UploadSwitcher() {
             value={textInput}
             onChange={(e) => setTextInput(e.target.value)}
             placeholder={`Question 1:Answer 1
-Question 2: Answer 2`}
+Question 2:Answer 2`}
           />
         ) : file ? (
           <div className="flex h-full flex-col items-center justify-center">
@@ -170,7 +180,7 @@ Question 2: Answer 2`}
           {loading ? "Generating questions..." : "Generate Study Questions"}
         </button>
       </div>
-      {loading && (
+      {loading && selectedOption === 0 && (
         <div className="space-y-2">
           <div className="flex justify-between text-sm text-muted-foreground">
             <span>Processing slides...</span>

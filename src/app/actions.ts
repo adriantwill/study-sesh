@@ -40,7 +40,7 @@ export async function uploadRecordAction(name: string, questions: StudyQuestion[
         question_text: q.question,
         answer_text: q.answer,
         display_order: idx + 1,
-        options: q.options,
+        options: q.options ?? [],
       })),
     );
 
