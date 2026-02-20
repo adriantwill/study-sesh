@@ -15,11 +15,11 @@ export default function FlashcardView({
   height?: string;
 }) {
   const isStudyMode = height === "h-130";
-  const [lastAction, setLastAction] = useState<{
+  const [actionHistory, setActionHistory] = useState<Array<{
     type: "complete" | "skip";
     id: string;
     prevIndex: number;
-  } | null>(null);
+  }>>([]);
 
   const [completedIds, setCompletedIds] = useState<string[]>(() => {
     if (!isStudyMode) return [];
@@ -47,9 +47,12 @@ export default function FlashcardView({
 
   const handleComplete = () => {
     const id = filteredQuestions[currentIndex].id;
-    setLastAction({ type: "complete", id, prevIndex: currentIndex });
+    setActionHistory((prev) => [
+      ...prev,
+      { type: "complete", id, prevIndex: currentIndex },
+    ]);
     setItem(id, true);
-    setCompletedIds([...completedIds, id]);
+    setCompletedIds((prev) => [...prev, id]);
     if (currentIndex >= filteredQuestions.length - 1) {
       setCurrentIndex(0);
     }
@@ -57,29 +60,31 @@ export default function FlashcardView({
 
   const handleSkip = () => {
     const id = filteredQuestions[currentIndex].id;
-    setLastAction({ type: "skip", id, prevIndex: currentIndex });
+    setActionHistory((prev) => [
+      ...prev,
+      { type: "skip", id, prevIndex: currentIndex },
+    ]);
     changeDirection(1);
   };
 
   const handleUndo = () => {
+    const lastAction = actionHistory.at(-1);
     if (!lastAction) return;
 
     if (lastAction.type === "complete") {
       removeItem(lastAction.id);
-      const nextCompletedIds = completedIds.filter(
-        (id) => id !== lastAction.id,
-      );
-      setCompletedIds(nextCompletedIds);
-
-      const nextFilteredQuestions = questions.filter(
-        (q) => !nextCompletedIds.includes(q.id),
-      );
-      const targetIndex = nextFilteredQuestions.findIndex(
-        (q) => q.id === lastAction.id,
-      );
-
-      setCurrentIndex(targetIndex === -1 ? 0 : targetIndex);
-      setLastAction(null);
+      setCompletedIds((prev) => {
+        const nextCompletedIds = prev.filter((id) => id !== lastAction.id);
+        const nextFilteredQuestions = questions.filter(
+          (q) => !nextCompletedIds.includes(q.id),
+        );
+        const targetIndex = nextFilteredQuestions.findIndex(
+          (q) => q.id === lastAction.id,
+        );
+        setCurrentIndex(targetIndex === -1 ? 0 : targetIndex);
+        return nextCompletedIds;
+      });
+      setActionHistory((prev) => prev.slice(0, -1));
       return;
     } else {
       const targetIndex = Math.max(
@@ -87,7 +92,7 @@ export default function FlashcardView({
         Math.min(lastAction.prevIndex, filteredQuestions.length - 1),
       );
       setCurrentIndex(targetIndex);
-      setLastAction(null);
+      setActionHistory((prev) => prev.slice(0, -1));
     }
   };
 
@@ -97,7 +102,7 @@ export default function FlashcardView({
     }
     setCompletedIds([]);
     setCurrentIndex(0);
-    setLastAction(null);
+    setActionHistory([]);
   };
 
   // Determine animation class based on direction
@@ -131,7 +136,7 @@ export default function FlashcardView({
       onKeyDown={(e) => {
         const focusTarget = e.currentTarget;
 
-        if (e.key === " " || e.key === "ArrowUp" || e.key === "ArrowDown") {
+        if (e.key === "ArrowUp" || e.key === "ArrowDown") {
           e.preventDefault();
           setIsFlipped(!isFlipped);
           return;
@@ -214,12 +219,12 @@ export default function FlashcardView({
             })}
           </div>
           <div className="text-sm text-muted-foreground hover:text-foreground underline flex justify-center mt-6 gap-6">
-            {(completedIds.length > 0 || lastAction) && (
+            {(completedIds.length > 0 || actionHistory.length > 0) && (
               <button
                 type="button"
-                onClick={lastAction ? handleUndo : handleReset}
+                onClick={actionHistory.length > 0 ? handleUndo : handleReset}
               >
-                {lastAction ? "Undo" : "Reset progress"}
+                {actionHistory.length > 0 ? "Undo" : "Reset progress"}
               </button>
             )}
           </div>
