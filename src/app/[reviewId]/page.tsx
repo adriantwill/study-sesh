@@ -87,7 +87,7 @@ export default async function ReviewPage({
             </div>
           </div>
         </div>
-        <FlashcardView questions={questions} />
+        <FlashcardView questions={questions} height="h-104" />
         <div className="h-px opacity-40 bg-foreground"></div>
         <div className="space-y-4">
           <h2 className="text-2xl font-medium text-foreground">
