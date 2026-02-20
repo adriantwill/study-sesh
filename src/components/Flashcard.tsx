@@ -41,7 +41,7 @@ export default function Flashcard({
     const handleKeyDown = (e: KeyboardEvent) => {
       const tag = document.activeElement?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA") return;
-      if (e.key === " ") {
+      if (e.key === " " || e.key === "ArrowUp" || e.key === "ArrowDown") {
         e.preventDefault();
         setIsFlipped((prev) => !prev);
       }
