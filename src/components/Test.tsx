@@ -89,7 +89,10 @@ export default function Test({ questions: initialQuestions, reviewId }: TestProp
               onDragEnd={() => setActiveId(null)}
               onDragOver={(e) => handleDragOver(e, q.id)}
               onDrop={handleDrop}
-              className={`${activeId === q.id ? "cursor-grabbing" : ""} ${isAnyEditing ? "cursor-default" : "cursor-grab"
+              className={`transition-[opacity,transform,box-shadow] duration-150 ${activeId === q.id
+                ? "cursor-grabbing opacity-0"
+                : ""
+                } ${isAnyEditing ? "cursor-default" : "cursor-grab"
                 }`}
             >
               <div className="bg-muted rounded-lg shadow p-6">
