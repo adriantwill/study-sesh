@@ -140,12 +140,14 @@ export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
               const pageQuestions = JSON.parse(jsonMatch[0]) as Array<{
                 question: string;
                 answer: string;
+                options: string[];
               }>;
 
               return pageQuestions.map((q) => ({
                 id: "id", // Placeholder
                 question: q.question,
                 answer: q.answer,
+                options: q.options
               }));
             }
             return [];

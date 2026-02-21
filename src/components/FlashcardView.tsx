@@ -39,6 +39,7 @@ export default function FlashcardView({
 
   const changeDirection = (dir: -1 | 1) => {
     setDirection(dir === 1 ? "next" : "prev");
+    setIsFlipped(false)
     setCurrentIndex(
       (prev) =>
         (prev + dir + filteredQuestions.length) % filteredQuestions.length,
@@ -130,7 +131,7 @@ export default function FlashcardView({
 
   return (
     <div
-      className="mx-auto"
+      className="mx-auto focus:outline-none focus-visible:outline-none"
       role="listbox"
       tabIndex={0}
       onKeyDown={(e) => {
