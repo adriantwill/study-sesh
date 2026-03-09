@@ -136,7 +136,7 @@ export default function Test({ questions: initialQuestions, reviewId }: TestProp
                           }
                         />
                       </div>
-                      <div className="text-sm mt-4">Wrong Options</div>
+                      {/*<div className="text-sm mt-4">Wrong Options</div>
                       <div className="grid grid-cols-3 gap-4">
                         {[0, 1, 2].map((optionIdx) => (
                           <div
@@ -156,7 +156,7 @@ export default function Test({ questions: initialQuestions, reviewId }: TestProp
                             />
                           </div>
                         ))}
-                      </div>
+                      </div>*/}
                     </details>
                   </div>
                 </div>

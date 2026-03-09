@@ -15,20 +15,21 @@ interface FoldersListProps {
 export default function FoldersList({ folders, uploads }: FoldersListProps) {
   const [openFolder, setOpenFolder] = useState<string | null>(null);
   return (
-    <div className="transition-transform duration-300 space-y-1">
+    <div className="transition-transform duration-300 space-y-6">
       {folders.map((folder) => {
         const FolderIcon = openFolder === folder.id ? FolderOpen : Folder;
+        const folderUploads = uploads.filter((upload) => upload.folder_id === folder.id);
         return (
           <div className="" key={folder.id}>
             <li
-              className="flex text-base items-end gap-2 "
+              className="flex gap-3 text-xl "
             >
               <button
                 type="button"
                 onClick={() => setOpenFolder(openFolder === folder.id ? null : folder.id)}
                 className="cursor-pointer hover:text-muted-foreground transition-colors"
               >
-                <FolderIcon size={19} className="hover:scale-110" />
+                <FolderIcon size={24} strokeWidth={1.5} className="hover:scale-110" />
               </button>
               <EditField variant="folder_name" textField={folder.name} id={folder.id} />
               <DeleteButton variant="folder" id={folder.id} name={folder.name} />
@@ -37,12 +38,13 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
             <div
               className={`grid transition-all duration-200 ${openFolder === folder.id ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
             >
-              <ul className="pl-6 overflow-hidden min-h-0">
-                {uploads.filter((upload) => upload.folder_id === folder.id).map((upload) => (
+              <ul className="ml-2 border-l border-border overflow-hidden">
+                {folderUploads.map((upload) => (
                   <UploadLink
                     key={upload.id}
                     upload={upload}
                     folders={folders}
+                    tree
                   />
                 ))}
               </ul>

@@ -62,7 +62,7 @@ export default function EditField({ variant, textField, id, onEditingChange }: E
           className={`w-full h-full font-medium text-foreground bg-muted-hover rounded px-2 py-1 resize-none focus:outline-none focus:ring-1 focus:border-ring`}
         />
       ) : (
-        <span className={`w-full whitespace-pre-wrap }`}>
+        <span className="w-full whitespace-pre-wrap ">
           {variant === "folder_name" ? text : parseMarkdown(text)}
         </span>
       )}

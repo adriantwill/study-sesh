@@ -13,7 +13,7 @@ export default function UploadSwitcher() {
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [textInput, setTextInput] = useState("");
-  const showGenerateButton = Boolean(file) || selectedOption === 1;
+  const showGenerateButton = Boolean(file) || textInput.trim().length > 0;
 
   async function handleUpload() {
     if (!file) return;
@@ -165,16 +165,16 @@ Question 2:Answer 2`}
         )}
       </div>
       <div
-        className={`origin-center overflow-hidden transition-[height] duration-300 ease-out ${showGenerateButton
+        className={`origin-center overflow-hidden transition-all duration-300 ease-out ${showGenerateButton
           ? " h-12"
-          : "h-0 mb-0 pointer-events-none"
+          : "h-0 pointer-events-none -mb-8"
           }`}
       >
         <button
           type="button"
           onClick={selectedOption === 0 ? handleUpload : handleGenerate}
           disabled={loading}
-          className="w-full bg-button-primary text-button-primary-foreground py-3 rounded-lg font-medium hover:opacity-85 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-button-primary text-button-primary-foreground py-3 rounded-[0.12rem] font-medium hover:opacity-85 disabled:opacity-50 disabled:cursor-not-allowed"
           aria-label="Generate study questions from uploaded file"
         >
           {loading ? "Generating questions..." : "Generate Study Questions"}
