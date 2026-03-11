@@ -1,5 +1,5 @@
 "use client";
-import { File, Folder } from "lucide-react";
+import { Folder } from "lucide-react";
 import Link from "next/link";
 import { updateUploadFolderAction } from "../app/actions";
 import type { Tables } from "../types/database.types";
