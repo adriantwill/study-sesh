@@ -3,6 +3,129 @@ import path from "node:path";
 import { Poppler } from "node-poppler";
 import type { StudyQuestion } from "@/src/types";
 
+const RETRYABLE_STATUS_CODES = new Set([408, 429, 500, 502, 503, 504]);
+const MAX_API_RETRIES = 3;
+
+function isRetryableHyperbolicError(message: string) {
+  return (
+    message.includes("AsyncEngineDeadError") ||
+    message.includes("Background loop is not running") ||
+    message.includes("50001")
+  );
+}
+
+function shouldRetryRequest(status: number, errorBody: string) {
+  return (
+    RETRYABLE_STATUS_CODES.has(status) || isRetryableHyperbolicError(errorBody)
+  );
+}
+
+async function sleep(ms: number) {
+  await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function requestQuestionsFromHyperbolic(imageUrl: string) {
+  let lastError: Error | null = null;
+
+  for (let attempt = 1; attempt <= MAX_API_RETRIES; attempt++) {
+    try {
+      const apiResponse = await fetch(
+        "https://api.hyperbolic.xyz/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.HYPERBOLIC_API_KEY}`,
+          },
+          body: JSON.stringify({
+            model: "mistralai/Pixtral-12B-2409",
+            messages: [
+              {
+                role: "user",
+                content: [
+                  {
+                    type: "text",
+                    text: `Analyze this educational slide and generate 2-3 flashcard-style questions targeting key facts, definitions, and terms a student would need to memorize for an exam.
+                      Focus on:
+                      - Definitions and terminology
+                      - Key facts, dates, or formulas
+                      - Lists or steps to memorize
+
+                      For each question, generate exactly 3 wrong but plausible options based on the slide.
+                      Rules for options:
+                      - Must be incorrect
+                      - Do not paraphrase or restate the correct answer
+                      - Do not use “all/none of the above”
+                      - Keep length similar to correct answer
+                      - Avoid copying long phrases verbatim from the slide
+
+                      Format as JSON array:
+                      [
+                        {
+                          "question": "Question here",
+                          "answer": "Concise answer without repeating the question",
+                          "options": ["Wrong but plausible 1", "Wrong but plausible 2", "Wrong but plausible 3"]
+                        }
+                      ]
+
+                      Rules:
+                      - Only return valid JSON, no additional text
+                      - Do not reiterate the question in the answer in any way`,
+                  },
+                  {
+                    type: "image_url",
+                    image_url: {
+                      url: imageUrl,
+                    },
+                  },
+                ],
+              },
+            ],
+            max_tokens: 512,
+            temperature: 0.1,
+            top_p: 0.001,
+            stream: false,
+          }),
+        },
+      );
+
+      if (!apiResponse.ok) {
+        const errorBody = await apiResponse.text().catch(() => "");
+        const error = new Error(
+          `API error: ${apiResponse.status} ${apiResponse.statusText}${errorBody ? ` - ${errorBody}` : ""}`,
+        );
+
+        if (
+          attempt < MAX_API_RETRIES &&
+          shouldRetryRequest(apiResponse.status, errorBody)
+        ) {
+          await sleep(attempt * 1000);
+          lastError = error;
+          continue;
+        }
+
+        throw error;
+      }
+
+      return apiResponse.json();
+    } catch (error) {
+      if (
+        attempt < MAX_API_RETRIES &&
+        error instanceof Error &&
+        isRetryableHyperbolicError(error.message)
+      ) {
+        await sleep(attempt * 1000);
+        lastError = error;
+        continue;
+      }
+
+      throw error;
+    }
+  }
+
+  throw lastError ?? new Error("Hyperbolic request failed");
+}
+
 //TODO optimize the pdf cario thing
 export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
   if (!process.env.HYPERBOLIC_API_KEY) {
@@ -41,11 +164,12 @@ export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
 
     // Process each generated image by reading the directory
     const allFiles = await fs.readdir(tempDir);
-    const imageFiles = allFiles.filter(
-      (f) => f.startsWith(`slides-${fileId}`) && f.endsWith(".png"),
-    );
+    const imageFiles = allFiles
+      .filter((f) => f.startsWith(`slides-${fileId}`) && f.endsWith(".png"))
+      .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
     const allQuestions: StudyQuestion[] = [];
+    const failedSlides: string[] = [];
 
     // Process in batches of 2 to avoid rate limiting
     for (let i = 0; i < imageFiles.length; i += 2) {
@@ -53,6 +177,8 @@ export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
       const batchResults = await Promise.all(
         batch.map(async (fileName) => {
           const imagePath = path.join(tempDir, fileName);
+          const pageMatch = fileName.match(/-(\d+)\.png$/);
+          const pageNumber = pageMatch ? Number(pageMatch[1]) : null;
 
           try {
             const imageBuffer = await fs.readFile(imagePath);
@@ -63,74 +189,7 @@ export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
             // Clean up image immediately after reading
             await fs.unlink(imagePath).catch(() => { });
 
-            const apiResponse = await fetch(
-              "https://api.hyperbolic.xyz/v1/chat/completions",
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${process.env.HYPERBOLIC_API_KEY}`,
-                },
-                body: JSON.stringify({
-                  model: "Qwen/Qwen2.5-VL-7B-Instruct",
-                  messages: [
-                    {
-                      role: "user",
-                      content: [
-                        {
-                          type: "text",
-                          text: `Analyze this educational slide and generate 2-3 flashcard-style questions targeting key facts, definitions, and terms a student would need to memorize for an exam.
-                      Focus on:
-                      - Definitions and terminology
-                      - Key facts, dates, or formulas
-                      - Lists or steps to memorize
-
-                      For each question, generate exactly 3 wrong but plausible options based on the slide.
-                      Rules for options:
-                      - Must be incorrect
-                      - Do not paraphrase or restate the correct answer
-                      - Do not use “all/none of the above”
-                      - Keep length similar to correct answer
-                      - Avoid copying long phrases verbatim from the slide
-
-                      Format as JSON array:
-                      [
-                        {
-                          "question": "Question here",
-                          "answer": "Concise answer without repeating the question",
-                          "options": ["Wrong but plausible 1", "Wrong but plausible 2", "Wrong but plausible 3"]
-                        }
-                      ]
-
-                      Rules:
-                      - Only return valid JSON, no additional text
-                      - Do not reiterate the question in the answer in any way`,
-                        },
-                        {
-                          //maybe add: Skip if the slide has no testable content (title slides, "questions?" slides, images without text).
-                          type: "image_url",
-                          image_url: {
-                            url: imageUrl,
-                          },
-                        },
-                      ],
-                    },
-                  ],
-                  max_tokens: 512,
-                  temperature: 0.1,
-                  top_p: 0.001,
-                  stream: false,
-                }),
-              },
-            );
-
-            if (!apiResponse.ok) {
-              throw new Error(
-                `API error: ${apiResponse.status} ${apiResponse.statusText}`,
-              );
-            }
-
-            const response = await apiResponse.json();
+            const response = await requestQuestionsFromHyperbolic(imageUrl);
             console.log(`Hyperbolic API response received`);
 
             const content = response.choices[0]?.message?.content || "";
@@ -147,12 +206,21 @@ export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
                 id: "id", // Placeholder
                 question: q.question,
                 answer: q.answer,
-                options: q.options
+                options: q.options,
               }));
             }
             return [];
           } catch (err) {
             console.error(`Error processing slide`, err);
+            failedSlides.push(
+              err instanceof Error
+                ? pageNumber
+                  ? `slide ${pageNumber}: ${err.message}`
+                  : `unknown slide: ${err.message}`
+                : pageNumber
+                  ? `slide ${pageNumber}`
+                  : "unknown slide",
+            );
             return [];
           }
         }),
@@ -160,9 +228,29 @@ export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
       allQuestions.push(...batchResults.flat());
     }
 
+    if (allQuestions.length === 0 && failedSlides.length > 0) {
+      throw new Error(
+        `Question generation failed after retries. ${failedSlides.slice(0, 3).join("; ")}`,
+      );
+    }
+
+    if (failedSlides.length > 0) {
+      console.warn(
+        `Skipped slides during question generation: ${failedSlides.join("; ")}`,
+      );
+    }
+
     return allQuestions;
   } catch (error) {
     console.error("Error in generateQuestions:", error);
+    if (
+      error instanceof Error &&
+      error.message.includes("Unable to find darwin Poppler binaries")
+    ) {
+      throw new Error(
+        "Poppler not installed on this machine. Install poppler so PDF slides can be converted.",
+      );
+    }
     throw error;
   } finally {
     // Final Cleanup

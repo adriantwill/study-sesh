@@ -1,6 +1,7 @@
 import AddFolder from "../components/AddFolder";
 import FoldersList from "../components/FoldersList";
 import NotesCard from "../components/NotesCard";
+import TimerCard from "../components/TimerCard";
 import UpcomingEventsCard from "../components/UpcomingEventsCard";
 import UploadLink from "../components/UploadLink";
 import UploadSwitcher from "../components/UploadSwitcher";
@@ -28,10 +29,10 @@ export default async function Home() {
           Upload PowerPoint PDF to generate study questions
         </p>
         <div className="flex flex-1 min-h-0 gap-8">
-          <div className="flex flex-col gap-8">
+          {/*<div className="flex flex-col gap-8">
+            <TimerCard />
             <UpcomingEventsCard />
-            <UpcomingEventsCard />
-          </div>
+          </div>*/}
           <div className="bg-muted rounded-lg shadow p-8 w-full flex flex-col gap-8 min-h-0 ">
             <UploadSwitcher />
             {data.length > 0 && (
@@ -51,10 +52,10 @@ export default async function Home() {
             )}
             <AddFolder />
           </div>
-          <div className="flex flex-col gap-8">
+          {/*<div className="flex flex-col gap-8">
             <UpcomingEventsCard />
             <NotesCard />
-          </div>
+          </div>*/}
         </div>
       </div>
     </div>

@@ -13,7 +13,7 @@ export default function UploadSwitcher() {
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [textInput, setTextInput] = useState("");
-  const showGenerateButton = Boolean(file) || textInput.trim().length > 0;
+  const showGenerateButton = Boolean(file) || (textInput.trim().length > 0 && selectedOption === 1);
 
   async function handleUpload() {
     if (!file) return;
@@ -111,11 +111,11 @@ export default function UploadSwitcher() {
 
       {error && ( //upload butotn below
         <div
-          className="mb-4 bg-red-900/20 border border-red-900 text-red-200 px-4 py-3 rounded-lg"
+          className="h-28 overflow-y-auto mb-4 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-red-900 shadow-sm"
           role="alert"
         >
           <p className="font-medium">Error</p>
-          <p className="text-sm">{error}</p>
+          <p className="mt-1 text-sm whitespace-pre-wrap break-words">{error}</p>
         </div>
       )}
       <div
@@ -167,7 +167,7 @@ Question 2:Answer 2`}
       <div
         className={`origin-center overflow-hidden transition-all duration-300 ease-out ${showGenerateButton
           ? " h-12"
-          : "h-0 pointer-events-none -mb-8"
+          : "h-0 pointer-events-none -mt-4 -mb-4"
           }`}
       >
         <button

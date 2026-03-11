@@ -1,5 +1,5 @@
 "use client";
-import { Folder } from "lucide-react";
+import { File, Folder } from "lucide-react";
 import Link from "next/link";
 import { updateUploadFolderAction } from "../app/actions";
 import type { Tables } from "../types/database.types";
@@ -24,7 +24,7 @@ export default function UploadLink({
   };
 
   return (
-    <li className={` ${tree ? "relative py-1 pl-4" : "mt-2"}`}>
+    <li className={` ${tree ? "relative py-1 pl-4" : "mt-6 text-xl"}`}>
       {tree && <span className="absolute left-0 top-1/2 h-px w-3 -translate-y-1/2 bg-border" />}
       <div className=" flex justify-between items-center">
         <Link href={`/${upload.id}`} className=" overflow-x-hidden hover:text-muted-foreground">
