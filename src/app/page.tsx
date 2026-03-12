@@ -1,3 +1,4 @@
+import { ArrowDown } from "lucide-react";
 import AddFolder from "../components/AddFolder";
 import FoldersList from "../components/FoldersList";
 
@@ -21,40 +22,39 @@ export default async function Home() {
 
   return (
     <main>
-      <section className="min-h-screen flex items-center flex-col justify-center bg-white">
-        <div className="absolute top-8 text-center">
-          <h1 className=" text-5xl font-bold mb-2 text-foreground">Study Sesh</h1>
-          <p className=" text-muted-foreground mb-8 text-xl">
+      <section className="min-h-screen flex items-center flex-col justify-center ">
+        <div className="absolute top-8 text-center space-y-4">
+          <h1 className=" text-5xl font-bold text-foreground">Study Sesh</h1>
+          <p className=" text-muted-foreground text-xl">
             Upload PowerPoint PDF to generate study questions
           </p>
         </div>
-        <div className="flex flex-1 items-center min-h-0 gap-8">
-
-          <div className="bg-muted rounded-lg shadow p-8 w-200 flex flex-col gap-8 min-h-0 ">
-            <UploadSwitcher />
-
-          </div>
-
-        </div>
+        <UploadSwitcher />
+        <ArrowDown className="absolute bottom-8" />
       </section>
+      <hr className="border-border" />
+      <section className="min-h-screen max-h-screen flex flex-col p-8 items-center">
+        <div className="gap-8 h-screen flex flex-col">
+          <h2 className="text-3xl font-bold ">Your Tools</h2>
+          <div className="bg-muted flex-1 rounded-lg space-y-6  shadow py-6 w-200 px-8 overflow-y-auto ">
+            {data.length > 0 && (
+              <ul className="flex-1 min-h-0 overflow-y-auto ">
+                <FoldersList folders={folders ?? []} uploads={data} />
+                {data
+                  .filter((item) => item.folder_id === null)
+                  .map((item) => (
+                    <UploadLink
+                      key={item.id}
+                      upload={item}
+                      folders={folders ?? []}
+                    />
+                  ))}
 
-      <section className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
-        {data.length > 0 && (
-          <ul className="flex-1 min-h-0 overflow-y-auto px-4">
-            <FoldersList folders={folders ?? []} uploads={data} />
-            {data
-              .filter((item) => item.folder_id === null)
-              .map((item) => (
-                <UploadLink
-                  key={item.id}
-                  upload={item}
-                  folders={folders ?? []}
-                />
-              ))}
-
-          </ul>
-        )}
-        <AddFolder />
+              </ul>
+            )}
+            <AddFolder />
+          </div>
+        </div>
       </section>
     </main>
     // <div className="h-dvh bg-background flex flex-col">

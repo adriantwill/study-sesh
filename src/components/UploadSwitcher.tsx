@@ -89,7 +89,7 @@ export default function UploadSwitcher() {
     }
   }
   return (
-    <>
+    <div className="bg-muted rounded-lg shadow p-8 w-200 flex flex-col gap-8 min-h-0 ">
       <div className="relative grid grid-cols-2 overflow-hidden rounded-2xl border border-muted-hover">
         <span
           aria-hidden="true"
@@ -198,6 +198,6 @@ Question 2:Answer 2`}
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
