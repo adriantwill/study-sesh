@@ -93,7 +93,6 @@ export default async function ReviewPage({
           <h2 className="text-2xl font-medium text-foreground">
             Question Bank
           </h2>
-
           <Test questions={questions} reviewId={reviewId} />
         </div>
       </div>

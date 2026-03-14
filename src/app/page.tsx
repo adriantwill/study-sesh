@@ -40,16 +40,6 @@ export default async function Home() {
             {data.length > 0 && (
               <ul className="flex-1 min-h-0 overflow-y-auto ">
                 <FoldersList folders={folders ?? []} uploads={data} />
-                {data
-                  .filter((item) => item.folder_id === null)
-                  .map((item) => (
-                    <UploadLink
-                      key={item.id}
-                      upload={item}
-                      folders={folders ?? []}
-                    />
-                  ))}
-
               </ul>
             )}
             <AddFolder />
@@ -57,10 +47,5 @@ export default async function Home() {
         </div>
       </section>
     </main>
-    // <div className="h-dvh bg-background flex flex-col">
-    //   <div className="h-full p-8 flex flex-col">
-
-    //   </div>
-    // </div>
   );
 }
