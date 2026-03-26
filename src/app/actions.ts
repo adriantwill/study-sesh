@@ -182,22 +182,30 @@ export async function addQuestionAction(
 ) {
   const supabase = await createClient();
 
-  // Shift existing questions at/after position
-  const { data: toShift } = await supabase
+  const { data: rows, error: rowsError } = await supabase
     .from("questions")
-    .select("id, display_order")
+    .select("display_order")
     .eq("upload_id", uploadId)
     .gte("display_order", insertAtPosition)
-    .order("display_order", { ascending: false });
+    .order("display_order", { ascending: true })
+    .limit(2);
 
-  if (toShift) {
-    for (const q of toShift) {
-      await supabase
-        .from("questions")
-        .update({ display_order: (q.display_order ?? 0) + 1 })
-        .eq("id", q.id);
-    }
+  if (rowsError) {
+    console.error("Add question fetch error:", rowsError);
+    throw new Error("Failed to load question positions");
   }
+
+  const currentOrder = rows?.[0]?.display_order;
+  const nextOrder = rows?.[1]?.display_order;
+
+  if (currentOrder == null) {
+    insertAtPosition = 1000;
+  } else if (nextOrder == null) {
+    insertAtPosition = currentOrder + 1000;
+  } else {
+    insertAtPosition = (currentOrder + nextOrder) / 2;
+  }
+
 
   const { error } = await supabase.from("questions").insert({
     upload_id: uploadId,
@@ -254,7 +262,7 @@ export async function reorderQuestionsAction(orderedIds: string[]) {
   for (let i = 0; i < orderedIds.length; i++) {
     await supabase
       .from("questions")
-      .update({ display_order: i + 1 })
+      .update({ display_order: (i + 1) * 1000 })
       .eq("id", orderedIds[i]);
   }
 
