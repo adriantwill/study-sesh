@@ -53,6 +53,7 @@ export default function FlashcardView({
       { type: "complete", id, prevIndex: currentIndex },
     ]);
     setItem(id, true);
+    setIsFlipped(false);
     setCompletedIds((prev) => [...prev, id]);
     if (currentIndex >= filteredQuestions.length - 1) {
       setCurrentIndex(0);
