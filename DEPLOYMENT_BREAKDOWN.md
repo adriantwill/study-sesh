@@ -146,6 +146,62 @@ So:
 - if nginx misroutes, users see `404`/`502`/`504` before Next even matters
 - if nginx points to wrong port, app can be healthy but site still fails
 
+### nginx config for this app
+
+If this app only lives at `study.adrianwill.com`, nginx only needs to do 2 things:
+
+- terminate TLS for `study.adrianwill.com`
+- proxy all traffic to `localhost:3000`
+
+Minimal shape:
+
+```nginx
+server {
+    server_name study.adrianwill.com;
+
+    client_max_body_size 100M;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_connect_timeout 300s;
+        proxy_send_timeout 300s;
+        proxy_read_timeout 300s;
+    }
+
+    listen 443 ssl;
+    ssl_certificate /etc/letsencrypt/live/study.adrianwill.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/study.adrianwill.com/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+}
+
+server {
+    listen 80;
+    server_name study.adrianwill.com;
+    return 301 https://$host$request_uri;
+}
+```
+
+Notes:
+
+- `client_max_body_size 100M` matters for large PDF uploads
+- `300s` timeouts make sense here bc upload + PDF processing + AI calls can be slow
+- `Upgrade` / `Connection upgrade` headers are optional for this app unless you know you need websocket-style upgrade behavior
+
+Important:
+
+If your port `80` server block does **not** include `study.adrianwill.com`, HTTP requests to the subdomain will not redirect to HTTPS correctly.
+
+Also:
+
+- a server block for `adrianwill.com` or `www.adrianwill.com` is separate from this app
+- keep it only if you intentionally want nginx to handle those domains in the same config
+
 ## What A 404 Means In This Stack
 
 A `404` means something answered, but said "not found".

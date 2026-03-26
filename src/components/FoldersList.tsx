@@ -15,43 +15,55 @@ interface FoldersListProps {
 export default function FoldersList({ folders, uploads }: FoldersListProps) {
   const [openFolder, setOpenFolder] = useState<string | null>(null);
   return (
-    <div className="transition-transform duration-300 space-y-6">
-      {folders.map((folder) => {
-        const FolderIcon = openFolder === folder.id ? FolderOpen : Folder;
-        const folderUploads = uploads.filter((upload) => upload.folder_id === folder.id);
-        return (
-          <div className="" key={folder.id}>
-            <li
-              className="flex gap-3 text-xl "
-            >
-              <button
-                type="button"
-                onClick={() => setOpenFolder(openFolder === folder.id ? null : folder.id)}
-                className="cursor-pointer hover:text-muted-foreground transition-colors"
+    <>
+      <div className="transition-transform duration-300 space-y-6">
+        {folders.map((folder) => {
+          const FolderIcon = openFolder === folder.id ? FolderOpen : Folder;
+          const folderUploads = uploads.filter((upload) => upload.folder_id === folder.id);
+          return (
+            <div className="" key={folder.id}>
+              <li
+                className="flex gap-3 text-xl "
               >
-                <FolderIcon size={24} strokeWidth={1.5} className="hover:scale-110" />
-              </button>
-              <EditField variant="folder_name" textField={folder.name} id={folder.id} />
-              <DeleteButton variant="folder" id={folder.id} name={folder.name} />
-            </li>
+                <button
+                  type="button"
+                  onClick={() => setOpenFolder(openFolder === folder.id ? null : folder.id)}
+                  className="cursor-pointer hover:text-muted-foreground transition-colors"
+                >
+                  <FolderIcon size={24} strokeWidth={1.5} className="hover:scale-110" />
+                </button>
+                <EditField variant="folder_name" textField={folder.name} id={folder.id} />
+                <DeleteButton variant="folder" id={folder.id} name={folder.name} />
+              </li>
 
-            <div
-              className={`grid transition-all duration-200 ${openFolder === folder.id ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
-            >
-              <ul className="ml-2 border-l border-border overflow-hidden">
-                {folderUploads.map((upload) => (
-                  <UploadLink
-                    key={upload.id}
-                    upload={upload}
-                    folders={folders}
-                    tree
-                  />
-                ))}
-              </ul>
+              <div
+                className={`grid transition-all duration-200 ${openFolder === folder.id ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
+              >
+                <ul className="ml-2 border-l border-border overflow-hidden">
+                  {folderUploads.map((upload) => (
+                    <UploadLink
+                      key={upload.id}
+                      upload={upload}
+                      folders={folders}
+                      tree
+                    />
+                  ))}
+                </ul>
+              </div>
+              <hr className="mt-5 border-border" />
             </div>
-          </div>
-        )
-      })}
-    </div>
+          )
+        })}
+      </div>
+      {uploads
+        .filter((item) => item.folder_id === null)
+        .map((item) => (
+          <UploadLink
+            key={item.id}
+            upload={item}
+            folders={folders ?? []}
+          />
+        ))}
+    </>
   );
 }
