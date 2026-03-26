@@ -23,7 +23,7 @@ export default function AddQuestionButton({
     setIsOpen(false);
     setAnswer("");
 
-    // Fire server action without awaiting
+    console.log(insertAtPosition)
     addQuestionAction(uploadId, question, answer, insertAtPosition ?? 1);
   }
 

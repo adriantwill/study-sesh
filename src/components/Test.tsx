@@ -162,7 +162,10 @@ export default function Test({ questions: initialQuestions, reviewId }: TestProp
                 </div>
               </div>
             </li>
-            <AddQuestionButton uploadId={reviewId} insertAtPosition={idx} />
+            <AddQuestionButton
+              uploadId={reviewId}
+              insertAtPosition={q.displayOrder ?? 0}
+            />
           </React.Fragment>
         ))}
       </ul>
