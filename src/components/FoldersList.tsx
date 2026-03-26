@@ -50,6 +50,7 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
                   ))}
                 </ul>
               </div>
+              <hr className="mt-5 border-border" />
             </div>
           )
         })}
