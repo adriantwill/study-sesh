@@ -4,17 +4,20 @@ import { Check, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import Flashcard from "@/src/components/Flashcard";
 import type { StudyQuestion } from "@/src/types";
+import { shuffleArray } from "../utils/cards";
 import { getItem, removeItem, setItem } from "../utils/localStorage";
 import NavigationButton from "./NavigationButton";
 
+
 export default function FlashcardView({
-  questions,
+  questions: initialQuestions,
   height,
 }: {
   questions: StudyQuestion[];
   height?: string;
 }) {
   const isStudyMode = height === "h-130";
+  const [questions, setQuestions] = useState(initialQuestions);
   const [actionHistory, setActionHistory] = useState<Array<{
     type: "complete" | "skip";
     id: string;
@@ -221,12 +224,19 @@ export default function FlashcardView({
             })}
           </div>
           <div className="text-sm text-muted-foreground hover:text-foreground underline flex justify-center mt-6 gap-6">
-            {(completedIds.length > 0 || actionHistory.length > 0) && (
+            {(completedIds.length > 0 || actionHistory.length > 0) ? (
               <button
                 type="button"
                 onClick={actionHistory.length > 0 ? handleUndo : handleReset}
               >
                 {actionHistory.length > 0 ? "Undo" : "Reset progress"}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setQuestions(shuffleArray(questions))}
+              >
+                Shuffle Deck
               </button>
             )}
           </div>
