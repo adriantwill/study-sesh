@@ -34,15 +34,17 @@ export default async function Home() {
       </section>
       <hr className="border-border" />
       <section className="min-h-screen max-h-screen flex flex-col p-8 items-center">
-        <div className="gap-8 h-screen flex flex-col">
+        <div className="gap-8 h-screen min-h-0 flex flex-col">
           <h2 className="text-3xl font-bold ">Your Tools</h2>
-          <div className="bg-muted flex-1 rounded-lg space-y-6  shadow py-6 w-200 px-8 overflow-y-auto ">
+          <div className="bg-muted flex flex-1 min-h-0 flex-col rounded-lg shadow w-200">
             {data.length > 0 && (
-              <ul className="flex-1 min-h-0 overflow-y-auto ">
+              <ul className="flex-1 min-h-0 overflow-y-auto px-8 pt-6 pb-6">
                 <FoldersList folders={folders ?? []} uploads={data} />
               </ul>
             )}
-            <AddFolder />
+            <div className="px-8 pb-6">
+              <AddFolder />
+            </div>
           </div>
         </div>
       </section>

@@ -24,14 +24,14 @@ export default function UploadLink({
   };
 
   return (
-    <li className={` ${tree ? "relative py-1 pl-4" : "mt-6 text-xl"}`}>
-      {tree && <span className="absolute left-0 top-1/2 h-px w-3 -translate-y-1/2 bg-border" />}
-      <div className=" flex justify-between items-center">
-        <Link href={`/${upload.id}`} className=" overflow-x-hidden hover:text-muted-foreground">
+    <li className={` ${tree ? "relative py-1 pl-4" : "mt-2"}`}>
+      {tree && <span className="absolute left-0 top-1/2 h-px w-3 -translate-y-1/2 bg-border/50" />}
+      <div className="flex min-h-12 items-center justify-between rounded-md px-2 text-lg hover:bg-background/60">
+        <Link href={`/${upload.id}`} className="overflow-x-hidden text-foreground/85 transition-colors hover:text-foreground">
           {upload.filename}
         </Link>
-        <div className="flex gap-2">
-          <div className="relative cursor-pointer">
+        <div className="flex items-center gap-3 text-foreground/70">
+          <div className="relative cursor-pointer transition-colors hover:text-foreground">
             <Folder size={16} />
             <select
               value={upload.folder_id ?? ""}
