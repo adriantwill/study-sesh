@@ -1,7 +1,6 @@
 "use client";
-import { Folder } from "lucide-react";
+
 import Link from "next/link";
-import { updateUploadFolderAction } from "../app/actions";
 import type { Tables } from "../types/database.types";
 import DeleteButton from "./DeleteButton";
 
@@ -17,7 +16,6 @@ interface UploadLinkProps {
 
 export default function UploadLink({
   upload,
-  folders,
   tree = false,
   draggable = false,
   isDragging = false,

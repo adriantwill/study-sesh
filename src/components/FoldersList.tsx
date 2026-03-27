@@ -39,7 +39,7 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
   return (
     <>
       <div className="transition-transform duration-300 space-y-2">
-        {folders.map((folder) => {
+        {folders.map((folder, index) => {
           const FolderIcon = openFolder === folder.id ? FolderOpen : Folder;
           const folderUploads = uploads.filter((upload) => upload.folder_id === folder.id);
           return (
@@ -57,7 +57,7 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
                   e.preventDefault();
                   void handleDrop(folder.id);
                 }}
-                className={`flex min-h-14 items-center gap-3 rounded-md px-2 text-lg transition-colors ${dropFolderId === folder.id ? "bg-background/90 ring-1 ring-border" : "hover:bg-background/60"
+                className={`flex min-h-14 items-center gap-3 rounded-md px-2 text-lg transition-colors ${dropFolderId === folder.id ? "bg-background ring-1 ring-border" : "hover:bg-background"
                   }`}
               >
                 <button
@@ -92,6 +92,7 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
                   ))}
                 </ul>
               </div>
+
               <hr className="mt-2 border-border/50" />
             </div>
           )

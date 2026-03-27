@@ -12,7 +12,7 @@ export default function AddFolder() {
 
     try {
       setIsCreating(true);
-      await addFolderAction("New Folder");
+      await addFolderAction("Untitled");
     } catch (error) {
       console.error("Failed to add folder:", error);
     } finally {
@@ -21,16 +21,26 @@ export default function AddFolder() {
   }
 
   return (
-    <li>
+    <>
+      {isCreating && (
+        <li
+          className="animate-in fade-in slide-in-from-top-1 duration-200 flex min-h-14 items-center gap-3 rounded-md px-2 text-lg"
+        >
+          <div className="h-6 w-6 animate-pulse rounded bg-border/60" />
+          <div className="h-6 w-32 animate-pulse rounded bg-border/60" />
+        </li>
+      )}
       <button
-        type="button"
         onClick={handleCreateFolder}
         disabled={isCreating}
-        className="flex min-h-12 w-full items-center gap-2 rounded-md px-1.5 text-base text-foreground/75 transition-colors hover:bg-background/80 hover:text-foreground disabled:cursor-default disabled:opacity-60"
+        type="button"
+        className="hover:text-secondary cursor-pointer flex min-h-14 items-center gap-3 rounded-md px-2 text-lg transition-colors disabled:cursor-default disabled:opacity-60"
       >
-        <FolderPlus size={22} strokeWidth={1.5} />
-        <span>New Folder</span>
+        <div>
+          <FolderPlus size={24} strokeWidth={1.5} className="text-foreground/80 transition-colors hover:text-foreground" />
+        </div>
+        <span className="w-full whitespace-pre-wrap ">New Folder</span>
       </button>
-    </li>
+    </>
   );
 }
