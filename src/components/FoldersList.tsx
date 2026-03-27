@@ -16,19 +16,19 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
   const [openFolder, setOpenFolder] = useState<string | null>(null);
   return (
     <>
-      <div className="transition-transform duration-300 space-y-6">
+      <div className="transition-transform duration-300 space-y-2">
         {folders.map((folder) => {
           const FolderIcon = openFolder === folder.id ? FolderOpen : Folder;
           const folderUploads = uploads.filter((upload) => upload.folder_id === folder.id);
           return (
             <div className="" key={folder.id}>
               <li
-                className="flex gap-3 text-xl "
+                className="flex min-h-14 items-center gap-3 rounded-md px-2 text-lg hover:bg-background/60"
               >
                 <button
                   type="button"
                   onClick={() => setOpenFolder(openFolder === folder.id ? null : folder.id)}
-                  className="cursor-pointer hover:text-muted-foreground transition-colors"
+                  className="cursor-pointer text-foreground/80 transition-colors hover:text-foreground"
                 >
                   <FolderIcon size={24} strokeWidth={1.5} className="hover:scale-110" />
                 </button>
@@ -39,7 +39,7 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
               <div
                 className={`grid transition-all duration-200 ${openFolder === folder.id ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
               >
-                <ul className="ml-2 border-l border-border overflow-hidden">
+                <ul className="ml-3 border-l border-border/50 overflow-hidden">
                   {folderUploads.map((upload) => (
                     <UploadLink
                       key={upload.id}
@@ -50,7 +50,7 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
                   ))}
                 </ul>
               </div>
-              <hr className="mt-5 border-border" />
+              <hr className="mt-2 border-border/50" />
             </div>
           )
         })}

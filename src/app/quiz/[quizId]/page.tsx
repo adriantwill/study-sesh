@@ -1,5 +1,6 @@
-import QuizChoices from "@/src/components/QuizChoices";
+
 import QuizCard from "@/src/components/QuizCard";
+import QuizChoices from "@/src/components/QuizChoices";
 import { parseMarkdown } from "@/src/lib/markdown";
 import { createClient } from "@/src/lib/supabase/server";
 

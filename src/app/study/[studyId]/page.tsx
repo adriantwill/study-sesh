@@ -1,12 +1,14 @@
+import EditField from "@/src/components/EditField";
 import FlashcardView from "@/src/components/FlashcardView";
 import { createClient } from "@/src/lib/supabase/server";
+import Link from "next/link";
 
 export default async function StudyPage({
-	params,
+  params,
 }: {
-	params: Promise<{ studyId: string }>;
+  params: Promise<{ studyId: string }>;
 }) {
-	const { studyId } = await params;
+  const { studyId } = await params;
 
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -24,6 +26,17 @@ export default async function StudyPage({
     throw new Error("No questions found");
   }
 
+  const { data: upload, error: uploadError } = await supabase
+    .from("uploads")
+    .select("filename")
+    .eq("id", studyId)
+    .single();
+
+  if (uploadError) {
+    console.error("Error fetching title:", uploadError);
+    throw new Error("Failed to load title");
+  }
+
   const questions = data.map((q) => ({
     id: q.id,
     question: q.question_text,
@@ -31,11 +44,19 @@ export default async function StudyPage({
     imageUrl: q.image_url,
   }));
 
+  const title = upload.filename;
+
   return (
-    <div className="flex justify-center items-center min-h-screen">
-      <div className="w-8/12">
-        <FlashcardView questions={questions} height="h-130" />
+    <>
+      <h1 className="absolute left-1/2 -translate-x-1/2 top-8 text-center text-3xl font-bold text-foreground flex items-center gap-2">
+        <Link href="/">🏠</Link>
+        <span className="w-full whitespace-pre-wrap">{title}</span>
+      </h1 >
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="w-8/12">
+          <FlashcardView questions={questions} height="h-130" />
+        </div>
       </div>
-    </div>
+    </>
   );
 }

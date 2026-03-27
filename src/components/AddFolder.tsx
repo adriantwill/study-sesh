@@ -24,7 +24,7 @@ export default function AddFolder() {
 
   return (
     <li
-      className={`flex items-center gap-5 translate-y-2 justify-between`}
+      className={`flex min-h-14 items-center justify-between gap-4 rounded-md px-2 hover:bg-background/60`}
     >
       <div
         className={`overflow-hidden transition-all duration-300 ${addFolderState ? "w-full " : "w-0 "}`}
@@ -36,13 +36,13 @@ export default function AddFolder() {
           value={folderName}
           onChange={(e) => setFolderName(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && addFolder()}
-          className="px-1 py-0.5 h-full w-full border border-border rounded outline-none "
+          className="h-full w-full rounded border border-border/60 bg-background px-3 py-2 outline-none "
           onBlur={() => setAddFolderState(false)}
         />
       </div>
       <button
         type="button"
-        className="cursor-pointer transition-transform duration-200 hover:scale-110"
+        className="cursor-pointer text-foreground/80 transition-all duration-200 hover:scale-110 hover:text-foreground"
         onClick={() => (addFolderState ? addFolder() : openField())}
       >
         <div className={`transition-all duration-300 `}>
