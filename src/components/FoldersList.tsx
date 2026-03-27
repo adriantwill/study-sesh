@@ -1,6 +1,7 @@
 "use client";
 import { Folder, FolderOpen } from "lucide-react";
 import { useState } from "react";
+import { updateUploadFolderAction } from "../app/actions";
 import type { Tables } from "../types/database.types";
 
 import DeleteButton from "./DeleteButton";
@@ -14,6 +15,27 @@ interface FoldersListProps {
 
 export default function FoldersList({ folders, uploads }: FoldersListProps) {
   const [openFolder, setOpenFolder] = useState<string | null>(null);
+  const [activeUploadId, setActiveUploadId] = useState<string | null>(null);
+  const [dropFolderId, setDropFolderId] = useState<string | null>(null);
+
+  async function handleDrop(folderId: string) {
+    if (!activeUploadId) return;
+
+    const upload = uploads.find((item) => item.id === activeUploadId);
+
+    setDropFolderId(null);
+    setActiveUploadId(null);
+
+    if (!upload || upload.folder_id === folderId) return;
+
+    try {
+      await updateUploadFolderAction(activeUploadId, folderId);
+      setOpenFolder(folderId);
+    } catch (error) {
+      console.error("Failed to move upload", error);
+    }
+  }
+
   return (
     <>
       <div className="transition-transform duration-300 space-y-2">
@@ -23,7 +45,20 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
           return (
             <div className="" key={folder.id}>
               <li
-                className="flex min-h-14 items-center gap-3 rounded-md px-2 text-lg hover:bg-background/60"
+                onDragOver={(e) => {
+                  if (!activeUploadId) return;
+                  e.preventDefault();
+                  if (dropFolderId !== folder.id) setDropFolderId(folder.id);
+                }}
+                onDragLeave={() => {
+                  if (dropFolderId === folder.id) setDropFolderId(null);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  void handleDrop(folder.id);
+                }}
+                className={`flex min-h-14 items-center gap-3 rounded-md px-2 text-lg transition-colors ${dropFolderId === folder.id ? "bg-background/90 ring-1 ring-border" : "hover:bg-background/60"
+                  }`}
               >
                 <button
                   type="button"
@@ -46,6 +81,13 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
                       upload={upload}
                       folders={folders}
                       tree
+                      draggable
+                      isDragging={activeUploadId === upload.id}
+                      onDragStart={setActiveUploadId}
+                      onDragEnd={() => {
+                        setActiveUploadId(null);
+                        setDropFolderId(null);
+                      }}
                     />
                   ))}
                 </ul>
@@ -62,6 +104,13 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
             key={item.id}
             upload={item}
             folders={folders ?? []}
+            draggable
+            isDragging={activeUploadId === item.id}
+            onDragStart={setActiveUploadId}
+            onDragEnd={() => {
+              setActiveUploadId(null);
+              setDropFolderId(null);
+            }}
           />
         ))}
     </>

@@ -1,15 +1,13 @@
 import { ArrowDown } from "lucide-react";
 import AddFolder from "../components/AddFolder";
 import FoldersList from "../components/FoldersList";
-
-import UploadLink from "../components/UploadLink";
 import UploadSwitcher from "../components/UploadSwitcher";
 import { createClient } from "../lib/supabase/server";
 
 export default async function Home() {
   const supabase = await createClient();
   const { data, error } = await supabase.from("uploads").select().order('filename');
-  const { data: folders } = await supabase.from("folders").select().order('name');
+  const { data: folders } = await supabase.from("folders").select().order('created_at');
 
   if (error) {
     console.error("Error fetching uploads:", error);
@@ -36,9 +34,9 @@ export default async function Home() {
       <section className="min-h-screen max-h-screen flex flex-col p-8 items-center">
         <div className="gap-8 h-screen min-h-0 flex flex-col">
           <h2 className="text-3xl font-bold ">Your Tools</h2>
-          <div className="bg-muted flex flex-1 min-h-0 flex-col rounded-lg shadow w-200">
+          <div className="bg-muted flex flex-1 min-h-0 flex-col rounded-sm shadow w-200">
             {data.length > 0 && (
-              <ul className="flex-1 min-h-0 overflow-y-auto px-8 pt-6 pb-6">
+              <ul className="flex-1 min-h-0 overflow-y-auto px-6 py-4">
                 <FoldersList folders={folders ?? []} uploads={data} />
               </ul>
             )}
