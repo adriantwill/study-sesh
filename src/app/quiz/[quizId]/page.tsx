@@ -4,7 +4,7 @@ import QuizChoices from "@/src/components/QuizChoices";
 import { parseMarkdown } from "@/src/lib/markdown";
 import { createClient } from "@/src/lib/supabase/server";
 
-function shuffleArray(items: string[]): string[] {
+export function shuffleArray<T>(items: T[]): T[] {
   const shuffled = [...items];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));

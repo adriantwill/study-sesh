@@ -6,15 +6,17 @@ import Flashcard from "@/src/components/Flashcard";
 import type { StudyQuestion } from "@/src/types";
 import { getItem, removeItem, setItem } from "../utils/localStorage";
 import NavigationButton from "./NavigationButton";
+import { shuffleArray } from "../app/quiz/[quizId]/page";
 
 export default function FlashcardView({
-  questions,
+  initalQuestions,
   height,
 }: {
-  questions: StudyQuestion[];
+  initalQuestions: StudyQuestion[];
   height?: string;
 }) {
   const isStudyMode = height === "h-130";
+  const [questions, setQuestions] = useState(initalQuestions);
   const [actionHistory, setActionHistory] = useState<Array<{
     type: "complete" | "skip";
     id: string;
@@ -221,12 +223,19 @@ export default function FlashcardView({
             })}
           </div>
           <div className="text-sm text-muted-foreground hover:text-foreground underline flex justify-center mt-6 gap-6">
-            {(completedIds.length > 0 || actionHistory.length > 0) && (
+            {(completedIds.length > 0 || actionHistory.length > 0) ? (
               <button
                 type="button"
                 onClick={actionHistory.length > 0 ? handleUndo : handleReset}
               >
                 {actionHistory.length > 0 ? "Undo" : "Reset progress"}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setQuestions(shuffleArray(questions))}
+              >
+                Shuffle Deck
               </button>
             )}
           </div>

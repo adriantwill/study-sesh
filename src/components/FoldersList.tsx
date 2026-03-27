@@ -39,7 +39,7 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
   return (
     <>
       <div className="transition-transform duration-300 space-y-2">
-        {folders.map((folder, index) => {
+        {folders.map((folder) => {
           const FolderIcon = openFolder === folder.id ? FolderOpen : Folder;
           const folderUploads = uploads.filter((upload) => upload.folder_id === folder.id);
           return (
