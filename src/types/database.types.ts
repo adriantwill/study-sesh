@@ -19,18 +19,29 @@ export type Database = {
           created_at: string | null
           id: string
           name: string
+          parent_id: string | null
         }
         Insert: {
           created_at?: string | null
           id?: string
           name: string
+          parent_id?: string | null
         }
         Update: {
           created_at?: string | null
           id?: string
           name?: string
+          parent_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "folders_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "folders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       questions: {
         Row: {

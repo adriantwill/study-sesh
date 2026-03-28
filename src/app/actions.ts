@@ -93,14 +93,12 @@ export async function deleteItemAction(
       if (error) throw error;
       revalidatePath("/[reviewId]", "page");
     } else if (variant === "folder") {
-      const { count } = await supabase
+      const { error: detachError } = await supabase
         .from("uploads")
-        .select("*", { count: "exact", head: true })
+        .update({ folder_id: null })
         .eq("folder_id", id);
 
-      if (count && count > 0) {
-        throw new Error("Folder not empty");
-      }
+      if (detachError) throw detachError;
 
       const { error } = await supabase.from("folders").delete().eq("id", id);
       if (error) throw error;
@@ -305,6 +303,57 @@ export async function updateUploadFolderAction(
   if (error) {
     console.error("Update folder error:", error);
     throw new Error("Failed to update folder");
+  }
+
+  revalidatePath("/");
+}
+
+export async function updateFolderParentAction(
+  folderId: string,
+  parentId: string | null,
+) {
+  const supabase = await createClient();
+
+  if (folderId === parentId) {
+    throw new Error("Folder cannot be moved into itself");
+  }
+
+  const { data: folders, error: fetchError } = await supabase
+    .from("folders")
+    .select("id, parent_id");
+
+  if (fetchError) {
+    console.error("Load folders error:", fetchError);
+    throw new Error("Failed to load folders");
+  }
+
+  const folderRows = (folders ?? []) as { id: string; parent_id: string | null }[];
+  const parentById = new Map(
+    folderRows.map((folder) => [folder.id, folder.parent_id]),
+  );
+
+  if (!parentById.has(folderId)) {
+    throw new Error("Folder not found");
+  }
+
+  let currentParentId = parentId;
+
+  while (currentParentId) {
+    if (currentParentId === folderId) {
+      throw new Error("Folder cannot be moved into its child");
+    }
+
+    currentParentId = parentById.get(currentParentId) ?? null;
+  }
+
+  const { error } = await supabase
+    .from("folders")
+    .update({ parent_id: parentId } as never)
+    .eq("id", folderId);
+
+  if (error) {
+    console.error("Update folder parent error:", error);
+    throw new Error("Failed to update folder parent");
   }
 
   revalidatePath("/");

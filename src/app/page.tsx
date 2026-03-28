@@ -36,9 +36,8 @@ export default async function Home() {
           <h2 className="text-3xl font-bold ">Your Tools</h2>
           <div className="bg-muted flex flex-1 min-h-0 flex-col rounded-sm shadow w-200">
             {data.length > 0 && (
-              <ul className="flex-1 min-h-0 overflow-y-auto px-6 py-4">
+              <ul className="flex-1 min-h-0 flex flex-col overflow-y-auto px-6 py-4">
                 <FoldersList folders={folders ?? []} uploads={data} />
-                <AddFolder />
               </ul>
             )}
           </div>
