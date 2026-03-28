@@ -221,17 +221,19 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
   }
 
   return (
-    <div
-      onDragOver={(event) => handleDragOver(event, null)}
-      onDragLeave={(event) => handleDragLeave(event, null)}
-      onDrop={(event) => handleDrop(event, null)}
-      className={`rounded-md transition-colors ${dropFolderId === ROOT_DROP_ID ? "bg-background/60 ring-1 ring-border" : ""}`}
-    >
+    <>
       <div className="transition-transform duration-300 space-y-2">
         {rootFolders.map(renderFolder)}
       </div>
       <AddFolder />
-      {rootUploads.map((upload) => renderUpload(upload))}
-    </div>
+      <ul
+        onDragOver={(event) => handleDragOver(event, null)}
+        onDragLeave={(event) => handleDragLeave(event, null)}
+        onDrop={(event) => handleDrop(event, null)}
+        className={`flex-1 min-h-14 rounded-md transition-colors ${dropFolderId === ROOT_DROP_ID ? "bg-background/60 ring-1 ring-border" : ""}`}
+      >
+        {rootUploads.map((upload) => renderUpload(upload))}
+      </ul>
+    </>
   );
 }
