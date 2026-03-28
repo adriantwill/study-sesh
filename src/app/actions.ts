@@ -8,6 +8,32 @@ import type { StudyQuestion } from "../types";
 
 const DISPLAY_ORDER_STEP = 100;
 
+async function normalizeQuestionDisplayOrder(uploadId: string) {
+  const supabase = await createClient();
+  const { data: questions, error } = await supabase
+    .from("questions")
+    .select("id")
+    .eq("upload_id", uploadId)
+    .order("display_order", { ascending: true });
+
+  if (error) {
+    console.error("Normalize order fetch error:", error);
+    throw new Error("Failed to normalize question order");
+  }
+
+  for (const [index, question] of (questions ?? []).entries()) {
+    const { error: updateError } = await supabase
+      .from("questions")
+      .update({ display_order: (index + 1) * DISPLAY_ORDER_STEP })
+      .eq("id", question.id);
+
+    if (updateError) {
+      console.error("Normalize order update error:", updateError);
+      throw new Error("Failed to normalize question order");
+    }
+  }
+}
+
 export async function uploadAndGenerateAction(formData: FormData) {
   const file = formData.get("pdf") as File;
   if (!file) {
@@ -226,6 +252,25 @@ export async function addQuestionAction(
   if (error) {
     console.error("Add question error:", error);
     throw new Error("Failed to add question");
+  }
+
+  const { data: existingOrders, error: existingOrdersError } = await supabase
+    .from("questions")
+    .select("display_order")
+    .eq("upload_id", uploadId);
+
+  if (existingOrdersError) {
+    console.error("Add question existing order error:", existingOrdersError);
+    throw new Error("Failed to load existing question positions");
+  }
+
+  const hasInvalidDisplayOrder = (existingOrders ?? []).some((row) => {
+    const displayOrder = row.display_order;
+    return displayOrder == null || displayOrder % DISPLAY_ORDER_STEP !== 0;
+  });
+
+  if (hasInvalidDisplayOrder) {
+    await normalizeQuestionDisplayOrder(uploadId);
   }
 
   revalidatePath("/[reviewId]", "page");
