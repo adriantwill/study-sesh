@@ -6,6 +6,8 @@ import { getPublicUrl, uploadFile } from "../lib/storage";
 import { createClient } from "../lib/supabase/server";
 import type { StudyQuestion } from "../types";
 
+const DISPLAY_ORDER_STEP = 100;
+
 export async function uploadAndGenerateAction(formData: FormData) {
   const file = formData.get("pdf") as File;
   if (!file) {
@@ -39,7 +41,7 @@ export async function uploadRecordAction(name: string, questions: StudyQuestion[
         upload_id: upload.id,
         question_text: q.question,
         answer_text: q.answer,
-        display_order: (idx + 1) * 100,
+        display_order: (idx + 1) * DISPLAY_ORDER_STEP,
         options: q.options ?? [],
       })),
     );
@@ -181,37 +183,44 @@ export async function addQuestionAction(
   insertAtPosition: number,
 ) {
   const supabase = await createClient();
+  const nextDisplayOrder =
+    insertAtPosition <= 0
+      ? DISPLAY_ORDER_STEP
+      : Math.ceil((insertAtPosition + DISPLAY_ORDER_STEP) / DISPLAY_ORDER_STEP) *
+      DISPLAY_ORDER_STEP;
 
-  const { data: rows, error: rowsError } = await supabase
+  const { data: rowsToShift, error: rowsError } = await supabase
     .from("questions")
-    .select("display_order")
+    .select("id, display_order")
     .eq("upload_id", uploadId)
-    .gte("display_order", insertAtPosition)
-    .order("display_order", { ascending: true })
-    .limit(2);
+    .gte("display_order", nextDisplayOrder)
+    .order("display_order", { ascending: false });
 
   if (rowsError) {
     console.error("Add question fetch error:", rowsError);
     throw new Error("Failed to load question positions");
   }
 
-  const currentOrder = rows?.[0]?.display_order;
-  const nextOrder = rows?.[1]?.display_order;
+  if (rowsToShift) {
+    for (const row of rowsToShift) {
+      const currentDisplayOrder = row.display_order ?? 0;
+      const { error: shiftError } = await supabase
+        .from("questions")
+        .update({ display_order: currentDisplayOrder + DISPLAY_ORDER_STEP })
+        .eq("id", row.id);
 
-  if (currentOrder == null) {
-    insertAtPosition = 1000;
-  } else if (nextOrder == null) {
-    insertAtPosition = currentOrder + 1000;
-  } else {
-    insertAtPosition = (currentOrder + nextOrder) / 2;
+      if (shiftError) {
+        console.error("Add question shift error:", shiftError);
+        throw new Error("Failed to make room for question");
+      }
+    }
   }
-
 
   const { error } = await supabase.from("questions").insert({
     upload_id: uploadId,
     question_text: question,
     answer_text: answer,
-    display_order: insertAtPosition,
+    display_order: nextDisplayOrder,
   });
 
   if (error) {
@@ -262,7 +271,7 @@ export async function reorderQuestionsAction(orderedIds: string[]) {
   for (let i = 0; i < orderedIds.length; i++) {
     await supabase
       .from("questions")
-      .update({ display_order: (i + 1) * 1000 })
+      .update({ display_order: (i + 1) * DISPLAY_ORDER_STEP })
       .eq("id", orderedIds[i]);
   }
 
