@@ -7,14 +7,13 @@ import type { StudyQuestion } from "@/src/types";
 import { shuffleArray } from "../utils/cards";
 import { getItem, removeItem, setItem } from "../utils/localStorage";
 import NavigationButton from "./NavigationButton";
-import { shuffleArray } from "../app/quiz/[quizId]/page";
 
 
 export default function FlashcardView({
   questions: initialQuestions,
   height,
 }: {
-  initalQuestions: StudyQuestion[];
+  questions: StudyQuestion[];
   height?: string;
 }) {
   const isStudyMode = height === "h-130";
