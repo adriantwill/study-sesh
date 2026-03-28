@@ -124,12 +124,11 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
         <div
           className={`grid transition-all duration-200 ${isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
         >
-          <ul className="ml-3 overflow-hidden border-l border-border/50">
+          <ul className="ml-3 overflow-hidden">
             {folderUploads.map((upload) => (
               <UploadLink
                 key={upload.id}
                 upload={upload}
-                folders={folders}
                 tree
                 draggable
                 isDragging={activeUploadId === upload.id}
@@ -141,8 +140,7 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
             {childFolders.map(renderFolder)}
           </ul>
         </div>
-
-        <hr className="mt-2 border-border/50" />
+        {!folder.parent_id && <hr className="mt-2 border-border/50" />}
       </div>
     );
   }
@@ -156,7 +154,6 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
         <UploadLink
           key={item.id}
           upload={item}
-          folders={folders}
           draggable
           isDragging={activeUploadId === item.id}
           onDragStart={setActiveUploadId}
