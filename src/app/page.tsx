@@ -38,7 +38,6 @@ export default async function Home() {
             {data.length > 0 && (
               <ul className="flex-1 min-h-0 overflow-y-auto px-6 py-4">
                 <FoldersList folders={folders ?? []} uploads={data} />
-                <AddFolder />
               </ul>
             )}
           </div>
