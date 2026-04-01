@@ -240,14 +240,18 @@ export async function addQuestionAction(
     }
   }
 
-  const { error } = await supabase.from("questions").insert({
-    upload_id: uploadId,
-    question_text: question,
-    answer_text: answer,
-    display_order: nextDisplayOrder,
-  });
+  const { data: insertedQuestion, error } = await supabase
+    .from("questions")
+    .insert({
+      upload_id: uploadId,
+      question_text: question,
+      answer_text: answer,
+      display_order: nextDisplayOrder,
+    })
+    .select("*")
+    .single();
 
-  if (error) {
+  if (error || !insertedQuestion) {
     console.error("Add question error:", error);
     throw new Error("Failed to add question");
   }
@@ -271,7 +275,16 @@ export async function addQuestionAction(
     await normalizeQuestionDisplayOrder(uploadId);
   }
 
-  revalidatePath("/[reviewId]", "page");
+  revalidatePath(`/${uploadId}`);
+
+  return {
+    id: insertedQuestion.id,
+    question: insertedQuestion.question_text,
+    answer: insertedQuestion.answer_text,
+    imageUrl: insertedQuestion.image_url,
+    displayOrder: insertedQuestion.display_order,
+    options: insertedQuestion.options,
+  };
 }
 
 export async function addFolderAction(name: string) {

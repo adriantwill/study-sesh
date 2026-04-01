@@ -74,6 +74,16 @@ export default function Test({ questions: initialQuestions, reviewId }: TestProp
     });
   }
 
+  function handleQuestionAdded(question: StudyQuestion) {
+    setQuestions((currentQuestions) => {
+      const nextQuestions = [...currentQuestions, question];
+      nextQuestions.sort(
+        (a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0),
+      );
+      return nextQuestions;
+    });
+  }
+
   return (
     <div className="space-y-4">
       <ul className="space-y-4">
@@ -165,6 +175,7 @@ export default function Test({ questions: initialQuestions, reviewId }: TestProp
             <AddQuestionButton
               uploadId={reviewId}
               insertAtPosition={q.displayOrder ?? 0}
+              onQuestionAdded={handleQuestionAdded}
             />
           </React.Fragment>
         ))}
