@@ -21,6 +21,58 @@ function arrayMove<T>(arr: T[], from: number, to: number): T[] {
   return next;
 }
 
+function ResizableImage({ src }: { src: string }) {
+  const [width, setWidth] = useState(500);
+  const [rotation, setRotation] = useState(0);
+
+  function handlePointerDown(e: React.PointerEvent<HTMLButtonElement>) {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startWidth = width;
+
+    function handlePointerMove(event: PointerEvent) {
+      setWidth(Math.max(180, startWidth + event.clientX - startX));
+    }
+
+    function handlePointerUp() {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+    }
+
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp);
+  }
+
+  return (
+    <div className="relative mt-3 inline-block max-w-full">
+      <button
+        type="button"
+        aria-label="Rotate image"
+        onClick={() => setRotation((prev) => (prev + 90) % 360)}
+        className="absolute top-2 right-2 z-10 rounded-md bg-black/50 px-2 py-1 text-xs text-white"
+      >
+        Rotate
+      </button>
+      <div style={{ width }} className="max-w-full">
+        <Image
+          src={src}
+          alt="supporting image"
+          width={500}
+          height={500}
+          className="block h-auto w-full rounded-md border border-muted-foreground/20 object-contain"
+          style={{ transform: `rotate(${rotation}deg)` }}
+        />
+      </div>
+      <button
+        type="button"
+        aria-label="Resize image"
+        onPointerDown={handlePointerDown}
+        className="absolute right-1 bottom-1 h-4 w-4 cursor-se-resize rounded-sm bg-black/50"
+      />
+    </div>
+  );
+}
+
 export default function Test({ questions: initialQuestions, reviewId }: TestProps) {
   const [questions, setQuestions] = useState(initialQuestions);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -124,13 +176,7 @@ export default function Test({ questions: initialQuestions, reviewId }: TestProp
                       <DeleteButton id={q.id} variant="question" name={q.question} />
                     </div>
                     {q.imageUrl && (
-                      <Image
-                        src={q.imageUrl}
-                        alt="supporting image"
-                        width={500}
-                        height={500}
-                        className="mt-3 rounded-md border border-muted-foreground/20"
-                      />
+                      <ResizableImage src={q.imageUrl} />
                     )}
                     <details className="text-sm mt-4">
                       <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
