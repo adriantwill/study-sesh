@@ -11,6 +11,7 @@ interface UploadLinkProps {
   isDragging?: boolean;
   onDragStart?: (uploadId: string) => void;
   onDragEnd?: () => void;
+  onDelete?: (uploadId: string) => Promise<void> | void;
 }
 
 export default function UploadLink({
@@ -20,6 +21,7 @@ export default function UploadLink({
   isDragging = false,
   onDragStart,
   onDragEnd,
+  onDelete,
 }: UploadLinkProps) {
   return (
     <li
@@ -33,7 +35,12 @@ export default function UploadLink({
           {upload.filename}
         </Link>
         <div className="flex items-center gap-3 text-foreground/70">
-          <DeleteButton id={upload.id} variant="upload" name={upload.filename} />
+          <DeleteButton
+            id={upload.id}
+            variant="upload"
+            name={upload.filename}
+            onDelete={onDelete ? () => onDelete(upload.id) : undefined}
+          />
         </div>
       </div>
     </li>

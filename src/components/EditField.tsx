@@ -1,6 +1,6 @@
 "use client";
 import { Bold, Check, List, Highlighter, Pencil } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   updateFolderNameAction,
   updateQuestionTextAction,
@@ -12,12 +12,23 @@ interface EditFieldProps {
   textField: string;
   id: string;
   onEditingChange?: (isEditing: boolean) => void;
+  onSave?: (text: string) => void;
 }
 
-export default function EditField({ variant, textField, id, onEditingChange }: EditFieldProps) {
+export default function EditField({
+  variant,
+  textField,
+  id,
+  onEditingChange,
+  onSave,
+}: EditFieldProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [text, setText] = useState(textField);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    setText(textField);
+  }, [textField]);
 
   function handleTextChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
     const value = e.target.value;
@@ -41,15 +52,26 @@ export default function EditField({ variant, textField, id, onEditingChange }: E
       return;
     }
 
-    if (text !== textField) {
-      if (variant === "folder_name") {
-        await updateFolderNameAction(id, text);
-      } else {
-        await updateQuestionTextAction(id, text, variant);
-      }
-    }
+    const nextText = text;
+
     setIsEditing(false);
     onEditingChange?.(false);
+
+    if (nextText !== textField) {
+      onSave?.(nextText);
+
+      try {
+        if (variant === "folder_name") {
+          await updateFolderNameAction(id, nextText);
+        } else {
+          await updateQuestionTextAction(id, nextText, variant);
+        }
+      } catch (error) {
+        console.error("Failed to save text:", error);
+        setText(textField);
+        onSave?.(textField);
+      }
+    }
   }
 
   function applyFormat(marker: string) {

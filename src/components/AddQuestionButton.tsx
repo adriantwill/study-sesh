@@ -1,7 +1,6 @@
 "use client";
 
 import { Plus } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { addQuestionAction } from "../app/actions";
 import type { StudyQuestion } from "../types";
@@ -10,27 +9,45 @@ interface AddQuestionButtonProps {
   uploadId: string;
   insertAtPosition?: number;
   onQuestionAdded?: (question: StudyQuestion) => void;
+  onQuestionSaved?: (tempId: string, question: StudyQuestion) => void;
+  onQuestionAddFailed?: (tempId: string) => void;
 }
 
 export default function AddQuestionButton({
   uploadId,
   insertAtPosition,
   onQuestionAdded,
+  onQuestionSaved,
+  onQuestionAddFailed,
 }: AddQuestionButtonProps) {
-  const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   function addUntitledQuestion() {
     startTransition(async () => {
-      const question = await addQuestionAction(
-        uploadId,
-        "Untitled question",
-        "untitled answer",
-        insertAtPosition ?? 0,
-      );
+      const tempId = `temp-question-${crypto.randomUUID()}`;
+      onQuestionAdded?.({
+        id: tempId,
+        question: "Untitled question",
+        answer: "untitled answer",
+        displayOrder:
+          (insertAtPosition ?? 0) <= 0
+            ? 50
+            : (insertAtPosition ?? 0) + 0.5,
+      });
 
-      onQuestionAdded?.(question);
-      router.refresh();
+      try {
+        const question = await addQuestionAction(
+          uploadId,
+          "Untitled question",
+          "untitled answer",
+          insertAtPosition ?? 0,
+        );
+
+        onQuestionSaved?.(tempId, question);
+      } catch (error) {
+        console.error("Failed to add question:", error);
+        onQuestionAddFailed?.(tempId);
+      }
     });
   }
 

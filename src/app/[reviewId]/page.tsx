@@ -1,5 +1,4 @@
 import Link from "next/link";
-import type { Tables } from "@/src/types/database.types";
 import EditField from "../../components/EditField";
 import FlashcardView from "../../components/FlashcardView";
 import Test from "../../components/Test";
@@ -45,7 +44,7 @@ export default async function ReviewPage({
     throw new Error("Failed to load title");
   }
 
-  const questions = data.map((q: Tables<"questions">) => ({
+  const questions = data.map((q) => ({
     id: q.id,
     question: q.question_text,
     answer: q.answer_text,

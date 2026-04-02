@@ -2,7 +2,10 @@
 
 import Image from "next/image";
 import React, { useEffect, useRef, useState } from "react";
-import { reorderQuestionsAction } from "../app/actions";
+import {
+  deleteItemAction,
+  reorderQuestionsAction,
+} from "../app/actions";
 import type { StudyQuestion } from "../types";
 import AddQuestionButton from "./AddQuestionButton";
 import DeleteButton from "./DeleteButton";
@@ -127,6 +130,47 @@ export default function Test({ questions: initialQuestions, reviewId }: TestProp
     });
   }
 
+  function handleQuestionSaved(tempId: string, question: StudyQuestion) {
+    setQuestions((currentQuestions) =>
+      currentQuestions
+        .map((currentQuestion) =>
+          currentQuestion.id === tempId ? question : currentQuestion,
+        )
+        .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0)),
+    );
+  }
+
+  function handleQuestionAddFailed(tempId: string) {
+    setQuestions((currentQuestions) =>
+      currentQuestions.filter((question) => question.id !== tempId),
+    );
+  }
+
+  function updateQuestion(
+    questionId: string,
+    updater: (question: StudyQuestion) => StudyQuestion,
+  ) {
+    setQuestions((currentQuestions) =>
+      currentQuestions.map((question) =>
+        question.id === questionId ? updater(question) : question,
+      ),
+    );
+  }
+
+  async function handleQuestionDelete(questionId: string) {
+    const previousQuestions = questions;
+    setQuestions((currentQuestions) =>
+      currentQuestions.filter((question) => question.id !== questionId),
+    );
+
+    try {
+      await deleteItemAction(questionId, "question");
+    } catch (error) {
+      console.error("Failed to delete question", error);
+      setQuestions(previousQuestions);
+    }
+  }
+
   return (
     <div className="space-y-4">
       <ul className="space-y-4">
@@ -158,12 +202,31 @@ export default function Test({ questions: initialQuestions, reviewId }: TestProp
                       variant={"question_text"}
                       textField={q.question}
                       id={q.id}
+                      onSave={(text) =>
+                        updateQuestion(q.id, (question) => ({
+                          ...question,
+                          question: text,
+                        }))
+                      }
                       onEditingChange={(isEditing) =>
                         handleEditingChange(`${q.id}:question_text`, isEditing)
                       }
                     />
-                    <ImageUploadButton id={q.id} />
-                    <DeleteButton id={q.id} variant="question" name={q.question} />
+                    <ImageUploadButton
+                      id={q.id}
+                      onImageSelected={(imageUrl) =>
+                        updateQuestion(q.id, (question) => ({
+                          ...question,
+                          imageUrl,
+                        }))
+                      }
+                    />
+                    <DeleteButton
+                      id={q.id}
+                      variant="question"
+                      name={q.question}
+                      onDelete={() => handleQuestionDelete(q.id)}
+                    />
                   </div>
                   {q.imageUrl && (
                     <ResizableImage src={q.imageUrl} />
@@ -177,6 +240,12 @@ export default function Test({ questions: initialQuestions, reviewId }: TestProp
                         variant={"answer_text"}
                         textField={q.answer}
                         id={q.id}
+                        onSave={(text) =>
+                          updateQuestion(q.id, (question) => ({
+                            ...question,
+                            answer: text,
+                          }))
+                        }
                         onEditingChange={(isEditing) =>
                           handleEditingChange(`${q.id}:answer_text`, isEditing)
                         }
@@ -211,6 +280,8 @@ export default function Test({ questions: initialQuestions, reviewId }: TestProp
               uploadId={reviewId}
               insertAtPosition={q.displayOrder ?? 0}
               onQuestionAdded={handleQuestionAdded}
+              onQuestionSaved={handleQuestionSaved}
+              onQuestionAddFailed={handleQuestionAddFailed}
             />
           </React.Fragment>
         ))}

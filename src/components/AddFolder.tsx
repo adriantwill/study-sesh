@@ -3,18 +3,39 @@
 import { FolderPlus } from "lucide-react";
 import { useState } from "react";
 import { addFolderAction } from "../app/actions";
+import type { Tables } from "../types/database.types";
 
-export default function AddFolder() {
+interface AddFolderProps {
+  onFolderAdded?: (folder: Tables<"folders">) => void;
+  onFolderSaved?: (tempId: string, folder: Tables<"folders">) => void;
+  onFolderAddFailed?: (tempId: string) => void;
+}
+
+export default function AddFolder({
+  onFolderAdded,
+  onFolderSaved,
+  onFolderAddFailed,
+}: AddFolderProps) {
   const [isCreating, setIsCreating] = useState(false);
 
   async function handleCreateFolder() {
     if (isCreating) return;
 
+    const tempId = `temp-folder-${crypto.randomUUID()}`;
+
     try {
       setIsCreating(true);
-      await addFolderAction("Untitled");
+      onFolderAdded?.({
+        id: tempId,
+        name: "Untitled",
+        parent_id: null,
+        created_at: new Date().toISOString(),
+      });
+      const folder = await addFolderAction("Untitled");
+      onFolderSaved?.(tempId, folder);
     } catch (error) {
       console.error("Failed to add folder:", error);
+      onFolderAddFailed?.(tempId);
     } finally {
       setIsCreating(false);
     }

@@ -304,16 +304,22 @@ export async function addQuestionAction(
 export async function addFolderAction(name: string) {
   const supabase = await createClient();
 
-  const { error } = await supabase.from("folders").insert({
-    name,
-  });
+  const { data, error } = await supabase
+    .from("folders")
+    .insert({
+      name,
+    })
+    .select()
+    .single();
 
-  if (error) {
+  if (error || !data) {
     console.error("Add folder error:", error);
     throw new Error("Failed to add folder");
   }
 
   revalidatePath("/");
+
+  return data;
 }
 
 export async function updateUploadFolderAction(

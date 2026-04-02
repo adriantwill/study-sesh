@@ -35,11 +35,9 @@ export default async function Home() {
         <div className="gap-8 h-screen min-h-0 flex flex-col">
           <h2 className="text-3xl font-bold ">Your Tools</h2>
           <div className="bg-muted flex flex-1 min-h-0 flex-col rounded-sm shadow w-200">
-            {data.length > 0 && (
-              <ul className="flex-1 min-h-0 flex flex-col overflow-y-auto px-6 py-4">
-                <FoldersList folders={folders ?? []} uploads={data} />
-              </ul>
-            )}
+            <ul className="flex-1 min-h-0 flex flex-col overflow-y-auto px-6 py-4">
+              <FoldersList folders={folders ?? []} uploads={data} />
+            </ul>
           </div>
         </div>
       </section>
