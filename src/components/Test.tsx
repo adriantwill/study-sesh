@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { reorderQuestionsAction } from "../app/actions";
 import type { StudyQuestion } from "../types";
 import AddQuestionButton from "./AddQuestionButton";
@@ -22,52 +22,43 @@ function arrayMove<T>(arr: T[], from: number, to: number): T[] {
 }
 
 function ResizableImage({ src }: { src: string }) {
-  const [width, setWidth] = useState(500);
-  const [rotation, setRotation] = useState(0);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [aspectRatio, setAspectRatio] = useState<number | null>(null);
+  const [maxHeight, setMaxHeight] = useState<number>();
 
-  function handlePointerDown(e: React.PointerEvent<HTMLButtonElement>) {
-    e.preventDefault();
-    const startX = e.clientX;
-    const startWidth = width;
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (!wrapper || !aspectRatio) return;
 
-    function handlePointerMove(event: PointerEvent) {
-      setWidth(Math.max(180, startWidth + event.clientX - startX));
-    }
+    const updateSize = () => {
+      setMaxHeight(wrapper.clientWidth / aspectRatio);
+    };
 
-    function handlePointerUp() {
-      window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("pointerup", handlePointerUp);
-    }
+    updateSize();
 
-    window.addEventListener("pointermove", handlePointerMove);
-    window.addEventListener("pointerup", handlePointerUp);
-  }
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(wrapper);
+
+    return () => observer.disconnect();
+  }, [aspectRatio]);
 
   return (
-    <div className="relative mt-3 inline-block max-w-full">
-      <button
-        type="button"
-        aria-label="Rotate image"
-        onClick={() => setRotation((prev) => (prev + 90) % 360)}
-        className="absolute top-2 right-2 z-10 rounded-md bg-black/50 px-2 py-1 text-xs text-white"
-      >
-        Rotate
-      </button>
-      <div style={{ width }} className="max-w-full">
-        <Image
-          src={src}
-          alt="supporting image"
-          width={500}
-          height={500}
-          className="block h-auto w-full rounded-md border border-muted-foreground/20 object-contain"
-          style={{ transform: `rotate(${rotation}deg)` }}
-        />
-      </div>
-      <button
-        type="button"
-        aria-label="Resize image"
-        onPointerDown={handlePointerDown}
-        className="absolute right-1 bottom-1 h-4 w-4 cursor-se-resize rounded-sm bg-black/50"
+    <div
+      ref={wrapperRef}
+      className="mt-3 w-[500px] max-w-full overflow-auto resize rounded-md border border-muted-foreground/20 object-contain"
+      style={maxHeight ? { maxHeight } : undefined}
+    >
+      <Image
+        src={src}
+        alt="supporting image"
+        width={500}
+        height={500}
+        className="block h-auto w-full rounded-md object-contain"
+        onLoad={(e) => {
+          const { naturalWidth, naturalHeight } = e.currentTarget;
+          if (!naturalWidth || !naturalHeight) return;
+          setAspectRatio(naturalWidth / naturalHeight);
+        }}
       />
     </div>
   );
@@ -157,42 +148,41 @@ export default function Test({ questions: initialQuestions, reviewId }: TestProp
                 } ${isAnyEditing ? "cursor-default" : "cursor-grab"
                 }`}
             >
-              <div className="bg-muted rounded-lg shadow p-6">
-                <div className="flex items-start gap-4">
-                  <div className="shrink-0 w-8 h-8 bg-muted-hover rounded-full flex items-center justify-center text-sm font-medium">
-                    {idx + 1}
+              <div className="bg-muted rounded-lg shadow p-6 flex items-start gap-4">
+                <div className="shrink-0 w-8 h-8 bg-muted-hover rounded-full flex items-center justify-center text-sm font-medium">
+                  {idx + 1}
+                </div>
+                <div className="flex-1 w-1">
+                  <div className="flex items-center gap-2">
+                    <EditField
+                      variant={"question_text"}
+                      textField={q.question}
+                      id={q.id}
+                      onEditingChange={(isEditing) =>
+                        handleEditingChange(`${q.id}:question_text`, isEditing)
+                      }
+                    />
+                    <ImageUploadButton id={q.id} />
+                    <DeleteButton id={q.id} variant="question" name={q.question} />
                   </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
+                  {q.imageUrl && (
+                    <ResizableImage src={q.imageUrl} />
+                  )}
+                  <details className="text-sm mt-4">
+                    <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+                      Show answer
+                    </summary>
+                    <div className="flex items-center justify-between mt-2 p-4 rounded-lg bg-muted-hover">
                       <EditField
-                        variant={"question_text"}
-                        textField={q.question}
+                        variant={"answer_text"}
+                        textField={q.answer}
                         id={q.id}
                         onEditingChange={(isEditing) =>
-                          handleEditingChange(`${q.id}:question_text`, isEditing)
+                          handleEditingChange(`${q.id}:answer_text`, isEditing)
                         }
                       />
-                      <ImageUploadButton id={q.id} />
-                      <DeleteButton id={q.id} variant="question" name={q.question} />
                     </div>
-                    {q.imageUrl && (
-                      <ResizableImage src={q.imageUrl} />
-                    )}
-                    <details className="text-sm mt-4">
-                      <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
-                        Show answer
-                      </summary>
-                      <div className="flex items-center justify-between mt-2 p-4 rounded-lg bg-muted-hover">
-                        <EditField
-                          variant={"answer_text"}
-                          textField={q.answer}
-                          id={q.id}
-                          onEditingChange={(isEditing) =>
-                            handleEditingChange(`${q.id}:answer_text`, isEditing)
-                          }
-                        />
-                      </div>
-                      {/*<div className="text-sm mt-4">Wrong Options</div>
+                    {/*<div className="text-sm mt-4">Wrong Options</div>
                       <div className="grid grid-cols-3 gap-4">
                         {[0, 1, 2].map((optionIdx) => (
                           <div
@@ -213,8 +203,7 @@ export default function Test({ questions: initialQuestions, reviewId }: TestProp
                           </div>
                         ))}
                       </div>*/}
-                    </details>
-                  </div>
+                  </details>
                 </div>
               </div>
             </li>
