@@ -1,5 +1,5 @@
 "use client";
-import { Bold, Check, Highlighter, Pencil } from "lucide-react";
+import { Bold, Check, List, Highlighter, Pencil } from "lucide-react";
 import { useRef, useState } from "react";
 import {
   updateFolderNameAction,
@@ -75,6 +75,32 @@ export default function EditField({ variant, textField, id, onEditingChange }: E
     });
   }
 
+  function applyBulletList() {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    if (start === end) return;
+
+    const lineStart = text.lastIndexOf("\n", start - 1) + 1;
+    const nextNewline = text.indexOf("\n", end);
+    const lineEnd = nextNewline === -1 ? text.length : nextNewline;
+    const selectedBlock = text.slice(lineStart, lineEnd);
+    const bulletedBlock = selectedBlock
+      .split("\n")
+      .map((line) => (line.startsWith("• ") ? line : `• ${line}`))
+      .join("\n");
+    const nextText = text.slice(0, lineStart) + bulletedBlock + text.slice(lineEnd);
+
+    setText(nextText);
+
+    requestAnimationFrame(() => {
+      textarea.focus();
+      textarea.setSelectionRange(lineStart, lineStart + bulletedBlock.length);
+    });
+  }
+
   return (
     <>
       {isEditing ? (
@@ -92,8 +118,16 @@ export default function EditField({ variant, textField, id, onEditingChange }: E
         </span>
       )}
       <div className="flex items-center gap-2">
-        {isEditing && variant !== "folder_name" ? (
+        {isEditing && variant === "answer_text" ? (
           <>
+            <button
+              type="button"
+              onClick={applyBulletList}
+              aria-label="Add bullets"
+              className="flex items-center justify-center enabled:cursor-pointer enabled:hover:text-secondary"
+            >
+              <List size={16} />
+            </button>
             <button
               type="button"
               onClick={() => applyFormat("**")}
