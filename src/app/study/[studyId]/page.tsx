@@ -11,11 +11,17 @@ export default async function StudyPage({
   const { studyId } = await params;
 
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("questions")
-    .select("*")
-    .eq("upload_id", studyId)
-    .order("display_order", { ascending: true });
+  const [
+    { data, error },
+    { data: upload, error: uploadError },
+  ] = await Promise.all([
+    supabase
+      .from("questions")
+      .select("id, question_text, answer_text, image_url")
+      .eq("upload_id", studyId)
+      .order("display_order", { ascending: true }),
+    supabase.from("uploads").select("filename").eq("id", studyId).single(),
+  ]);
 
   if (error) {
     console.error("Error fetching questions:", error);
@@ -25,12 +31,6 @@ export default async function StudyPage({
   if (!data) {
     throw new Error("No questions found");
   }
-
-  const { data: upload, error: uploadError } = await supabase
-    .from("uploads")
-    .select("filename")
-    .eq("id", studyId)
-    .single();
 
   if (uploadError) {
     console.error("Error fetching title:", uploadError);

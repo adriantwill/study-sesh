@@ -13,11 +13,23 @@ export default async function ReviewPage({
   const { reviewId } = await params;
 
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("questions")
-    .select("*")
-    .eq("upload_id", reviewId)
-    .order("display_order", { ascending: true });
+  const [
+    { data, error },
+    { data: upload, error: uploadError },
+  ] = await Promise.all([
+    supabase
+      .from("questions")
+      .select(
+        "id, question_text, answer_text, image_url, display_order, options",
+      )
+      .eq("upload_id", reviewId)
+      .order("display_order", { ascending: true }),
+    supabase
+      .from("uploads")
+      .select("filename, description")
+      .eq("id", reviewId)
+      .single(),
+  ]);
 
   if (error) {
     console.error("Error fetching questions:", error);
@@ -27,12 +39,6 @@ export default async function ReviewPage({
   if (!data) {
     throw new Error("No questions found");
   }
-
-  const { data: upload, error: uploadError } = await supabase
-    .from("uploads")
-    .select("filename, description")
-    .eq("id", reviewId)
-    .single();
 
   if (uploadError) {
     console.error("Error fetching title:", uploadError);

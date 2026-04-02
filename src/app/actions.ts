@@ -100,6 +100,13 @@ export async function deleteItemAction(
 
       if (detachError) throw detachError;
 
+      const { error: detachFoldersError } = await supabase
+        .from("folders")
+        .update({ parent_id: null } as never)
+        .eq("parent_id", id);
+
+      if (detachFoldersError) throw detachFoldersError;
+
       const { error } = await supabase.from("folders").delete().eq("id", id);
       if (error) throw error;
       revalidatePath("/");
