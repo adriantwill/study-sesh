@@ -172,7 +172,7 @@ export default function Test({ questions: initialQuestions, reviewId }: TestProp
                     <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
                       Show answer
                     </summary>
-                    <div className="flex items-center justify-between mt-2 p-4 rounded-lg bg-muted-hover">
+                    <div className="gap-2 flex items-center justify-between mt-2 p-4 rounded-lg bg-muted-hover">
                       <EditField
                         variant={"answer_text"}
                         textField={q.answer}

@@ -52,13 +52,14 @@ export default function EditField({ variant, textField, id, onEditingChange }: E
     onEditingChange?.(false);
   }
 
-  function applyFormat(marker: string, fallback: string) {
+  function applyFormat(marker: string) {
     const textarea = textareaRef.current;
     if (!textarea) return;
 
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
-    const selectedText = text.slice(start, end) || fallback;
+    const selectedText = text.slice(start, end);
+    if (!selectedText) return;
     const nextText =
       text.slice(0, start) +
       `${marker}${selectedText}${marker}` +
@@ -83,10 +84,10 @@ export default function EditField({ variant, textField, id, onEditingChange }: E
           onChange={handleTextChange}
           onPointerDown={(e) => e.stopPropagation()}
           rows={Math.max(1, text.split("\n").length)}
-          className={`w-full h-full font-medium text-foreground bg-muted-hover rounded px-2 py-1 resize-none focus:outline-none focus:ring-1 focus:border-ring`}
+          className={`box-border h-full w-full resize-none rounded border border-border bg-transparent px-0 py-0 font-medium text-foreground focus:outline-none`}
         />
       ) : (
-        <span className="w-full whitespace-pre-wrap ">
+        <span className="box-border w-full whitespace-pre-wrap rounded border border-transparent px-0 py-0">
           {variant === "folder_name" ? text : parseMarkdown(text)}
         </span>
       )}
@@ -95,7 +96,7 @@ export default function EditField({ variant, textField, id, onEditingChange }: E
           <>
             <button
               type="button"
-              onClick={() => applyFormat("**", "bold")}
+              onClick={() => applyFormat("**")}
               aria-label="Bold text"
               className="flex items-center justify-center enabled:cursor-pointer enabled:hover:text-secondary"
             >
@@ -103,7 +104,7 @@ export default function EditField({ variant, textField, id, onEditingChange }: E
             </button>
             <button
               type="button"
-              onClick={() => applyFormat("==", "highlight")}
+              onClick={() => applyFormat("==")}
               aria-label="Highlight text"
               className="flex items-center justify-center enabled:cursor-pointer enabled:hover:text-secondary"
             >
