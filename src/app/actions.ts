@@ -104,6 +104,13 @@ export async function deleteItemAction(
       if (error) throw error;
       revalidatePath("/");
     } else {
+      const { error: deleteQuestionsError } = await supabase
+        .from("questions")
+        .delete()
+        .eq("upload_id", id);
+
+      if (deleteQuestionsError) throw deleteQuestionsError;
+
       const { error } = await supabase.from("uploads").delete().eq("id", id);
       if (error) throw error;
       revalidatePath("/");

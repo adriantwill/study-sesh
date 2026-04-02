@@ -1,5 +1,5 @@
 import { ArrowDown } from "lucide-react";
-import AddFolder from "../components/AddFolder";
+
 import FoldersList from "../components/FoldersList";
 import UploadSwitcher from "../components/UploadSwitcher";
 import { createClient } from "../lib/supabase/server";

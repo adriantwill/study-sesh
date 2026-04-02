@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { reorderQuestionsAction } from "../app/actions";
 import type { StudyQuestion } from "../types";
 import AddQuestionButton from "./AddQuestionButton";
@@ -19,6 +19,49 @@ function arrayMove<T>(arr: T[], from: number, to: number): T[] {
   const [item] = next.splice(from, 1);
   next.splice(to, 0, item);
   return next;
+}
+
+function ResizableImage({ src }: { src: string }) {
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [aspectRatio, setAspectRatio] = useState<number | null>(null);
+  const [maxHeight, setMaxHeight] = useState<number>();
+
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (!wrapper || !aspectRatio) return;
+
+    const updateSize = () => {
+      setMaxHeight(wrapper.clientWidth / aspectRatio);
+    };
+
+    updateSize();
+
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(wrapper);
+
+    return () => observer.disconnect();
+  }, [aspectRatio]);
+
+  return (
+    <div
+      ref={wrapperRef}
+      className="mt-3 w-[500px] max-w-full overflow-auto resize rounded-md border border-muted-foreground/20 object-contain"
+      style={maxHeight ? { maxHeight } : undefined}
+    >
+      <Image
+        src={src}
+        alt="supporting image"
+        width={500}
+        height={500}
+        className="block h-auto w-full rounded-md object-contain"
+        onLoad={(e) => {
+          const { naturalWidth, naturalHeight } = e.currentTarget;
+          if (!naturalWidth || !naturalHeight) return;
+          setAspectRatio(naturalWidth / naturalHeight);
+        }}
+      />
+    </div>
+  );
 }
 
 export default function Test({ questions: initialQuestions, reviewId }: TestProps) {
@@ -105,48 +148,41 @@ export default function Test({ questions: initialQuestions, reviewId }: TestProp
                 } ${isAnyEditing ? "cursor-default" : "cursor-grab"
                 }`}
             >
-              <div className="bg-muted rounded-lg shadow p-6">
-                <div className="flex items-start gap-4">
-                  <div className="shrink-0 w-8 h-8 bg-muted-hover rounded-full flex items-center justify-center text-sm font-medium">
-                    {idx + 1}
+              <div className="bg-muted rounded-lg shadow p-6 flex items-start gap-4">
+                <div className="shrink-0 w-8 h-8 bg-muted-hover rounded-full flex items-center justify-center text-sm font-medium">
+                  {idx + 1}
+                </div>
+                <div className="flex-1 w-1">
+                  <div className="flex items-center gap-2">
+                    <EditField
+                      variant={"question_text"}
+                      textField={q.question}
+                      id={q.id}
+                      onEditingChange={(isEditing) =>
+                        handleEditingChange(`${q.id}:question_text`, isEditing)
+                      }
+                    />
+                    <ImageUploadButton id={q.id} />
+                    <DeleteButton id={q.id} variant="question" name={q.question} />
                   </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
+                  {q.imageUrl && (
+                    <ResizableImage src={q.imageUrl} />
+                  )}
+                  <details className="text-sm mt-4">
+                    <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+                      Show answer
+                    </summary>
+                    <div className="flex items-center justify-between mt-2 p-4 rounded-lg bg-muted-hover">
                       <EditField
-                        variant={"question_text"}
-                        textField={q.question}
+                        variant={"answer_text"}
+                        textField={q.answer}
                         id={q.id}
                         onEditingChange={(isEditing) =>
-                          handleEditingChange(`${q.id}:question_text`, isEditing)
+                          handleEditingChange(`${q.id}:answer_text`, isEditing)
                         }
                       />
-                      <ImageUploadButton id={q.id} />
-                      <DeleteButton id={q.id} variant="question" name={q.question} />
                     </div>
-                    {q.imageUrl && (
-                      <Image
-                        src={q.imageUrl}
-                        alt="supporting image"
-                        width={500}
-                        height={500}
-                        className="mt-3 rounded-md border border-muted-foreground/20"
-                      />
-                    )}
-                    <details className="text-sm mt-4">
-                      <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
-                        Show answer
-                      </summary>
-                      <div className="flex items-center justify-between mt-2 p-4 rounded-lg bg-muted-hover">
-                        <EditField
-                          variant={"answer_text"}
-                          textField={q.answer}
-                          id={q.id}
-                          onEditingChange={(isEditing) =>
-                            handleEditingChange(`${q.id}:answer_text`, isEditing)
-                          }
-                        />
-                      </div>
-                      {/*<div className="text-sm mt-4">Wrong Options</div>
+                    {/*<div className="text-sm mt-4">Wrong Options</div>
                       <div className="grid grid-cols-3 gap-4">
                         {[0, 1, 2].map((optionIdx) => (
                           <div
@@ -167,8 +203,7 @@ export default function Test({ questions: initialQuestions, reviewId }: TestProp
                           </div>
                         ))}
                       </div>*/}
-                    </details>
-                  </div>
+                  </details>
                 </div>
               </div>
             </li>
