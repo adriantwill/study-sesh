@@ -50,7 +50,10 @@ export type Database = {
           display_order: number | null
           id: string
           image_url: string | null
+          ocr_text: string | null
           options: string[]
+          original_question_text: string | null
+          page_number: number | null
           question_text: string
           upload_id: string | null
         }
@@ -60,7 +63,10 @@ export type Database = {
           display_order?: number | null
           id?: string
           image_url?: string | null
+          ocr_text?: string | null
           options?: string[]
+          original_question_text?: string | null
+          page_number?: number | null
           question_text: string
           upload_id?: string | null
         }
@@ -70,7 +76,10 @@ export type Database = {
           display_order?: number | null
           id?: string
           image_url?: string | null
+          ocr_text?: string | null
           options?: string[]
+          original_question_text?: string | null
+          page_number?: number | null
           question_text?: string
           upload_id?: string | null
         }

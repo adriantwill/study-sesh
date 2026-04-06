@@ -207,6 +207,9 @@ export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
                 question: q.question,
                 answer: q.answer,
                 options: q.options,
+                pageNumber,
+                ocrText: null,
+                originalQuestion: q.question,
               }));
             }
             return [];

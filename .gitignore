@@ -36,6 +36,10 @@ yarn-error.log*
 # gemini
 .gemini-clipboard
 
+# local planning docs
+FINETUNE_PLAN.md
+OPTIMISTIC_UPDATES.md
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
