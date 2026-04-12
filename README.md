@@ -2,7 +2,7 @@
 
 AI-powered PDF-to-flashcard study tool.
 
-Upload a PowerPoint PDF, extract slides with Poppler, generate study questions with Hyperbolic AI, then review them as flashcards or quizzes.
+Upload a PowerPoint PDF, extract slides with Poppler, generate study questions with Gemini, then review them as flashcards or quizzes.
 
 ## Stack
 
@@ -12,7 +12,7 @@ Upload a PowerPoint PDF, extract slides with Poppler, generate study questions w
 - Tailwind CSS 4
 - Supabase
 - node-poppler
-- Hyperbolic API
+- Gemini API
 
 ## Features
 

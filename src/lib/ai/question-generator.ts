@@ -5,46 +5,43 @@ import type { StudyQuestion } from "@/src/types";
 
 const RETRYABLE_STATUS_CODES = new Set([408, 429, 500, 502, 503, 504]);
 const MAX_API_RETRIES = 3;
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 
-function isRetryableHyperbolicError(message: string) {
+function isRetryableAIError(message: string) {
   return (
     message.includes("AsyncEngineDeadError") ||
     message.includes("Background loop is not running") ||
-    message.includes("50001")
+    message.includes("50001") ||
+    message.includes("RESOURCE_EXHAUSTED") ||
+    message.includes("UNAVAILABLE")
   );
 }
 
 function shouldRetryRequest(status: number, errorBody: string) {
-  return (
-    RETRYABLE_STATUS_CODES.has(status) || isRetryableHyperbolicError(errorBody)
-  );
+  return RETRYABLE_STATUS_CODES.has(status) || isRetryableAIError(errorBody);
 }
 
 async function sleep(ms: number) {
   await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function requestQuestionsFromHyperbolic(imageUrl: string) {
+async function requestQuestionsFromGemini(imageBase64: string) {
   let lastError: Error | null = null;
 
   for (let attempt = 1; attempt <= MAX_API_RETRIES; attempt++) {
     try {
       const apiResponse = await fetch(
-        "https://api.hyperbolic.xyz/v1/chat/completions",
+        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${process.env.GEMINI_API_KEY}`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.HYPERBOLIC_API_KEY}`,
           },
           body: JSON.stringify({
-            model: "mistralai/Pixtral-12B-2409",
-            messages: [
+            contents: [
               {
-                role: "user",
-                content: [
+                parts: [
                   {
-                    type: "text",
                     text: `Analyze this educational slide and generate 2-3 flashcard-style questions targeting key facts, definitions, and terms a student would need to memorize for an exam.
                       Focus on:
                       - Definitions and terminology
@@ -73,18 +70,37 @@ async function requestQuestionsFromHyperbolic(imageUrl: string) {
                       - Do not reiterate the question in the answer in any way`,
                   },
                   {
-                    type: "image_url",
-                    image_url: {
-                      url: imageUrl,
+                    inline_data: {
+                      mime_type: "image/png",
+                      data: imageBase64,
                     },
                   },
                 ],
               },
             ],
-            max_tokens: 512,
-            temperature: 0.1,
-            top_p: 0.001,
-            stream: false,
+            generationConfig: {
+              responseMimeType: "application/json",
+              responseSchema: {
+                type: "ARRAY",
+                items: {
+                  type: "OBJECT",
+                  properties: {
+                    question: { type: "STRING" },
+                    answer: { type: "STRING" },
+                    options: {
+                      type: "ARRAY",
+                      items: { type: "STRING" },
+                      minItems: 3,
+                      maxItems: 3,
+                    },
+                  },
+                  required: ["question", "answer", "options"],
+                },
+              },
+              maxOutputTokens: 512,
+              temperature: 0.1,
+              topP: 0.001,
+            },
           }),
         },
       );
@@ -112,7 +128,7 @@ async function requestQuestionsFromHyperbolic(imageUrl: string) {
       if (
         attempt < MAX_API_RETRIES &&
         error instanceof Error &&
-        isRetryableHyperbolicError(error.message)
+        isRetryableAIError(error.message)
       ) {
         await sleep(attempt * 1000);
         lastError = error;
@@ -123,13 +139,13 @@ async function requestQuestionsFromHyperbolic(imageUrl: string) {
     }
   }
 
-  throw lastError ?? new Error("Hyperbolic request failed");
+  throw lastError ?? new Error("Gemini request failed");
 }
 
 //TODO optimize the pdf cario thing
 export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
-  if (!process.env.HYPERBOLIC_API_KEY) {
-    throw new Error("HYPERBOLIC_API_KEY not configured");
+  if (!process.env.GEMINI_API_KEY) {
+    throw new Error("GEMINI_API_KEY not configured");
   }
 
   // Generate a unique temporary file path
@@ -184,35 +200,33 @@ export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
             const imageBuffer = await fs.readFile(imagePath);
 
             const base64Img = imageBuffer.toString("base64");
-            const imageUrl = `data:image/png;base64,${base64Img}`;
-
             // Clean up image immediately after reading
             await fs.unlink(imagePath).catch(() => { });
 
-            const response = await requestQuestionsFromHyperbolic(imageUrl);
-            console.log(`Hyperbolic API response received`);
+            const response = await requestQuestionsFromGemini(base64Img);
+            console.log(`Gemini API response received`);
 
-            const content = response.choices[0]?.message?.content || "";
-            const jsonMatch = content.match(/\[[\s\S]*\]/);
+            const content = response.candidates?.[0]?.content?.parts?.[0]?.text;
 
-            if (jsonMatch) {
-              const pageQuestions = JSON.parse(jsonMatch[0]) as Array<{
-                question: string;
-                answer: string;
-                options: string[];
-              }>;
-
-              return pageQuestions.map((q) => ({
-                id: "id", // Placeholder
-                question: q.question,
-                answer: q.answer,
-                options: q.options,
-                pageNumber,
-                ocrText: null,
-                originalQuestion: q.question,
-              }));
+            if (!content) {
+              return [];
             }
-            return [];
+
+            const pageQuestions = JSON.parse(content) as Array<{
+              question: string;
+              answer: string;
+              options: string[];
+            }>;
+
+            return pageQuestions.map((q) => ({
+              id: "id", // Placeholder
+              question: q.question,
+              answer: q.answer,
+              options: q.options,
+              pageNumber,
+              ocrText: null,
+              originalQuestion: q.question,
+            }));
           } catch (err) {
             console.error(`Error processing slide`, err);
             failedSlides.push(

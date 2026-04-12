@@ -309,9 +309,7 @@ export async function addQuestionAction(
     pageNumber: "page_number" in insertedQuestion ? insertedQuestion.page_number : null,
     ocrText: "ocr_text" in insertedQuestion ? insertedQuestion.ocr_text : null,
     originalQuestion:
-      "original_question_text" in insertedQuestion
-        ? insertedQuestion.original_question_text
-        : insertedQuestion.question_text,
+      insertedQuestion.original_question_text ?? insertedQuestion.question_text,
   };
 }
 
