@@ -56,6 +56,6 @@ jobs:
             docker stop study-sesh || true
             docker rm study-sesh || true
             docker run -d --name study-sesh -p 3000:3000 --restart unless-stopped \
-              -e HYPERBOLIC_API_KEY=${{ secrets.HYPERBOLIC_API_KEY }} \
+              -e GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }} \
               ghcr.io/adriantwill/study-sesh@${{ needs.build-push.outputs.digest }}
             docker image prune -af
