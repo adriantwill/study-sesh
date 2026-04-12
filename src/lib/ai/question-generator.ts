@@ -5,47 +5,53 @@ import type { StudyQuestion } from "@/src/types";
 
 const RETRYABLE_STATUS_CODES = new Set([408, 429, 500, 502, 503, 504]);
 const MAX_API_RETRIES = 3;
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 
-function isRetryableHyperbolicError(message: string) {
+function isRetryableAIError(message: string) {
   return (
     message.includes("AsyncEngineDeadError") ||
     message.includes("Background loop is not running") ||
-    message.includes("50001")
+    message.includes("50001") ||
+    message.includes("RESOURCE_EXHAUSTED") ||
+    message.includes("UNAVAILABLE") ||
+    message.includes("MAX_TOKENS") ||
+    message.includes("Invalid JSON")
   );
 }
 
 function shouldRetryRequest(status: number, errorBody: string) {
-  return (
-    RETRYABLE_STATUS_CODES.has(status) || isRetryableHyperbolicError(errorBody)
-  );
+  return RETRYABLE_STATUS_CODES.has(status) || isRetryableAIError(errorBody);
 }
 
 async function sleep(ms: number) {
   await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function requestQuestionsFromHyperbolic(imageUrl: string) {
+async function requestQuestionsFromGemini(imageBase64: string) {
   let lastError: Error | null = null;
 
   for (let attempt = 1; attempt <= MAX_API_RETRIES; attempt++) {
     try {
+      const questionCountInstruction =
+        attempt === 1
+          ? "Generate exactly 2 questions."
+          : "Generate exactly 1 question. Keep answer and each option under 12 words.";
+
       const apiResponse = await fetch(
-        "https://api.hyperbolic.xyz/v1/chat/completions",
+        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${process.env.GEMINI_API_KEY}`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.HYPERBOLIC_API_KEY}`,
           },
           body: JSON.stringify({
-            model: "mistralai/Pixtral-12B-2409",
-            messages: [
+            contents: [
               {
-                role: "user",
-                content: [
+                parts: [
                   {
-                    type: "text",
-                    text: `Analyze this educational slide and generate 2-3 flashcard-style questions targeting key facts, definitions, and terms a student would need to memorize for an exam.
+                    text: `Analyze this educational slide and generate flashcard-style questions targeting key facts, definitions, and terms a student would need to memorize for an exam.
+                      ${questionCountInstruction}
+                      Use short concise strings only.
                       Focus on:
                       - Definitions and terminology
                       - Key facts, dates, or formulas
@@ -70,21 +76,43 @@ async function requestQuestionsFromHyperbolic(imageUrl: string) {
 
                       Rules:
                       - Only return valid JSON, no additional text
-                      - Do not reiterate the question in the answer in any way`,
+                      - Do not reiterate the question in the answer in any way
+                      - Do not explain your reasoning
+                      - Do not transcribe slide text
+                      - Keep each answer concise`,
                   },
                   {
-                    type: "image_url",
-                    image_url: {
-                      url: imageUrl,
+                    inline_data: {
+                      mime_type: "image/png",
+                      data: imageBase64,
                     },
                   },
                 ],
               },
             ],
-            max_tokens: 512,
-            temperature: 0.1,
-            top_p: 0.001,
-            stream: false,
+            generationConfig: {
+              responseMimeType: "application/json",
+              responseSchema: {
+                type: "ARRAY",
+                items: {
+                  type: "OBJECT",
+                  properties: {
+                    question: { type: "STRING" },
+                    answer: { type: "STRING" },
+                    options: {
+                      type: "ARRAY",
+                      items: { type: "STRING" },
+                      minItems: 3,
+                      maxItems: 3,
+                    },
+                  },
+                  required: ["question", "answer", "options"],
+                },
+              },
+              maxOutputTokens: 4096,
+              temperature: 0,
+              topP: 0.001,
+            },
           }),
         },
       );
@@ -112,7 +140,7 @@ async function requestQuestionsFromHyperbolic(imageUrl: string) {
       if (
         attempt < MAX_API_RETRIES &&
         error instanceof Error &&
-        isRetryableHyperbolicError(error.message)
+        isRetryableAIError(error.message)
       ) {
         await sleep(attempt * 1000);
         lastError = error;
@@ -123,13 +151,42 @@ async function requestQuestionsFromHyperbolic(imageUrl: string) {
     }
   }
 
-  throw lastError ?? new Error("Hyperbolic request failed");
+  throw lastError ?? new Error("Gemini request failed");
+}
+
+function parseGeminiQuestionsResponse(response: any) {
+  const candidate = response.candidates?.[0];
+  const finishReason = candidate?.finishReason;
+  const rawText = candidate?.content?.parts
+    ?.map((part: { text?: string }) => part.text ?? "")
+    .join("") ?? "";
+
+  if (finishReason === "MAX_TOKENS") {
+    throw new Error("Invalid JSON: Gemini hit MAX_TOKENS");
+  }
+
+  const cleanedText = rawText
+    .replace(/^```json\s*/i, "")
+    .replace(/^```\s*/i, "")
+    .replace(/\s*```$/, "")
+    .trim();
+
+  try {
+    return JSON.parse(cleanedText) as Array<{
+      question: string;
+      answer: string;
+      options: string[];
+    }>;
+  } catch {
+    console.error("Gemini raw response:", cleanedText);
+    throw new Error("Invalid JSON: Gemini returned malformed structured output");
+  }
 }
 
 //TODO optimize the pdf cario thing
 export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
-  if (!process.env.HYPERBOLIC_API_KEY) {
-    throw new Error("HYPERBOLIC_API_KEY not configured");
+  if (!process.env.GEMINI_API_KEY) {
+    throw new Error("GEMINI_API_KEY not configured");
   }
 
   // Generate a unique temporary file path
@@ -157,7 +214,7 @@ export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
     const options = {
       firstPageToConvert: 3,
       pngFile: true,
-      scalePageTo: 1024,
+      scalePageTo: 768,
     };
 
     await poppler.pdfToCairo(pdfPath, outputPrefix, options);
@@ -184,32 +241,29 @@ export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
             const imageBuffer = await fs.readFile(imagePath);
 
             const base64Img = imageBuffer.toString("base64");
-            const imageUrl = `data:image/png;base64,${base64Img}`;
-
             // Clean up image immediately after reading
             await fs.unlink(imagePath).catch(() => { });
 
-            const response = await requestQuestionsFromHyperbolic(imageUrl);
-            console.log(`Hyperbolic API response received`);
+            const response = await requestQuestionsFromGemini(base64Img);
+            console.log(`Gemini API response received`);
 
-            const content = response.choices[0]?.message?.content || "";
-            const jsonMatch = content.match(/\[[\s\S]*\]/);
+            const candidate = response.candidates?.[0];
 
-            if (jsonMatch) {
-              const pageQuestions = JSON.parse(jsonMatch[0]) as Array<{
-                question: string;
-                answer: string;
-                options: string[];
-              }>;
-
-              return pageQuestions.map((q) => ({
-                id: "id", // Placeholder
-                question: q.question,
-                answer: q.answer,
-                options: q.options,
-              }));
+            if (!candidate) {
+              return [];
             }
-            return [];
+
+            const pageQuestions = parseGeminiQuestionsResponse(response);
+
+            return pageQuestions.map((q) => ({
+              id: "id", // Placeholder
+              question: q.question,
+              answer: q.answer,
+              options: q.options,
+              pageNumber,
+              ocrText: null,
+              originalQuestion: q.question,
+            }));
           } catch (err) {
             console.error(`Error processing slide`, err);
             failedSlides.push(

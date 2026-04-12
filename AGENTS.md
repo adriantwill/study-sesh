@@ -1,6 +1,6 @@
 # Study Sesh
 
-AI-powered PDF-to-flashcard study tool. Uploads PowerPoint PDFs, extracts slides via poppler, generates study questions via Hyperbolic AI.
+AI-powered PDF-to-flashcard study tool. Uploads PowerPoint PDFs, extracts slides via poppler, generates study questions via Gemini.
 
 ## Stack
 
@@ -8,7 +8,7 @@ AI-powered PDF-to-flashcard study tool. Uploads PowerPoint PDFs, extracts slides
 - Tailwind CSS 4
 - Supabase (DB + storage)
 - node-poppler (PDF→images)
-- Hyperbolic API (Qwen2.5-VL-7B vision model)
+- Gemini API
 
 ## Commands
 
@@ -34,7 +34,7 @@ npm run start    # prod server
 
 ## Env Vars
 
-- `HYPERBOLIC_API_KEY` - AI API key
+- `GEMINI_API_KEY` - AI API key
 - `NEXT_PUBLIC_SUPABASE_URL` - Supabase URL
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase key
 - `MOCK_AI=true` - skip real AI, use dummy data

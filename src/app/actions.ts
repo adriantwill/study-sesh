@@ -62,15 +62,20 @@ export async function uploadRecordAction(name: string, questions: StudyQuestion[
 
   // Insert questions
   if (questions.length > 0) {
-    const { error: questionsError } = await supabase.from("questions").insert(
-      questions.map((q, idx) => ({
-        upload_id: upload.id,
-        question_text: q.question,
-        answer_text: q.answer,
-        display_order: (idx + 1) * DISPLAY_ORDER_STEP,
-        options: q.options ?? [],
-      })),
-    );
+    const questionRows = questions.map((q, idx) => ({
+      upload_id: upload.id,
+      question_text: q.question,
+      original_question_text: q.originalQuestion ?? q.question,
+      answer_text: q.answer,
+      page_number: q.pageNumber ?? null,
+      ocr_text: q.ocrText ?? null,
+      display_order: (idx + 1) * DISPLAY_ORDER_STEP,
+      options: q.options ?? [],
+    }));
+
+    const { error: questionsError } = await supabase
+      .from("questions")
+      .insert(questionRows as never);
 
     if (questionsError) {
       console.error("Error inserting questions:", questionsError);
@@ -259,9 +264,12 @@ export async function addQuestionAction(
     .insert({
       upload_id: uploadId,
       question_text: question,
+      original_question_text: question,
       answer_text: answer,
+      page_number: null,
+      ocr_text: null,
       display_order: nextDisplayOrder,
-    })
+    } as never)
     .select("*")
     .single();
 
@@ -298,6 +306,10 @@ export async function addQuestionAction(
     imageUrl: insertedQuestion.image_url,
     displayOrder: insertedQuestion.display_order,
     options: insertedQuestion.options,
+    pageNumber: "page_number" in insertedQuestion ? insertedQuestion.page_number : null,
+    ocrText: "ocr_text" in insertedQuestion ? insertedQuestion.ocr_text : null,
+    originalQuestion:
+      insertedQuestion.original_question_text ?? insertedQuestion.question_text,
   };
 }
 
