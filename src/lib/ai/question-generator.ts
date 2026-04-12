@@ -13,7 +13,9 @@ function isRetryableAIError(message: string) {
     message.includes("Background loop is not running") ||
     message.includes("50001") ||
     message.includes("RESOURCE_EXHAUSTED") ||
-    message.includes("UNAVAILABLE")
+    message.includes("UNAVAILABLE") ||
+    message.includes("MAX_TOKENS") ||
+    message.includes("Invalid JSON")
   );
 }
 
@@ -97,7 +99,7 @@ async function requestQuestionsFromGemini(imageBase64: string) {
                   required: ["question", "answer", "options"],
                 },
               },
-              maxOutputTokens: 512,
+              maxOutputTokens: 2048,
               temperature: 0.1,
               topP: 0.001,
             },
@@ -140,6 +142,35 @@ async function requestQuestionsFromGemini(imageBase64: string) {
   }
 
   throw lastError ?? new Error("Gemini request failed");
+}
+
+function parseGeminiQuestionsResponse(response: any) {
+  const candidate = response.candidates?.[0];
+  const finishReason = candidate?.finishReason;
+  const rawText = candidate?.content?.parts
+    ?.map((part: { text?: string }) => part.text ?? "")
+    .join("") ?? "";
+
+  if (finishReason === "MAX_TOKENS") {
+    throw new Error("Invalid JSON: Gemini hit MAX_TOKENS");
+  }
+
+  const cleanedText = rawText
+    .replace(/^```json\s*/i, "")
+    .replace(/^```\s*/i, "")
+    .replace(/\s*```$/, "")
+    .trim();
+
+  try {
+    return JSON.parse(cleanedText) as Array<{
+      question: string;
+      answer: string;
+      options: string[];
+    }>;
+  } catch {
+    console.error("Gemini raw response:", cleanedText);
+    throw new Error("Invalid JSON: Gemini returned malformed structured output");
+  }
 }
 
 //TODO optimize the pdf cario thing
@@ -206,17 +237,13 @@ export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
             const response = await requestQuestionsFromGemini(base64Img);
             console.log(`Gemini API response received`);
 
-            const content = response.candidates?.[0]?.content?.parts?.[0]?.text;
+            const candidate = response.candidates?.[0];
 
-            if (!content) {
+            if (!candidate) {
               return [];
             }
 
-            const pageQuestions = JSON.parse(content) as Array<{
-              question: string;
-              answer: string;
-              options: string[];
-            }>;
+            const pageQuestions = parseGeminiQuestionsResponse(response);
 
             return pageQuestions.map((q) => ({
               id: "id", // Placeholder
