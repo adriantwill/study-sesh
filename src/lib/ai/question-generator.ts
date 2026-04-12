@@ -32,6 +32,11 @@ async function requestQuestionsFromGemini(imageBase64: string) {
 
   for (let attempt = 1; attempt <= MAX_API_RETRIES; attempt++) {
     try {
+      const questionCountInstruction =
+        attempt === 1
+          ? "Generate exactly 2 questions."
+          : "Generate exactly 1 question. Keep answer and each option under 12 words.";
+
       const apiResponse = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${process.env.GEMINI_API_KEY}`,
         {
@@ -44,7 +49,9 @@ async function requestQuestionsFromGemini(imageBase64: string) {
               {
                 parts: [
                   {
-                    text: `Analyze this educational slide and generate 2-3 flashcard-style questions targeting key facts, definitions, and terms a student would need to memorize for an exam.
+                    text: `Analyze this educational slide and generate flashcard-style questions targeting key facts, definitions, and terms a student would need to memorize for an exam.
+                      ${questionCountInstruction}
+                      Use short concise strings only.
                       Focus on:
                       - Definitions and terminology
                       - Key facts, dates, or formulas
@@ -69,7 +76,10 @@ async function requestQuestionsFromGemini(imageBase64: string) {
 
                       Rules:
                       - Only return valid JSON, no additional text
-                      - Do not reiterate the question in the answer in any way`,
+                      - Do not reiterate the question in the answer in any way
+                      - Do not explain your reasoning
+                      - Do not transcribe slide text
+                      - Keep each answer concise`,
                   },
                   {
                     inline_data: {
@@ -99,8 +109,8 @@ async function requestQuestionsFromGemini(imageBase64: string) {
                   required: ["question", "answer", "options"],
                 },
               },
-              maxOutputTokens: 2048,
-              temperature: 0.1,
+              maxOutputTokens: 4096,
+              temperature: 0,
               topP: 0.001,
             },
           }),
@@ -204,7 +214,7 @@ export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
     const options = {
       firstPageToConvert: 3,
       pngFile: true,
-      scalePageTo: 1024,
+      scalePageTo: 768,
     };
 
     await poppler.pdfToCairo(pdfPath, outputPrefix, options);
