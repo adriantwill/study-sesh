@@ -100,6 +100,7 @@ export type Database = {
           filename: string
           folder_id: string | null
           id: string
+          storage_path: string | null
           user_id: string | null
         }
         Insert: {
@@ -108,6 +109,7 @@ export type Database = {
           filename: string
           folder_id?: string | null
           id?: string
+          storage_path?: string | null
           user_id?: string | null
         }
         Update: {
@@ -116,6 +118,7 @@ export type Database = {
           filename?: string
           folder_id?: string | null
           id?: string
+          storage_path?: string | null
           user_id?: string | null
         }
         Relationships: [

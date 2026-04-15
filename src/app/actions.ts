@@ -2,7 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { generateQuestions } from "../lib/ai/question-generator";
-import { getPublicUrl, uploadFile } from "../lib/storage";
+import {
+  getQuestionImagePublicUrl,
+  removePdf,
+  uploadPdf,
+  uploadQuestionImage,
+} from "../lib/storage";
 import { createClient } from "../lib/supabase/server";
 import type { StudyQuestion } from "../types";
 
@@ -40,23 +45,46 @@ export async function uploadAndGenerateAction(formData: FormData) {
     throw new Error("No file provided");
   }
   const questions = await generateQuestions(file);
-  const upload = await uploadRecordAction(file.name, questions);
+  const upload = await uploadRecordAction(file, questions);
   revalidatePath("/");
   return { uploadId: upload.id };
 }
 
-export async function uploadRecordAction(name: string, questions: StudyQuestion[]) {
+export async function uploadRecordAction(
+  source: File | string,
+  questions: StudyQuestion[],
+) {
   const supabase = await createClient();
+  const isFileUpload = source instanceof File;
+  const filename = isFileUpload ? source.name : source;
+  let storagePath: string | null = null;
+
+  if (isFileUpload) {
+    const safeName = source.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+    storagePath = `${crypto.randomUUID()}-${safeName}`;
+
+    const { error: storageError } = await uploadPdf(storagePath, source);
+
+    if (storageError) {
+      console.error("Error uploading PDF:", storageError);
+      throw new Error("Failed to save PDF to storage");
+    }
+  }
+
   const { data: upload, error: uploadError } = await supabase
     .from("uploads")
     .insert({
-      filename: name,
+      filename,
+      storage_path: storagePath,
     })
     .select()
     .single();
 
   if (uploadError || !upload) {
     console.error("Error inserting upload:", uploadError);
+    if (storagePath) {
+      await removePdf(storagePath);
+    }
     throw new Error("Failed to save upload to database");
   }
 
@@ -79,6 +107,10 @@ export async function uploadRecordAction(name: string, questions: StudyQuestion[
 
     if (questionsError) {
       console.error("Error inserting questions:", questionsError);
+      await supabase.from("uploads").delete().eq("id", upload.id);
+      if (storagePath) {
+        await removePdf(storagePath);
+      }
       throw new Error("Failed to save questions to database");
     }
 
@@ -116,6 +148,12 @@ export async function deleteItemAction(
       if (error) throw error;
       revalidatePath("/");
     } else {
+      const { data: upload } = await supabase
+        .from("uploads")
+        .select("storage_path")
+        .eq("id", id)
+        .single();
+
       const { error: deleteQuestionsError } = await supabase
         .from("questions")
         .delete()
@@ -125,6 +163,11 @@ export async function deleteItemAction(
 
       const { error } = await supabase.from("uploads").delete().eq("id", id);
       if (error) throw error;
+
+      if (upload?.storage_path) {
+        await removePdf(upload.storage_path);
+      }
+
       revalidatePath("/");
     }
   } catch (error) {
@@ -197,14 +240,14 @@ export async function uploadImageAction(
   const fileName = `${questionId}_${Date.now()}.${fileExt}`;
   const filePath = `question-images/${fileName}`;
 
-  const { error: uploadError } = await uploadFile(filePath, file);
+  const { error: uploadError } = await uploadQuestionImage(filePath, file);
 
   if (uploadError) {
     console.error("Storage upload error:", uploadError);
     throw new Error("Failed to upload image");
   }
 
-  const publicUrl = await getPublicUrl(filePath);
+  const publicUrl = await getQuestionImagePublicUrl(filePath);
 
   const { error: dbError } = await supabase
     .from("questions")
