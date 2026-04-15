@@ -3,55 +3,21 @@ import path from "node:path";
 import { Poppler } from "node-poppler";
 import type { StudyQuestion } from "@/src/types";
 
-const RETRYABLE_STATUS_CODES = new Set([408, 429, 500, 502, 503, 504]);
-const MAX_API_RETRIES = 3;
 const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
-
-function isRetryableAIError(message: string) {
-  return (
-    message.includes("AsyncEngineDeadError") ||
-    message.includes("Background loop is not running") ||
-    message.includes("50001") ||
-    message.includes("RESOURCE_EXHAUSTED") ||
-    message.includes("UNAVAILABLE") ||
-    message.includes("MAX_TOKENS") ||
-    message.includes("Invalid JSON")
-  );
-}
-
-function shouldRetryRequest(status: number, errorBody: string) {
-  return RETRYABLE_STATUS_CODES.has(status) || isRetryableAIError(errorBody);
-}
-
-async function sleep(ms: number) {
-  await new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 async function requestQuestionsFromGemini(imageBase64: string) {
-  let lastError: Error | null = null;
-
-  for (let attempt = 1; attempt <= MAX_API_RETRIES; attempt++) {
-    try {
-      const questionCountInstruction =
-        attempt === 1
-          ? "Generate exactly 2 questions."
-          : "Generate exactly 1 question. Keep answer and each option under 12 words.";
-
-      const apiResponse = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${process.env.GEMINI_API_KEY}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            contents: [
+  const apiResponse = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${process.env.GEMINI_API_KEY}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
               {
-                parts: [
-                  {
-                    text: `Analyze this educational slide and generate flashcard-style questions targeting key facts, definitions, and terms a student would need to memorize for an exam.
-                      ${questionCountInstruction}
-                      Use short concise strings only.
+                text: `Analyze this educational slide and generate 2-3 flashcard-style questions targeting key facts, definitions, and terms a student would need to memorize for an exam.
                       Focus on:
                       - Definitions and terminology
                       - Key facts, dates, or formulas
@@ -76,111 +42,34 @@ async function requestQuestionsFromGemini(imageBase64: string) {
 
                       Rules:
                       - Only return valid JSON, no additional text
-                      - Do not reiterate the question in the answer in any way
-                      - Do not explain your reasoning
-                      - Do not transcribe slide text
-                      - Keep each answer concise`,
-                  },
-                  {
-                    inline_data: {
-                      mime_type: "image/png",
-                      data: imageBase64,
-                    },
-                  },
-                ],
+                      - Do not reiterate the question in the answer in any way`,
               },
-            ],
-            generationConfig: {
-              responseMimeType: "application/json",
-              responseSchema: {
-                type: "ARRAY",
-                items: {
-                  type: "OBJECT",
-                  properties: {
-                    question: { type: "STRING" },
-                    answer: { type: "STRING" },
-                    options: {
-                      type: "ARRAY",
-                      items: { type: "STRING" },
-                      minItems: 3,
-                      maxItems: 3,
-                    },
-                  },
-                  required: ["question", "answer", "options"],
+              {
+                inline_data: {
+                  mime_type: "image/png",
+                  data: imageBase64,
                 },
               },
-              maxOutputTokens: 4096,
-              temperature: 0,
-              topP: 0.001,
-            },
-          }),
+            ],
+          },
+        ],
+        generationConfig: {
+          maxOutputTokens: 512,
+          temperature: 0.1,
+          topP: 0.001,
         },
-      );
+      }),
+    },
+  );
 
-      if (!apiResponse.ok) {
-        const errorBody = await apiResponse.text().catch(() => "");
-        const error = new Error(
-          `API error: ${apiResponse.status} ${apiResponse.statusText}${errorBody ? ` - ${errorBody}` : ""}`,
-        );
-
-        if (
-          attempt < MAX_API_RETRIES &&
-          shouldRetryRequest(apiResponse.status, errorBody)
-        ) {
-          await sleep(attempt * 1000);
-          lastError = error;
-          continue;
-        }
-
-        throw error;
-      }
-
-      return apiResponse.json();
-    } catch (error) {
-      if (
-        attempt < MAX_API_RETRIES &&
-        error instanceof Error &&
-        isRetryableAIError(error.message)
-      ) {
-        await sleep(attempt * 1000);
-        lastError = error;
-        continue;
-      }
-
-      throw error;
-    }
+  if (!apiResponse.ok) {
+    const errorBody = await apiResponse.text().catch(() => "");
+    throw new Error(
+      `API error: ${apiResponse.status} ${apiResponse.statusText}${errorBody ? ` - ${errorBody}` : ""}`,
+    );
   }
 
-  throw lastError ?? new Error("Gemini request failed");
-}
-
-function parseGeminiQuestionsResponse(response: any) {
-  const candidate = response.candidates?.[0];
-  const finishReason = candidate?.finishReason;
-  const rawText = candidate?.content?.parts
-    ?.map((part: { text?: string }) => part.text ?? "")
-    .join("") ?? "";
-
-  if (finishReason === "MAX_TOKENS") {
-    throw new Error("Invalid JSON: Gemini hit MAX_TOKENS");
-  }
-
-  const cleanedText = rawText
-    .replace(/^```json\s*/i, "")
-    .replace(/^```\s*/i, "")
-    .replace(/\s*```$/, "")
-    .trim();
-
-  try {
-    return JSON.parse(cleanedText) as Array<{
-      question: string;
-      answer: string;
-      options: string[];
-    }>;
-  } catch {
-    console.error("Gemini raw response:", cleanedText);
-    throw new Error("Invalid JSON: Gemini returned malformed structured output");
-  }
+  return apiResponse.json();
 }
 
 //TODO optimize the pdf cario thing
@@ -214,7 +103,7 @@ export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
     const options = {
       firstPageToConvert: 3,
       pngFile: true,
-      scalePageTo: 768,
+      scalePageTo: 1024,
     };
 
     await poppler.pdfToCairo(pdfPath, outputPrefix, options);
@@ -247,23 +136,28 @@ export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
             const response = await requestQuestionsFromGemini(base64Img);
             console.log(`Gemini API response received`);
 
-            const candidate = response.candidates?.[0];
+            const content = response.candidates?.[0]?.content?.parts?.[0]?.text || "";
+            const jsonMatch = content.match(/\[[\s\S]*\]/);
 
-            if (!candidate) {
-              return [];
+            if (jsonMatch) {
+              const pageQuestions = JSON.parse(jsonMatch[0]) as Array<{
+                question: string;
+                answer: string;
+                options: string[];
+              }>;
+
+              return pageQuestions.map((q) => ({
+                id: "id", // Placeholder
+                question: q.question,
+                answer: q.answer,
+                options: q.options,
+                pageNumber,
+                ocrText: null,
+                originalQuestion: q.question,
+              }));
             }
 
-            const pageQuestions = parseGeminiQuestionsResponse(response);
-
-            return pageQuestions.map((q) => ({
-              id: "id", // Placeholder
-              question: q.question,
-              answer: q.answer,
-              options: q.options,
-              pageNumber,
-              ocrText: null,
-              originalQuestion: q.question,
-            }));
+            return [];
           } catch (err) {
             console.error(`Error processing slide`, err);
             failedSlides.push(
