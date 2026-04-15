@@ -17,12 +17,6 @@ interface TestProps {
   reviewId: string;
 }
 
-function arrayMove<T>(arr: T[], from: number, to: number): T[] {
-  const next = [...arr];
-  const [item] = next.splice(from, 1);
-  next.splice(to, 0, item);
-  return next;
-}
 
 function ResizableImage({ src }: { src: string }) {
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -70,37 +64,15 @@ function ResizableImage({ src }: { src: string }) {
 export default function Test({ questions: initialQuestions, reviewId }: TestProps) {
   const [questions, setQuestions] = useState(initialQuestions);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [didReorder, setDidReorder] = useState(false);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
   const [editingFields, setEditingFields] = useState<Set<string>>(new Set());
+  const dragStartQuestionsRef = useRef<StudyQuestion[] | null>(null);
   const isAnyEditing = editingFields.size > 0;
 
   useEffect(() => {
     setQuestions(initialQuestions);
   }, [initialQuestions]);
 
-  function handleDragOver(e: React.DragEvent<HTMLLIElement>, overId: string) {
-    e.preventDefault();
-    if (!activeId || activeId === overId) return;
-
-    const from = questions.findIndex((q) => q.id === activeId);
-    const to = questions.findIndex((q) => q.id === overId);
-    if (from === -1 || to === -1 || from === to) return;
-
-    setQuestions(arrayMove(questions, from, to));
-    setDidReorder(true);
-  }
-
-  async function handleDrop() {
-    if (!didReorder) return;
-
-    try {
-      await reorderQuestionsAction(questions.map((q) => q.id));
-    } catch (error) {
-      console.error("Failed to persist question order", error);
-    } finally {
-      setDidReorder(false);
-    }
-  }
 
   function handleEditingChange(fieldKey: string, isEditing: boolean) {
     setEditingFields((prev) => {
@@ -157,6 +129,60 @@ export default function Test({ questions: initialQuestions, reviewId }: TestProp
     );
   }
 
+  function handleDragStart(questionId: string) {
+    if (isAnyEditing) return;
+    dragStartQuestionsRef.current = questions;
+    setActiveId(questionId);
+  }
+
+  function handleDragEnd() {
+    setActiveId(null);
+    setDragOverId(null);
+    dragStartQuestionsRef.current = null;
+  }
+
+  function handleDragOver(e: React.DragEvent, questionId: string) {
+    e.preventDefault();
+    if (!activeId || activeId === questionId) return;
+    setDragOverId(questionId);
+    setQuestions((currentQuestions) => {
+      const fromIndex = currentQuestions.findIndex((q) => q.id === activeId);
+      const toIndex = currentQuestions.findIndex((q) => q.id === questionId);
+
+      if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) {
+        return currentQuestions;
+      }
+
+
+      const nextQuestions = [...currentQuestions];
+      const [movedQuestion] = nextQuestions.splice(fromIndex, 1);
+
+      if (!movedQuestion) return currentQuestions;
+
+      nextQuestions.splice(toIndex, 0, movedQuestion);
+      return nextQuestions;
+    });
+  }
+
+  async function handleDrop(questionId: string) {
+    if (!activeId) {
+      handleDragEnd();
+      return;
+    }
+
+    const previousQuestions = dragStartQuestionsRef.current ?? questions;
+    handleDragEnd();
+    const currentIndex = questions.findIndex((q) => q.id === activeId);
+    const prev = questions[currentIndex - 1];
+    const next = questions[currentIndex + 1];
+    try {
+      await reorderQuestionsAction(prev.displayOrder, next.displayOrder);
+    } catch (error) {
+      console.error("Failed to reorder questions", error);
+      setQuestions(previousQuestions);
+    }
+  }
+
   async function handleQuestionDelete(questionId: string) {
     const previousQuestions = questions;
     setQuestions((currentQuestions) =>
@@ -178,17 +204,14 @@ export default function Test({ questions: initialQuestions, reviewId }: TestProp
           <React.Fragment key={q.id}>
             <li
               draggable={!isAnyEditing}
-              onDragStart={() => {
-                if (isAnyEditing) return;
-                setActiveId(q.id);
-                setDidReorder(false);
-              }}
-              onDragEnd={() => setActiveId(null)}
+              onDragStart={() => handleDragStart(q.id)}
+              onDragEnd={handleDragEnd}
               onDragOver={(e) => handleDragOver(e, q.id)}
-              onDrop={handleDrop}
+              onDrop={() => void handleDrop(q.id)}
               className={`transition-[opacity,transform,box-shadow] duration-150 ${activeId === q.id
                 ? "cursor-grabbing opacity-0"
                 : ""
+                } ${dragOverId === q.id ? "scale-[1.01] shadow-lg" : ""
                 } ${isAnyEditing ? "cursor-default" : "cursor-grab"
                 }`}
             >

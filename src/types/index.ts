@@ -4,7 +4,7 @@ export interface StudyQuestion {
   answer: string;
   options?: string[];
   imageUrl?: string | null;
-  displayOrder?: number | null;
+  displayOrder: number;
   pageNumber?: number | null;
   ocrText?: string | null;
   originalQuestion?: string | null;

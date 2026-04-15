@@ -447,15 +447,15 @@ export async function updateFolderParentAction(
   revalidatePath("/");
 }
 
-export async function reorderQuestionsAction(orderedIds: string[]) {
+export async function reorderQuestionsAction(prevDisplayOrder: number, nextDisplayOrder: number) {
   const supabase = await createClient();
+  await supabase
+    .from("questions")
+    .update({ display_order: (i + 1) * DISPLAY_ORDER_STEP })
+    .eq("id", orderedIds[i]);
+}
 
-  for (let i = 0; i < orderedIds.length; i++) {
-    await supabase
-      .from("questions")
-      .update({ display_order: (i + 1) * DISPLAY_ORDER_STEP })
-      .eq("id", orderedIds[i]);
-  }
+for (let i = 0; i < orderedIds.length; i++) {
 
   revalidatePath("/[reviewId]", "page");
 }
