@@ -148,8 +148,10 @@ export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
 
               return pageQuestions.map((q) => ({
                 id: "id", // Placeholder
+                upload_id: "",
                 question: q.question,
                 answer: q.answer,
+                displayOrder: 0,
                 options: q.options,
                 pageNumber,
                 ocrText: null,

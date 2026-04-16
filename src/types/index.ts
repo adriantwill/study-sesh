@@ -1,5 +1,6 @@
 export interface StudyQuestion {
   id: string;
+  upload_id: string;
   question: string;
   answer: string;
   options?: string[];

@@ -172,11 +172,8 @@ export default function Test({ questions: initialQuestions, reviewId }: TestProp
 
     const previousQuestions = dragStartQuestionsRef.current ?? questions;
     handleDragEnd();
-    const currentIndex = questions.findIndex((q) => q.id === activeId);
-    const prev = questions[currentIndex - 1];
-    const next = questions[currentIndex + 1];
     try {
-      await reorderQuestionsAction(prev.displayOrder, next.displayOrder);
+      await reorderQuestionsAction(activeId, questions);
     } catch (error) {
       console.error("Failed to reorder questions", error);
       setQuestions(previousQuestions);

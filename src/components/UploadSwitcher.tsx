@@ -68,12 +68,22 @@ export default function UploadSwitcher() {
 
         return {
           id: crypto.randomUUID(),
+          upload_id: "",
           question: line.slice(0, colonIndex).trim(),
           answer: line.slice(colonIndex + 1).trim(),
+          displayOrder: 0,
         };
       })
       .filter(
-        (pair): pair is { id: string; question: string; answer: string } =>
+        (
+          pair,
+        ): pair is {
+          id: string;
+          upload_id: string;
+          question: string;
+          answer: string;
+          displayOrder: number;
+        } =>
           pair !== null,
       );
     try {

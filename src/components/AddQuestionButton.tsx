@@ -27,6 +27,7 @@ export default function AddQuestionButton({
       const tempId = `temp-question-${crypto.randomUUID()}`;
       onQuestionAdded?.({
         id: tempId,
+        upload_id: uploadId,
         question: "Untitled question",
         answer: "untitled answer",
         displayOrder:

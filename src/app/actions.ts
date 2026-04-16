@@ -344,6 +344,7 @@ export async function addQuestionAction(
 
   return {
     id: insertedQuestion.id,
+    upload_id: insertedQuestion.upload_id ?? uploadId,
     question: insertedQuestion.question_text,
     answer: insertedQuestion.answer_text,
     imageUrl: insertedQuestion.image_url,
@@ -447,17 +448,69 @@ export async function updateFolderParentAction(
   revalidatePath("/");
 }
 
-export async function reorderQuestionsAction(prevDisplayOrder: number, nextDisplayOrder: number) {
+export async function reorderQuestionsAction(activeId: string, questions: StudyQuestion[]) {
+  if (questions.length === 0) return;
+
   const supabase = await createClient();
-  await supabase
+  const activeIndex = questions.findIndex((question) => question.id === activeId);
+
+  if (activeIndex === -1) {
+    throw new Error("Question not found");
+  }
+
+  const activeQuestion = questions[activeIndex];
+  const prevQuestion = activeIndex > 0 ? questions[activeIndex - 1] : null;
+  const nextQuestion = activeIndex < questions.length - 1 ? questions[activeIndex + 1] : null;
+
+  const getDisplayOrder = (prevOrder?: number | null, nextOrder?: number | null) => {
+    if (prevOrder == null) return Math.floor((nextOrder ?? DISPLAY_ORDER_STEP) / 2);
+    if (nextOrder == null) return prevOrder + DISPLAY_ORDER_STEP;
+    return Math.floor((prevOrder + nextOrder) / 2);
+  };
+
+  let nextDisplayOrder = getDisplayOrder(
+    prevQuestion?.displayOrder,
+    nextQuestion?.displayOrder,
+  );
+
+  if (
+    prevQuestion &&
+    nextQuestion &&
+    nextDisplayOrder === prevQuestion.displayOrder + 1
+  ) {
+    await normalizeQuestionDisplayOrder(activeQuestion.upload_id);
+
+    const { data: normalizedNeighbors, error: normalizedNeighborsError } = await supabase
+      .from("questions")
+      .select("id, display_order")
+      .in("id", [prevQuestion.id, nextQuestion.id]);
+
+    if (normalizedNeighborsError) {
+      console.error("Reorder normalized neighbor fetch error:", normalizedNeighborsError);
+      throw new Error("Failed to load normalized question positions");
+    }
+
+    nextDisplayOrder = getDisplayOrder(
+      normalizedNeighbors?.find((question) => question.id === prevQuestion.id)?.display_order,
+      normalizedNeighbors?.find((question) => question.id === nextQuestion.id)?.display_order,
+    );
+
+    if (nextDisplayOrder <= 0) {
+      throw new Error("Failed to load normalized question positions");
+    }
+  }
+
+  const { error } = await supabase
     .from("questions")
-    .update({ display_order: (i + 1) * DISPLAY_ORDER_STEP })
-    .eq("id", orderedIds[i]);
-}
+    .update({ display_order: nextDisplayOrder })
+    .eq("id", activeId);
 
-for (let i = 0; i < orderedIds.length; i++) {
+  if (error) {
+    console.error("Reorder question error:", error);
+    throw new Error("Failed to reorder questions");
+  }
 
-  revalidatePath("/[reviewId]", "page");
+  revalidatePath(`/${activeQuestion.upload_id}`);
 }
 
 export async function updateFolderNameAction(folderId: string, name: string) {

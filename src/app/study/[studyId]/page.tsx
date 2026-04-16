@@ -17,7 +17,7 @@ export default async function StudyPage({
   ] = await Promise.all([
     supabase
       .from("questions")
-      .select("id, question_text, answer_text, image_url")
+      .select("id, upload_id, question_text, answer_text, image_url, display_order")
       .eq("upload_id", studyId)
       .order("display_order", { ascending: true }),
     supabase.from("uploads").select("filename").eq("id", studyId).single(),
@@ -39,9 +39,11 @@ export default async function StudyPage({
 
   const questions = data.map((q) => ({
     id: q.id,
+    upload_id: q.upload_id ?? studyId,
     question: q.question_text,
     answer: q.answer_text,
     imageUrl: q.image_url,
+    displayOrder: q.display_order,
   }));
 
   const title = upload.filename;
