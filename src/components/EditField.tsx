@@ -12,7 +12,6 @@ interface EditFieldProps {
   textField: string;
   id: string;
   onEditingChange?: (isEditing: boolean) => void;
-  onSave?: (text: string) => void;
 }
 
 export default function EditField({
@@ -20,7 +19,6 @@ export default function EditField({
   textField,
   id,
   onEditingChange,
-  onSave,
 }: EditFieldProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [text, setText] = useState(textField);
@@ -58,8 +56,6 @@ export default function EditField({
     onEditingChange?.(false);
 
     if (nextText !== textField) {
-      onSave?.(nextText);
-
       try {
         if (variant === "folder_name") {
           await updateFolderNameAction(id, nextText);
@@ -69,7 +65,6 @@ export default function EditField({
       } catch (error) {
         console.error("Failed to save text:", error);
         setText(textField);
-        onSave?.(textField);
       }
     }
   }

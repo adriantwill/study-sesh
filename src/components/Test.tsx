@@ -62,17 +62,15 @@ function ResizableImage({ src }: { src: string }) {
 }
 
 export default function Test({ questions: initialQuestions, reviewId }: TestProps) {
-  const [questions, setQuestions] = useState(initialQuestions);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
   const [editingFields, setEditingFields] = useState<Set<string>>(new Set());
-  const dragStartQuestionsRef = useRef<StudyQuestion[] | null>(null);
+  const [previewQuestions, setPreviewQuestions] = useState(initialQuestions);
   const isAnyEditing = editingFields.size > 0;
 
   useEffect(() => {
-    setQuestions(initialQuestions);
+    setPreviewQuestions(initialQuestions);
   }, [initialQuestions]);
-
 
   function handleEditingChange(fieldKey: string, isEditing: boolean) {
     setEditingFields((prev) => {
@@ -92,60 +90,22 @@ export default function Test({ questions: initialQuestions, reviewId }: TestProp
     });
   }
 
-  function handleQuestionAdded(question: StudyQuestion) {
-    setQuestions((currentQuestions) => {
-      const nextQuestions = [...currentQuestions, question];
-      nextQuestions.sort(
-        (a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0),
-      );
-      return nextQuestions;
-    });
-  }
-
-  function handleQuestionSaved(tempId: string, question: StudyQuestion) {
-    setQuestions((currentQuestions) =>
-      currentQuestions
-        .map((currentQuestion) =>
-          currentQuestion.id === tempId ? question : currentQuestion,
-        )
-        .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0)),
-    );
-  }
-
-  function handleQuestionAddFailed(tempId: string) {
-    setQuestions((currentQuestions) =>
-      currentQuestions.filter((question) => question.id !== tempId),
-    );
-  }
-
-  function updateQuestion(
-    questionId: string,
-    updater: (question: StudyQuestion) => StudyQuestion,
-  ) {
-    setQuestions((currentQuestions) =>
-      currentQuestions.map((question) =>
-        question.id === questionId ? updater(question) : question,
-      ),
-    );
-  }
-
   function handleDragStart(questionId: string) {
     if (isAnyEditing) return;
-    dragStartQuestionsRef.current = questions;
     setActiveId(questionId);
   }
 
   function handleDragEnd() {
     setActiveId(null);
     setDragOverId(null);
-    dragStartQuestionsRef.current = null;
+    setPreviewQuestions(initialQuestions);
   }
 
   function handleDragOver(e: React.DragEvent, questionId: string) {
     e.preventDefault();
     if (!activeId || activeId === questionId) return;
     setDragOverId(questionId);
-    setQuestions((currentQuestions) => {
+    setPreviewQuestions((currentQuestions) => {
       const fromIndex = currentQuestions.findIndex((q) => q.id === activeId);
       const toIndex = currentQuestions.findIndex((q) => q.id === questionId);
 
@@ -170,34 +130,27 @@ export default function Test({ questions: initialQuestions, reviewId }: TestProp
       return;
     }
 
-    const previousQuestions = dragStartQuestionsRef.current ?? questions;
+    const reorderedQuestions = previewQuestions;
     handleDragEnd();
     try {
-      await reorderQuestionsAction(activeId, questions);
+      await reorderQuestionsAction(activeId, reorderedQuestions);
     } catch (error) {
       console.error("Failed to reorder questions", error);
-      setQuestions(previousQuestions);
     }
   }
 
   async function handleQuestionDelete(questionId: string) {
-    const previousQuestions = questions;
-    setQuestions((currentQuestions) =>
-      currentQuestions.filter((question) => question.id !== questionId),
-    );
-
     try {
       await deleteItemAction(questionId, "question");
     } catch (error) {
       console.error("Failed to delete question", error);
-      setQuestions(previousQuestions);
     }
   }
 
   return (
     <div className="space-y-4">
       <ul className="space-y-4">
-        {questions.map((q, idx) => (
+        {previewQuestions.map((q, idx) => (
           <React.Fragment key={q.id}>
             <li
               draggable={!isAnyEditing}
@@ -222,25 +175,11 @@ export default function Test({ questions: initialQuestions, reviewId }: TestProp
                       variant={"question_text"}
                       textField={q.question}
                       id={q.id}
-                      onSave={(text) =>
-                        updateQuestion(q.id, (question) => ({
-                          ...question,
-                          question: text,
-                        }))
-                      }
                       onEditingChange={(isEditing) =>
                         handleEditingChange(`${q.id}:question_text`, isEditing)
                       }
                     />
-                    <ImageUploadButton
-                      id={q.id}
-                      onImageSelected={(imageUrl) =>
-                        updateQuestion(q.id, (question) => ({
-                          ...question,
-                          imageUrl,
-                        }))
-                      }
-                    />
+                    <ImageUploadButton id={q.id} />
                     <DeleteButton
                       id={q.id}
                       variant="question"
@@ -260,12 +199,6 @@ export default function Test({ questions: initialQuestions, reviewId }: TestProp
                         variant={"answer_text"}
                         textField={q.answer}
                         id={q.id}
-                        onSave={(text) =>
-                          updateQuestion(q.id, (question) => ({
-                            ...question,
-                            answer: text,
-                          }))
-                        }
                         onEditingChange={(isEditing) =>
                           handleEditingChange(`${q.id}:answer_text`, isEditing)
                         }
@@ -299,9 +232,6 @@ export default function Test({ questions: initialQuestions, reviewId }: TestProp
             <AddQuestionButton
               uploadId={reviewId}
               insertAtPosition={q.displayOrder ?? 0}
-              onQuestionAdded={handleQuestionAdded}
-              onQuestionSaved={handleQuestionSaved}
-              onQuestionAddFailed={handleQuestionAddFailed}
             />
           </React.Fragment>
         ))}

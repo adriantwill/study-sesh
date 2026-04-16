@@ -1,6 +1,6 @@
 "use client";
 import * as lucideReact from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   deleteItemAction,
   updateFolderParentAction,
@@ -38,21 +38,11 @@ function groupBy<T, K>(items: T[], getKey: (item: T) => K) {
 }
 
 export default function FoldersList({ folders, uploads }: FoldersListProps) {
-  const [localFolders, setLocalFolders] = useState(folders);
-  const [localUploads, setLocalUploads] = useState(uploads);
   const [openFolderIds, setOpenFolderIds] = useState<Set<string>>(new Set());
   const [activeUploadId, setActiveUploadId] = useState<string | null>(null);
   const [activeFolderId, setActiveFolderId] = useState<string | null>(null);
   const [dropFolderId, setDropFolderId] = useState<string | null>(null);
-  const nestedFolders = localFolders as FolderRow[];
-
-  useEffect(() => {
-    setLocalFolders(folders);
-  }, [folders]);
-
-  useEffect(() => {
-    setLocalUploads(uploads);
-  }, [uploads]);
+  const nestedFolders = folders as FolderRow[];
 
   const foldersByParentId = groupBy(
     nestedFolders,
@@ -60,10 +50,10 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
   );
   const folderById = new Map(nestedFolders.map((folder) => [folder.id, folder]));
   const uploadsByFolderId = groupBy(
-    localUploads.filter((upload) => upload.folder_id !== null),
+    uploads.filter((upload) => upload.folder_id !== null),
     (upload) => upload.folder_id!,
   );
-  const rootUploads = localUploads.filter((upload) => upload.folder_id === null);
+  const rootUploads = uploads.filter((upload) => upload.folder_id === null);
   const rootFolders = foldersByParentId.get(null) ?? [];
 
   function toggleFolder(folderId: string) {
@@ -99,7 +89,7 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
 
   function canDropTo(parentId: string | null) {
     if (activeUploadId) {
-      const upload = localUploads.find((item) => item.id === activeUploadId);
+      const upload = uploads.find((item) => item.id === activeUploadId);
       return !!upload && upload.folder_id !== parentId;
     }
 
@@ -118,18 +108,10 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
   async function moveDraggedItem(parentId: string | null) {
     const uploadId = activeUploadId;
     const draggedFolderId = activeFolderId;
-    const previousUploads = localUploads;
-    const previousFolders = localFolders;
 
     resetDragState();
 
     if (uploadId) {
-      setLocalUploads((currentUploads) =>
-        currentUploads.map((upload) =>
-          upload.id === uploadId ? { ...upload, folder_id: parentId } : upload,
-        ),
-      );
-
       try {
         await updateUploadFolderAction(uploadId, parentId);
         if (parentId) {
@@ -137,19 +119,12 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
         }
       } catch (error) {
         console.error("Failed to move upload", error);
-        setLocalUploads(previousUploads);
       }
 
       return;
     }
 
     if (!draggedFolderId) return;
-
-    setLocalFolders((currentFolders) =>
-      currentFolders.map((folder) =>
-        folder.id === draggedFolderId ? { ...folder, parent_id: parentId } : folder,
-      ),
-    );
 
     try {
       await updateFolderParentAction(draggedFolderId, parentId);
@@ -158,74 +133,23 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
       }
     } catch (error) {
       console.error("Failed to move folder", error);
-      setLocalFolders(previousFolders);
     }
   }
 
-  function handleFolderNameSave(folderId: string, name: string) {
-    setLocalFolders((currentFolders) =>
-      currentFolders.map((folder) =>
-        folder.id === folderId ? { ...folder, name } : folder,
-      ),
-    );
-  }
-
   async function handleUploadDelete(uploadId: string) {
-    const previousUploads = localUploads;
-    setLocalUploads((currentUploads) =>
-      currentUploads.filter((upload) => upload.id !== uploadId),
-    );
-
     try {
       await deleteItemAction(uploadId, "upload");
     } catch (error) {
       console.error("Failed to delete upload", error);
-      setLocalUploads(previousUploads);
     }
   }
 
   async function handleFolderDelete(folderId: string) {
-    const previousFolders = localFolders;
-    const previousUploads = localUploads;
-
-    setLocalFolders((currentFolders) =>
-      currentFolders
-        .filter((folder) => folder.id !== folderId)
-        .map((folder) =>
-          folder.parent_id === folderId ? { ...folder, parent_id: null } : folder,
-        ),
-    );
-    setLocalUploads((currentUploads) =>
-      currentUploads.map((upload) =>
-        upload.folder_id === folderId ? { ...upload, folder_id: null } : upload,
-      ),
-    );
-
     try {
       await deleteItemAction(folderId, "folder");
     } catch (error) {
       console.error("Failed to delete folder", error);
-      setLocalFolders(previousFolders);
-      setLocalUploads(previousUploads);
     }
-  }
-
-  function handleFolderAdded(folder: Tables<"folders">) {
-    setLocalFolders((currentFolders) => [...currentFolders, folder]);
-  }
-
-  function handleFolderSaved(tempId: string, folder: Tables<"folders">) {
-    setLocalFolders((currentFolders) =>
-      currentFolders.map((currentFolder) =>
-        currentFolder.id === tempId ? folder : currentFolder,
-      ),
-    );
-  }
-
-  function handleFolderAddFailed(tempId: string) {
-    setLocalFolders((currentFolders) =>
-      currentFolders.filter((folder) => folder.id !== tempId),
-    );
   }
 
   function handleFolderDragStart(folderId: string) {
@@ -304,7 +228,6 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
             variant="folder_name"
             textField={folder.name}
             id={folder.id}
-            onSave={(name) => handleFolderNameSave(folder.id, name)}
           />
           <DeleteButton
             variant="folder"
@@ -333,11 +256,7 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
       <div className="transition-transform duration-300 space-y-2">
         {rootFolders.map(renderFolder)}
       </div>
-      <AddFolder
-        onFolderAdded={handleFolderAdded}
-        onFolderSaved={handleFolderSaved}
-        onFolderAddFailed={handleFolderAddFailed}
-      />
+      <AddFolder />
       <ul
         onDragOver={(event) => handleDragOver(event, null)}
         onDragLeave={(event) => handleDragLeave(event, null)}
