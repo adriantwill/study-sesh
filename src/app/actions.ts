@@ -264,8 +264,6 @@ export async function uploadImageAction(
 
 export async function addQuestionAction(
   uploadId: string,
-  question: string,
-  answer: string,
   insertAtPosition: number,
 ) {
   const supabase = await createClient();
@@ -306,9 +304,9 @@ export async function addQuestionAction(
     .from("questions")
     .insert({
       upload_id: uploadId,
-      question_text: question,
-      original_question_text: question,
-      answer_text: answer,
+      question_text: "Untitled Question",
+      original_question_text: "User Added Question",
+      answer_text: "Untitled Answer",
       page_number: null,
       ocr_text: null,
       display_order: nextDisplayOrder,
@@ -357,13 +355,13 @@ export async function addQuestionAction(
   };
 }
 
-export async function addFolderAction(name: string) {
+export async function addFolderAction() {
   const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("folders")
     .insert({
-      name,
+      name: "Untitled Folder",
     })
     .select()
     .single();
@@ -378,39 +376,23 @@ export async function addFolderAction(name: string) {
   return data;
 }
 
-export async function updateUploadFolderAction(
-  uploadId: string,
-  folderId: string | null,
-) {
-  const supabase = await createClient();
-
-  const { error } = await supabase
-    .from("uploads")
-    .update({ folder_id: folderId })
-    .eq("id", uploadId);
-
-  if (error) {
-    console.error("Update folder error:", error);
-    throw new Error("Failed to update folder");
-  }
-
-  revalidatePath("/");
-}
-
-export async function updateFolderParentAction(
-  folderId: string,
+export async function updateParentAction(
+  id: string,
   parentId: string | null,
+  variant: "upload" | "folder",
 ) {
   const supabase = await createClient();
+  const table = variant === "upload" ? "uploads" : "folders";
+  const column = variant === "upload" ? "folder_id" : "parent_id";
 
   const { error } = await supabase
-    .from("folders")
-    .update({ parent_id: parentId } as never)
-    .eq("id", folderId);
+    .from(table)
+    .update({ [column]: parentId } as never)
+    .eq("id", id);
 
   if (error) {
-    console.error("Update folder parent error:", error);
-    throw new Error("Failed to update folder parent");
+    console.error("Update parent error:", error);
+    throw new Error(`Failed to update ${variant} parent`);
   }
 
   revalidatePath("/");

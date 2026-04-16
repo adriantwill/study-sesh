@@ -3,8 +3,7 @@ import * as lucideReact from "lucide-react";
 import { useState } from "react";
 import {
   deleteItemAction,
-  updateFolderParentAction,
-  updateUploadFolderAction,
+  updateParentAction,
 } from "../app/actions";
 import type { Tables } from "../types/database.types";
 import AddFolder from "./AddFolder";
@@ -113,7 +112,7 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
 
     if (uploadId) {
       try {
-        await updateUploadFolderAction(uploadId, parentId);
+        await updateParentAction(uploadId, parentId, "upload");
         if (parentId) {
           setOpenFolderIds((current) => new Set(current).add(parentId));
         }
@@ -127,7 +126,7 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
     if (!draggedFolderId) return;
 
     try {
-      await updateFolderParentAction(draggedFolderId, parentId);
+      await updateParentAction(draggedFolderId, parentId, "folder");
       if (parentId) {
         setOpenFolderIds((current) => new Set(current).add(parentId));
       }

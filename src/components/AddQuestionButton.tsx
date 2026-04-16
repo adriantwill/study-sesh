@@ -20,8 +20,6 @@ export default function AddQuestionButton({
       try {
         await addQuestionAction(
           uploadId,
-          "Untitled question",
-          "untitled answer",
           insertAtPosition ?? 0,
         );
       } catch (error) {

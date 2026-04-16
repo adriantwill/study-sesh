@@ -12,7 +12,7 @@ export default function AddFolder() {
 
     try {
       setIsCreating(true);
-      await addFolderAction("Untitled");
+      await addFolderAction();
     } catch (error) {
       console.error("Failed to add folder:", error);
     } finally {
