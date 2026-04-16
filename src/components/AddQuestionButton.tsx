@@ -7,11 +7,15 @@ import { addQuestionAction } from "../app/actions";
 interface AddQuestionButtonProps {
   uploadId: string;
   insertAtPosition?: number;
+  prevDisplayOrder?: number | null;
+  nextDisplayOrder?: number | null;
 }
 
 export default function AddQuestionButton({
   uploadId,
   insertAtPosition,
+  prevDisplayOrder: _prevDisplayOrder,
+  nextDisplayOrder: _nextDisplayOrder,
 }: AddQuestionButtonProps) {
   const [isPending, startTransition] = useTransition();
 

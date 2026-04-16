@@ -267,38 +267,6 @@ export async function addQuestionAction(
   insertAtPosition: number,
 ) {
   const supabase = await createClient();
-  const nextDisplayOrder =
-    insertAtPosition <= 0
-      ? DISPLAY_ORDER_STEP
-      : Math.ceil((insertAtPosition + DISPLAY_ORDER_STEP) / DISPLAY_ORDER_STEP) *
-      DISPLAY_ORDER_STEP;
-
-  const { data: rowsToShift, error: rowsError } = await supabase
-    .from("questions")
-    .select("id, display_order")
-    .eq("upload_id", uploadId)
-    .gte("display_order", nextDisplayOrder)
-    .order("display_order", { ascending: false });
-
-  if (rowsError) {
-    console.error("Add question fetch error:", rowsError);
-    throw new Error("Failed to load question positions");
-  }
-
-  if (rowsToShift) {
-    for (const row of rowsToShift) {
-      const currentDisplayOrder = row.display_order ?? 0;
-      const { error: shiftError } = await supabase
-        .from("questions")
-        .update({ display_order: currentDisplayOrder + DISPLAY_ORDER_STEP })
-        .eq("id", row.id);
-
-      if (shiftError) {
-        console.error("Add question shift error:", shiftError);
-        throw new Error("Failed to make room for question");
-      }
-    }
-  }
 
   const { data: insertedQuestion, error } = await supabase
     .from("questions")
@@ -309,50 +277,10 @@ export async function addQuestionAction(
       answer_text: "Untitled Answer",
       page_number: null,
       ocr_text: null,
-      display_order: nextDisplayOrder,
     } as never)
     .select("*")
     .single();
 
-  if (error || !insertedQuestion) {
-    console.error("Add question error:", error);
-    throw new Error("Failed to add question");
-  }
-
-  const { data: existingOrders, error: existingOrdersError } = await supabase
-    .from("questions")
-    .select("display_order")
-    .eq("upload_id", uploadId);
-
-  if (existingOrdersError) {
-    console.error("Add question existing order error:", existingOrdersError);
-    throw new Error("Failed to load existing question positions");
-  }
-
-  const hasInvalidDisplayOrder = (existingOrders ?? []).some((row) => {
-    const displayOrder = row.display_order;
-    return displayOrder == null || displayOrder % DISPLAY_ORDER_STEP !== 0;
-  });
-
-  if (hasInvalidDisplayOrder) {
-    await normalizeQuestionDisplayOrder(uploadId);
-  }
-
-  revalidatePath(`/${uploadId}`);
-
-  return {
-    id: insertedQuestion.id,
-    upload_id: insertedQuestion.upload_id ?? uploadId,
-    question: insertedQuestion.question_text,
-    answer: insertedQuestion.answer_text,
-    imageUrl: insertedQuestion.image_url,
-    displayOrder: insertedQuestion.display_order,
-    options: insertedQuestion.options,
-    pageNumber: "page_number" in insertedQuestion ? insertedQuestion.page_number : null,
-    ocrText: "ocr_text" in insertedQuestion ? insertedQuestion.ocr_text : null,
-    originalQuestion:
-      insertedQuestion.original_question_text ?? insertedQuestion.question_text,
-  };
 }
 
 export async function addFolderAction() {

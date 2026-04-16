@@ -150,61 +150,65 @@ export default function Test({ questions: initialQuestions, reviewId }: TestProp
   return (
     <div className="space-y-4">
       <ul className="space-y-4">
-        {previewQuestions.map((q, idx) => (
-          <React.Fragment key={q.id}>
-            <li
-              draggable={!isAnyEditing}
-              onDragStart={() => handleDragStart(q.id)}
-              onDragEnd={handleDragEnd}
-              onDragOver={(e) => handleDragOver(e, q.id)}
-              onDrop={() => void handleDrop(q.id)}
-              className={`transition-[opacity,transform,box-shadow] duration-150 ${activeId === q.id
-                ? "cursor-grabbing opacity-0"
-                : ""
-                } ${dragOverId === q.id ? "scale-[1.01] shadow-lg" : ""
-                } ${isAnyEditing ? "cursor-default" : "cursor-grab"
-                }`}
-            >
-              <div className="bg-muted rounded-lg shadow p-6 flex items-start gap-4">
-                <div className="shrink-0 w-8 h-8 bg-muted-hover rounded-full flex items-center justify-center text-sm font-medium">
-                  {idx + 1}
-                </div>
-                <div className="flex-1 w-1">
-                  <div className="flex items-center gap-2">
-                    <EditField
-                      variant={"question_text"}
-                      textField={q.question}
-                      id={q.id}
-                      onEditingChange={(isEditing) =>
-                        handleEditingChange(`${q.id}:question_text`, isEditing)
-                      }
-                    />
-                    <ImageUploadButton id={q.id} />
-                    <DeleteButton
-                      id={q.id}
-                      variant="question"
-                      name={q.question}
-                      onDelete={() => handleQuestionDelete(q.id)}
-                    />
+        {previewQuestions.map((q, idx) => {
+          const prevDisplayOrder = previewQuestions[idx - 1]?.displayOrder ?? null;
+          const nextDisplayOrder = previewQuestions[idx + 1]?.displayOrder ?? null;
+
+          return (
+            <React.Fragment key={q.id}>
+              <li
+                draggable={!isAnyEditing}
+                onDragStart={() => handleDragStart(q.id)}
+                onDragEnd={handleDragEnd}
+                onDragOver={(e) => handleDragOver(e, q.id)}
+                onDrop={() => void handleDrop(q.id)}
+                className={`transition-[opacity,transform,box-shadow] duration-150 ${activeId === q.id
+                  ? "cursor-grabbing opacity-0"
+                  : ""
+                  } ${dragOverId === q.id ? "scale-[1.01] shadow-lg" : ""
+                  } ${isAnyEditing ? "cursor-default" : "cursor-grab"
+                  }`}
+              >
+                <div className="bg-muted rounded-lg shadow p-6 flex items-start gap-4">
+                  <div className="shrink-0 w-8 h-8 bg-muted-hover rounded-full flex items-center justify-center text-sm font-medium">
+                    {idx + 1}
                   </div>
-                  {q.imageUrl && (
-                    <ResizableImage src={q.imageUrl} />
-                  )}
-                  <details className="text-sm mt-4">
-                    <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
-                      Show answer
-                    </summary>
-                    <div className="gap-2 flex items-center justify-between mt-2 p-4 rounded-lg bg-muted-hover">
+                  <div className="flex-1 w-1">
+                    <div className="flex items-center gap-2">
                       <EditField
-                        variant={"answer_text"}
-                        textField={q.answer}
+                        variant={"question_text"}
+                        textField={q.question}
                         id={q.id}
                         onEditingChange={(isEditing) =>
-                          handleEditingChange(`${q.id}:answer_text`, isEditing)
+                          handleEditingChange(`${q.id}:question_text`, isEditing)
                         }
                       />
+                      <ImageUploadButton id={q.id} />
+                      <DeleteButton
+                        id={q.id}
+                        variant="question"
+                        name={q.question}
+                        onDelete={() => handleQuestionDelete(q.id)}
+                      />
                     </div>
-                    {/*<div className="text-sm mt-4">Wrong Options</div>
+                    {q.imageUrl && (
+                      <ResizableImage src={q.imageUrl} />
+                    )}
+                    <details className="text-sm mt-4">
+                      <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+                        Show answer
+                      </summary>
+                      <div className="gap-2 flex items-center justify-between mt-2 p-4 rounded-lg bg-muted-hover">
+                        <EditField
+                          variant={"answer_text"}
+                          textField={q.answer}
+                          id={q.id}
+                          onEditingChange={(isEditing) =>
+                            handleEditingChange(`${q.id}:answer_text`, isEditing)
+                          }
+                        />
+                      </div>
+                      {/*<div className="text-sm mt-4">Wrong Options</div>
                       <div className="grid grid-cols-3 gap-4">
                         {[0, 1, 2].map((optionIdx) => (
                           <div
@@ -225,16 +229,19 @@ export default function Test({ questions: initialQuestions, reviewId }: TestProp
                           </div>
                         ))}
                       </div>*/}
-                  </details>
+                    </details>
+                  </div>
                 </div>
-              </div>
-            </li>
-            <AddQuestionButton
-              uploadId={reviewId}
-              insertAtPosition={q.displayOrder ?? 0}
-            />
-          </React.Fragment>
-        ))}
+              </li>
+              <AddQuestionButton
+                uploadId={reviewId}
+                insertAtPosition={q.displayOrder ?? 0}
+                prevDisplayOrder={prevDisplayOrder}
+                nextDisplayOrder={nextDisplayOrder}
+              />
+            </React.Fragment>
+          );
+        })}
       </ul>
     </div>
   );
