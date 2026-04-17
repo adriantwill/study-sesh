@@ -10,7 +10,7 @@ import {
   uploadQuestionImage,
 } from "../lib/storage";
 import { createClient } from "../lib/supabase/server";
-import type { StudyQuestion } from "../types";
+import type { EditFieldVariant, StudyQuestion } from "../types";
 
 const DISPLAY_ORDER_STEP = 100;
 
@@ -176,54 +176,55 @@ export async function deleteItemAction(
     throw new Error(`Failed to delete ${variant}`);
   }
 }
-
 export async function updateQuestionTextAction(
   id: string,
   text: string,
-  variant: "question_text" | "answer_text" | "filename" | "description" | 0 | 1 | 2,
+  variant: EditFieldVariant,
 ) {
   const supabase = await createClient();
+  const variantToDatabase: Record<EditFieldVariant, "uploads" | "questions" | "folders"> = {
+    filename: "uploads",
+    description: "uploads",
+    folder_name: "folders",
+    question_text: "questions",
+    answer_text: "questions",
+  };
 
-  if (variant === 0 || variant === 1 || variant === 2) {
-    const { data, error: fetchError } = await supabase
-      .from("questions")
-      .select("options")
-      .eq("id", id)
-      .single();
+  // if (variant === 0 || variant === 1 || variant === 2) {
+  //   const { data, error: fetchError } = await supabase
+  //     .from("questions")
+  //     .select("options")
+  //     .eq("id", id)
+  //     .single();
 
-    if (fetchError) {
-      console.error("Update options fetch error:", fetchError);
-      throw new Error("Failed to load options");
-    }
+  //   if (fetchError) {
+  //     console.error("Update options fetch error:", fetchError);
+  //     throw new Error("Failed to load options");
+  //   }
 
-    const updatedOptions = [...(data.options ?? [])];
-    updatedOptions[variant] = text;
+  //   const updatedOptions = [...(data.options ?? [])];
+  //   updatedOptions[variant] = text;
 
-    const { error: optionError } = await supabase
-      .from("questions")
-      .update({ options: updatedOptions })
-      .eq("id", id);
+  //   const { error: optionError } = await supabase
+  //     .from("questions")
+  //     .update({ options: updatedOptions })
+  //     .eq("id", id);
 
-    if (optionError) {
-      console.error("Update option error:", optionError);
-      throw new Error("Failed to update option");
-    }
-  } else {
-    const database =
-      variant === "filename" || variant === "description"
-        ? "uploads"
-        : "questions";
+  //   if (optionError) {
+  //     console.error("Update option error:", optionError);
+  //     throw new Error("Failed to update option");
+  //   }
+  // } else {
+  const { error } = await supabase
+    .from(variantToDatabase[variant])
+    .update({ [variant]: text })
+    .eq("id", id);
 
-    const { error } = await supabase
-      .from(database)
-      .update({ [variant]: text })
-      .eq("id", id);
-
-    if (error) {
-      console.error("Update text error:", error);
-      throw new Error("Failed to update text");
-    }
+  if (error) {
+    console.error("Update text error:", error);
+    throw new Error("Failed to update text");
   }
+  // }
 
   revalidatePath("/[reviewId]", "page");
 }
@@ -298,10 +299,7 @@ export async function addQuestionAction(
     console.error("Add question error:", error);
     throw new Error("Failed to add question");
   }
-
-
   revalidatePath(`/${uploadId}`);
-
   if (
     prevDisplayOrder != null &&
     nextDisplayOrder != null &&
@@ -316,8 +314,6 @@ export async function addQuestionAction(
       }
     });
   }
-
-
 }
 
 export async function addFolderAction() {
@@ -426,20 +422,4 @@ export async function reorderQuestionsAction(activeId: string, questions: StudyQ
   }
 
   revalidatePath(`/${activeQuestion.upload_id}`);
-}
-
-export async function updateFolderNameAction(folderId: string, name: string) {
-  const supabase = await createClient();
-
-  const { error } = await supabase
-    .from("folders")
-    .update({ name })
-    .eq("id", folderId);
-
-  if (error) {
-    console.error("Update folder name error:", error);
-    throw new Error("Failed to update folder name");
-  }
-
-  revalidatePath("/");
 }
