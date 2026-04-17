@@ -136,7 +136,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      normalize_question_display_order: {
+        Args: { p_upload_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

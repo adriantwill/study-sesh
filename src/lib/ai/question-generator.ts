@@ -203,10 +203,8 @@ export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
     }
     throw error;
   } finally {
-    // Final Cleanup
     try {
       await fs.unlink(pdfPath).catch(() => { });
-      // Try to cleanup any remaining images
       const dirFiles = await fs.readdir(tempDir);
       for (const file of dirFiles) {
         if (file.startsWith(`slides-${fileId}`)) {

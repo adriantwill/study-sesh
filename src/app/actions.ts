@@ -16,35 +16,16 @@ const DISPLAY_ORDER_STEP = 100;
 
 export async function normalizeQuestionDisplayOrder(uploadId: string) {
   const supabase = await createClient();
-  const { data: questions, error } = await supabase
-    .from("questions")
-    .select("id")
-    .eq("upload_id", uploadId)
-    .order("display_order", { ascending: true });
-
-  if (error) {
-    console.error("Normalize order fetch error:", error);
-    throw new Error("Failed to normalize question order");
-  }
-
-  for (const [index, question] of (questions ?? []).entries()) {
-    const { error: updateError } = await supabase
-      .from("questions")
-      .update({ display_order: (index + 1) * DISPLAY_ORDER_STEP })
-      .eq("id", question.id);
-
-    if (updateError) {
-      console.error("Normalize order update error:", updateError);
-      throw new Error("Failed to normalize question order");
-    }
-  }
+  const { error } = await supabase.rpc("normalize_question_display_order", {
+    p_upload_id: uploadId,
+  });
+  if (error) throw new Error("Failed to normalize question order");
 }
 
 export async function uploadAndGenerateAction(formData: FormData) {
   const file = formData.get("pdf") as File;
-  if (!file) {
-    throw new Error("No file provided");
-  }
+  if (!(file instanceof File) || file.size === 0) throw new Error("No PDF provided");
+  if (file.type !== "application/pdf") throw new Error("Only PDFs supported");
   const questions = await generateQuestions(file);
   const upload = await uploadRecordAction(file, questions);
   revalidatePath("/");
