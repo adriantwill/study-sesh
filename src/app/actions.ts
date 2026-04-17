@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { generateQuestions } from "../lib/ai/question-generator";
 import {
   getQuestionImagePublicUrl,
@@ -13,7 +14,7 @@ import type { StudyQuestion } from "../types";
 
 const DISPLAY_ORDER_STEP = 100;
 
-async function normalizeQuestionDisplayOrder(uploadId: string) {
+export async function normalizeQuestionDisplayOrder(uploadId: string) {
   const supabase = await createClient();
   const { data: questions, error } = await supabase
     .from("questions")
@@ -265,8 +266,19 @@ export async function uploadImageAction(
 export async function addQuestionAction(
   uploadId: string,
   insertAtPosition: number,
+  prevDisplayOrder?: number | null,
+  nextDisplayOrder?: number | null,
 ) {
   const supabase = await createClient();
+  void insertAtPosition;
+
+  const getDisplayOrder = (prevOrder?: number | null, nextOrder?: number | null) => {
+    if (prevOrder == null) return Math.floor((nextOrder ?? DISPLAY_ORDER_STEP) / 2);
+    if (nextOrder == null) return prevOrder + DISPLAY_ORDER_STEP;
+    return Math.floor((prevOrder + nextOrder) / 2);
+  };
+
+  const displayOrder = getDisplayOrder(prevDisplayOrder, nextDisplayOrder);
 
   const { data: insertedQuestion, error } = await supabase
     .from("questions")
@@ -277,9 +289,34 @@ export async function addQuestionAction(
       answer_text: "Untitled Answer",
       page_number: null,
       ocr_text: null,
+      display_order: displayOrder,
     } as never)
-    .select("*")
+    .select("id")
     .single();
+
+  if (error || !insertedQuestion) {
+    console.error("Add question error:", error);
+    throw new Error("Failed to add question");
+  }
+
+
+  revalidatePath(`/${uploadId}`);
+
+  if (
+    prevDisplayOrder != null &&
+    nextDisplayOrder != null &&
+    displayOrder === prevDisplayOrder + 1
+  ) {
+    after(async () => {
+      try {
+        await normalizeQuestionDisplayOrder(uploadId);
+        revalidatePath(`/${uploadId}`);
+      } catch (error) {
+        console.error("Background normalize question order error:", error);
+      }
+    });
+  }
+
 
 }
 

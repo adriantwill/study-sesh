@@ -151,7 +151,7 @@ export default function Test({ questions: initialQuestions, reviewId }: TestProp
     <div className="space-y-4">
       <ul className="space-y-4">
         {previewQuestions.map((q, idx) => {
-          const prevDisplayOrder = previewQuestions[idx - 1]?.displayOrder ?? null;
+          const prevDisplayOrder = q.displayOrder ?? null;
           const nextDisplayOrder = previewQuestions[idx + 1]?.displayOrder ?? null;
 
           return (
