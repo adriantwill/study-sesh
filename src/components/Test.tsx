@@ -3,7 +3,6 @@
 import Image from "next/image";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  deleteItemAction,
   reorderQuestionsAction,
 } from "../app/actions";
 import type { StudyQuestion } from "../types";
@@ -139,13 +138,6 @@ export default function Test({ questions: initialQuestions, reviewId }: TestProp
     }
   }
 
-  async function handleQuestionDelete(questionId: string) {
-    try {
-      await deleteItemAction(questionId, "question");
-    } catch (error) {
-      console.error("Failed to delete question", error);
-    }
-  }
 
   return (
     <div className="space-y-4">
@@ -188,7 +180,6 @@ export default function Test({ questions: initialQuestions, reviewId }: TestProp
                         id={q.id}
                         variant="question"
                         name={q.question}
-                        onDelete={() => handleQuestionDelete(q.id)}
                       />
                     </div>
                     {q.imageUrl && (

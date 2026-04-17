@@ -2,7 +2,6 @@
 import * as lucideReact from "lucide-react";
 import { useState } from "react";
 import {
-  deleteItemAction,
   updateParentAction,
 } from "../app/actions";
 import type { Tables } from "../types/database.types";
@@ -135,22 +134,6 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
     }
   }
 
-  async function handleUploadDelete(uploadId: string) {
-    try {
-      await deleteItemAction(uploadId, "upload");
-    } catch (error) {
-      console.error("Failed to delete upload", error);
-    }
-  }
-
-  async function handleFolderDelete(folderId: string) {
-    try {
-      await deleteItemAction(folderId, "folder");
-    } catch (error) {
-      console.error("Failed to delete folder", error);
-    }
-  }
-
   function handleFolderDragStart(folderId: string) {
     setActiveUploadId(null);
     setDropFolderId(null);
@@ -194,7 +177,6 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
         isDragging={activeUploadId === upload.id}
         onDragStart={handleUploadDragStart}
         onDragEnd={resetDragState}
-        onDelete={handleUploadDelete}
       />
     );
   }
@@ -232,7 +214,6 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
             variant="folder"
             id={folder.id}
             name={folder.name}
-            onDelete={() => handleFolderDelete(folder.id)}
           />
         </li>
 

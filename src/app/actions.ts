@@ -10,7 +10,7 @@ import {
   uploadQuestionImage,
 } from "../lib/storage";
 import { createClient } from "../lib/supabase/server";
-import type { EditFieldVariant, StudyQuestion } from "../types";
+import type { DeleteButtonVariant, EditFieldVariant, StudyQuestion } from "../types";
 
 const DISPLAY_ORDER_STEP = 100;
 
@@ -121,7 +121,7 @@ export async function uploadRecordAction(
 
 export async function deleteItemAction(
   id: string,
-  variant: "folder" | "upload" | "question",
+  variant: DeleteButtonVariant,
 ) {
   const supabase = await createClient();
 
@@ -176,6 +176,7 @@ export async function deleteItemAction(
     throw new Error(`Failed to delete ${variant}`);
   }
 }
+
 export async function updateQuestionTextAction(
   id: string,
   text: string,
