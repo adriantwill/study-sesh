@@ -27,6 +27,9 @@ export async function uploadAndGenerateAction(formData: FormData) {
   if (!(file instanceof File) || file.size === 0) throw new Error("No PDF provided");
   if (file.type !== "application/pdf") throw new Error("Only PDFs supported");
   const questions = await generateQuestions(file);
+  if (questions.length === 0) {
+    throw new Error("No questions generated from this PDF");
+  }
   const upload = await uploadRecordAction(file, questions);
   revalidatePath("/");
   return { uploadId: upload.id };
@@ -36,6 +39,10 @@ export async function uploadRecordAction(
   source: File | string,
   questions: StudyQuestion[],
 ) {
+  if (questions.length === 0) {
+    throw new Error("No questions to save");
+  }
+
   const supabase = await createClient();
   const isFileUpload = source instanceof File;
   const filename = isFileUpload ? source.name : source;
