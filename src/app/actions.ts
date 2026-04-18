@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { generateQuestions } from "../lib/ai/question-generator";
 import {
   getQuestionImagePublicUrl,
@@ -9,41 +10,22 @@ import {
   uploadQuestionImage,
 } from "../lib/storage";
 import { createClient } from "../lib/supabase/server";
-import type { StudyQuestion } from "../types";
+import type { DeleteButtonVariant, EditFieldVariant, StudyQuestion } from "../types";
 
 const DISPLAY_ORDER_STEP = 100;
 
-async function normalizeQuestionDisplayOrder(uploadId: string) {
+export async function normalizeQuestionDisplayOrder(uploadId: string) {
   const supabase = await createClient();
-  const { data: questions, error } = await supabase
-    .from("questions")
-    .select("id")
-    .eq("upload_id", uploadId)
-    .order("display_order", { ascending: true });
-
-  if (error) {
-    console.error("Normalize order fetch error:", error);
-    throw new Error("Failed to normalize question order");
-  }
-
-  for (const [index, question] of (questions ?? []).entries()) {
-    const { error: updateError } = await supabase
-      .from("questions")
-      .update({ display_order: (index + 1) * DISPLAY_ORDER_STEP })
-      .eq("id", question.id);
-
-    if (updateError) {
-      console.error("Normalize order update error:", updateError);
-      throw new Error("Failed to normalize question order");
-    }
-  }
+  const { error } = await supabase.rpc("normalize_question_display_order", {
+    p_upload_id: uploadId,
+  });
+  if (error) throw new Error("Failed to normalize question order");
 }
 
 export async function uploadAndGenerateAction(formData: FormData) {
   const file = formData.get("pdf") as File;
-  if (!file) {
-    throw new Error("No file provided");
-  }
+  if (!(file instanceof File) || file.size === 0) throw new Error("No PDF provided");
+  if (file.type !== "application/pdf") throw new Error("Only PDFs supported");
   const questions = await generateQuestions(file);
   if (questions.length === 0) {
     throw new Error("No questions generated from this PDF");
@@ -127,7 +109,7 @@ export async function uploadRecordAction(
 
 export async function deleteItemAction(
   id: string,
-  variant: "folder" | "upload" | "question",
+  variant: DeleteButtonVariant,
 ) {
   const supabase = await createClient();
 
@@ -186,50 +168,59 @@ export async function deleteItemAction(
 export async function updateQuestionTextAction(
   id: string,
   text: string,
-  variant: "question_text" | "answer_text" | "filename" | "description" | 0 | 1 | 2,
+  variant: EditFieldVariant,
 ) {
   const supabase = await createClient();
-
-  if (variant === 0 || variant === 1 || variant === 2) {
-    const { data, error: fetchError } = await supabase
-      .from("questions")
-      .select("options")
-      .eq("id", id)
-      .single();
-
-    if (fetchError) {
-      console.error("Update options fetch error:", fetchError);
-      throw new Error("Failed to load options");
+  const variantConfig: Record<
+    EditFieldVariant,
+    {
+      table: "uploads" | "questions" | "folders";
+      column: string;
     }
+  > = {
+    filename: { table: "uploads", column: "filename" },
+    description: { table: "uploads", column: "description" },
+    folder_name: { table: "folders", column: "name" },
+    question_text: { table: "questions", column: "question_text" },
+    answer_text: { table: "questions", column: "answer_text" },
+  };
+  const { table, column } = variantConfig[variant];
 
-    const updatedOptions = [...(data.options ?? [])];
-    updatedOptions[variant] = text;
+  // if (variant === 0 || variant === 1 || variant === 2) {
+  //   const { data, error: fetchError } = await supabase
+  //     .from("questions")
+  //     .select("options")
+  //     .eq("id", id)
+  //     .single();
 
-    const { error: optionError } = await supabase
-      .from("questions")
-      .update({ options: updatedOptions })
-      .eq("id", id);
+  //   if (fetchError) {
+  //     console.error("Update options fetch error:", fetchError);
+  //     throw new Error("Failed to load options");
+  //   }
 
-    if (optionError) {
-      console.error("Update option error:", optionError);
-      throw new Error("Failed to update option");
-    }
-  } else {
-    const database =
-      variant === "filename" || variant === "description"
-        ? "uploads"
-        : "questions";
+  //   const updatedOptions = [...(data.options ?? [])];
+  //   updatedOptions[variant] = text;
 
-    const { error } = await supabase
-      .from(database)
-      .update({ [variant]: text })
-      .eq("id", id);
+  //   const { error: optionError } = await supabase
+  //     .from("questions")
+  //     .update({ options: updatedOptions })
+  //     .eq("id", id);
 
-    if (error) {
-      console.error("Update text error:", error);
-      throw new Error("Failed to update text");
-    }
+  //   if (optionError) {
+  //     console.error("Update option error:", optionError);
+  //     throw new Error("Failed to update option");
+  //   }
+  // } else {
+  const { error } = await supabase
+    .from(table)
+    .update({ [column]: text })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Update text error:", error);
+    throw new Error("Failed to update text");
   }
+  // }
 
   revalidatePath("/[reviewId]", "page");
 }
@@ -271,105 +262,63 @@ export async function uploadImageAction(
 
 export async function addQuestionAction(
   uploadId: string,
-  question: string,
-  answer: string,
   insertAtPosition: number,
+  prevDisplayOrder?: number | null,
+  nextDisplayOrder?: number | null,
 ) {
   const supabase = await createClient();
-  const nextDisplayOrder =
-    insertAtPosition <= 0
-      ? DISPLAY_ORDER_STEP
-      : Math.ceil((insertAtPosition + DISPLAY_ORDER_STEP) / DISPLAY_ORDER_STEP) *
-      DISPLAY_ORDER_STEP;
+  void insertAtPosition;
 
-  const { data: rowsToShift, error: rowsError } = await supabase
-    .from("questions")
-    .select("id, display_order")
-    .eq("upload_id", uploadId)
-    .gte("display_order", nextDisplayOrder)
-    .order("display_order", { ascending: false });
+  const getDisplayOrder = (prevOrder?: number | null, nextOrder?: number | null) => {
+    if (prevOrder == null) return Math.floor((nextOrder ?? DISPLAY_ORDER_STEP) / 2);
+    if (nextOrder == null) return prevOrder + DISPLAY_ORDER_STEP;
+    return Math.floor((prevOrder + nextOrder) / 2);
+  };
 
-  if (rowsError) {
-    console.error("Add question fetch error:", rowsError);
-    throw new Error("Failed to load question positions");
-  }
-
-  if (rowsToShift) {
-    for (const row of rowsToShift) {
-      const currentDisplayOrder = row.display_order ?? 0;
-      const { error: shiftError } = await supabase
-        .from("questions")
-        .update({ display_order: currentDisplayOrder + DISPLAY_ORDER_STEP })
-        .eq("id", row.id);
-
-      if (shiftError) {
-        console.error("Add question shift error:", shiftError);
-        throw new Error("Failed to make room for question");
-      }
-    }
-  }
+  const displayOrder = getDisplayOrder(prevDisplayOrder, nextDisplayOrder);
 
   const { data: insertedQuestion, error } = await supabase
     .from("questions")
     .insert({
       upload_id: uploadId,
-      question_text: question,
-      original_question_text: question,
-      answer_text: answer,
+      question_text: "Untitled Question",
+      original_question_text: "User Added Question",
+      answer_text: "Untitled Answer",
       page_number: null,
       ocr_text: null,
-      display_order: nextDisplayOrder,
+      display_order: displayOrder,
     } as never)
-    .select("*")
+    .select("id")
     .single();
 
   if (error || !insertedQuestion) {
     console.error("Add question error:", error);
     throw new Error("Failed to add question");
   }
-
-  const { data: existingOrders, error: existingOrdersError } = await supabase
-    .from("questions")
-    .select("display_order")
-    .eq("upload_id", uploadId);
-
-  if (existingOrdersError) {
-    console.error("Add question existing order error:", existingOrdersError);
-    throw new Error("Failed to load existing question positions");
-  }
-
-  const hasInvalidDisplayOrder = (existingOrders ?? []).some((row) => {
-    const displayOrder = row.display_order;
-    return displayOrder == null || displayOrder % DISPLAY_ORDER_STEP !== 0;
-  });
-
-  if (hasInvalidDisplayOrder) {
-    await normalizeQuestionDisplayOrder(uploadId);
-  }
-
   revalidatePath(`/${uploadId}`);
-
-  return {
-    id: insertedQuestion.id,
-    question: insertedQuestion.question_text,
-    answer: insertedQuestion.answer_text,
-    imageUrl: insertedQuestion.image_url,
-    displayOrder: insertedQuestion.display_order,
-    options: insertedQuestion.options,
-    pageNumber: "page_number" in insertedQuestion ? insertedQuestion.page_number : null,
-    ocrText: "ocr_text" in insertedQuestion ? insertedQuestion.ocr_text : null,
-    originalQuestion:
-      insertedQuestion.original_question_text ?? insertedQuestion.question_text,
-  };
+  if (
+    prevDisplayOrder != null &&
+    nextDisplayOrder != null &&
+    displayOrder === prevDisplayOrder + 1
+  ) {
+    after(async () => {
+      try {
+        await normalizeQuestionDisplayOrder(uploadId);
+        revalidatePath(`/${uploadId}`);
+      } catch (error) {
+        console.error("Background normalize question order error:", error);
+      }
+    });
+  }
 }
 
-export async function addFolderAction(name: string) {
+export async function addFolderAction() {
   const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("folders")
     .insert({
-      name,
+      name: "Untitled Folder",
     })
     .select()
     .single();
@@ -384,101 +333,89 @@ export async function addFolderAction(name: string) {
   return data;
 }
 
-export async function updateUploadFolderAction(
-  uploadId: string,
-  folderId: string | null,
+export async function updateParentAction(
+  id: string,
+  parentId: string | null,
+  variant: "upload" | "folder",
 ) {
   const supabase = await createClient();
+  const table = variant === "upload" ? "uploads" : "folders";
+  const column = variant === "upload" ? "folder_id" : "parent_id";
 
   const { error } = await supabase
-    .from("uploads")
-    .update({ folder_id: folderId })
-    .eq("id", uploadId);
+    .from(table)
+    .update({ [column]: parentId } as never)
+    .eq("id", id);
 
   if (error) {
-    console.error("Update folder error:", error);
-    throw new Error("Failed to update folder");
+    console.error("Update parent error:", error);
+    throw new Error(`Failed to update ${variant} parent`);
   }
 
   revalidatePath("/");
 }
 
-export async function updateFolderParentAction(
-  folderId: string,
-  parentId: string | null,
-) {
+export async function reorderQuestionsAction(activeId: string, questions: StudyQuestion[]) {
+  if (questions.length === 0) return;
+
   const supabase = await createClient();
+  const activeIndex = questions.findIndex((question) => question.id === activeId);
 
-  if (folderId === parentId) {
-    throw new Error("Folder cannot be moved into itself");
+  if (activeIndex === -1) {
+    throw new Error("Question not found");
   }
 
-  const { data: folders, error: fetchError } = await supabase
-    .from("folders")
-    .select("id, parent_id");
+  const activeQuestion = questions[activeIndex];
+  const prevQuestion = activeIndex > 0 ? questions[activeIndex - 1] : null;
+  const nextQuestion = activeIndex < questions.length - 1 ? questions[activeIndex + 1] : null;
 
-  if (fetchError) {
-    console.error("Load folders error:", fetchError);
-    throw new Error("Failed to load folders");
-  }
+  const getDisplayOrder = (prevOrder?: number | null, nextOrder?: number | null) => {
+    if (prevOrder == null) return Math.floor((nextOrder ?? DISPLAY_ORDER_STEP) / 2);
+    if (nextOrder == null) return prevOrder + DISPLAY_ORDER_STEP;
+    return Math.floor((prevOrder + nextOrder) / 2);
+  };
 
-  const folderRows = (folders ?? []) as { id: string; parent_id: string | null }[];
-  const parentById = new Map(
-    folderRows.map((folder) => [folder.id, folder.parent_id]),
+  let nextDisplayOrder = getDisplayOrder(
+    prevQuestion?.displayOrder,
+    nextQuestion?.displayOrder,
   );
 
-  if (!parentById.has(folderId)) {
-    throw new Error("Folder not found");
-  }
+  if (
+    prevQuestion &&
+    nextQuestion &&
+    nextDisplayOrder === prevQuestion.displayOrder + 1
+  ) {
+    await normalizeQuestionDisplayOrder(activeQuestion.upload_id);
 
-  let currentParentId = parentId;
+    const { data: normalizedNeighbors, error: normalizedNeighborsError } = await supabase
+      .from("questions")
+      .select("id, display_order")
+      .in("id", [prevQuestion.id, nextQuestion.id]);
 
-  while (currentParentId) {
-    if (currentParentId === folderId) {
-      throw new Error("Folder cannot be moved into its child");
+    if (normalizedNeighborsError) {
+      console.error("Reorder normalized neighbor fetch error:", normalizedNeighborsError);
+      throw new Error("Failed to load normalized question positions");
     }
 
-    currentParentId = parentById.get(currentParentId) ?? null;
+    nextDisplayOrder = getDisplayOrder(
+      normalizedNeighbors?.find((question) => question.id === prevQuestion.id)?.display_order,
+      normalizedNeighbors?.find((question) => question.id === nextQuestion.id)?.display_order,
+    );
+
+    if (nextDisplayOrder <= 0) {
+      throw new Error("Failed to load normalized question positions");
+    }
   }
 
   const { error } = await supabase
-    .from("folders")
-    .update({ parent_id: parentId } as never)
-    .eq("id", folderId);
+    .from("questions")
+    .update({ display_order: nextDisplayOrder })
+    .eq("id", activeId);
 
   if (error) {
-    console.error("Update folder parent error:", error);
-    throw new Error("Failed to update folder parent");
+    console.error("Reorder question error:", error);
+    throw new Error("Failed to reorder questions");
   }
 
-  revalidatePath("/");
-}
-
-export async function reorderQuestionsAction(orderedIds: string[]) {
-  const supabase = await createClient();
-
-  for (let i = 0; i < orderedIds.length; i++) {
-    await supabase
-      .from("questions")
-      .update({ display_order: (i + 1) * DISPLAY_ORDER_STEP })
-      .eq("id", orderedIds[i]);
-  }
-
-  revalidatePath("/[reviewId]", "page");
-}
-
-export async function updateFolderNameAction(folderId: string, name: string) {
-  const supabase = await createClient();
-
-  const { error } = await supabase
-    .from("folders")
-    .update({ name })
-    .eq("id", folderId);
-
-  if (error) {
-    console.error("Update folder name error:", error);
-    throw new Error("Failed to update folder name");
-  }
-
-  revalidatePath("/");
+  revalidatePath(`/${activeQuestion.upload_id}`);
 }

@@ -2,28 +2,27 @@
 
 import { Trash2 } from "lucide-react";
 import { deleteItemAction } from "../app/actions";
+import { DeleteButtonVariant } from "../types";
 
 interface DeleteButtonProps {
   id: string;
-  variant: "upload" | "question" | "folder";
+  variant: DeleteButtonVariant;
   name: string;
-  onDelete?: () => Promise<void> | void;
+  displayElement?: () => Promise<void> | void;
 }
 
 export default function DeleteButton({
   id,
   variant,
   name,
-  onDelete,
+  displayElement,
 }: DeleteButtonProps) {
   async function handleDelete() {
     const confirmed = confirm(`Delete this ${variant} "${name}"?`);
     if (confirmed) {
-      if (onDelete) {
-        await onDelete();
-        return;
+      if (displayElement) {
+        displayElement();
       }
-
       await deleteItemAction(id, variant);
     }
   }

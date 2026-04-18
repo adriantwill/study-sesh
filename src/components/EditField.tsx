@@ -2,17 +2,17 @@
 import { Bold, Check, List, Highlighter, Pencil } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import {
-  updateFolderNameAction,
+
   updateQuestionTextAction,
 } from "../app/actions";
 import { parseMarkdown } from "../lib/markdown";
+import type { EditFieldVariant } from "../types";
 
 interface EditFieldProps {
-  variant: "question_text" | "answer_text" | "folder_name" | "filename" | "description" | 0 | 1 | 2;
+  variant: EditFieldVariant;
   textField: string;
   id: string;
   onEditingChange?: (isEditing: boolean) => void;
-  onSave?: (text: string) => void;
 }
 
 export default function EditField({
@@ -20,7 +20,6 @@ export default function EditField({
   textField,
   id,
   onEditingChange,
-  onSave,
 }: EditFieldProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [text, setText] = useState(textField);
@@ -58,18 +57,11 @@ export default function EditField({
     onEditingChange?.(false);
 
     if (nextText !== textField) {
-      onSave?.(nextText);
-
       try {
-        if (variant === "folder_name") {
-          await updateFolderNameAction(id, nextText);
-        } else {
-          await updateQuestionTextAction(id, nextText, variant);
-        }
+        await updateQuestionTextAction(id, nextText, variant);
       } catch (error) {
         console.error("Failed to save text:", error);
         setText(textField);
-        onSave?.(textField);
       }
     }
   }

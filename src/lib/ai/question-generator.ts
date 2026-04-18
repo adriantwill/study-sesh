@@ -172,9 +172,14 @@ Return JSON array only:
 
             return pageQuestions.map((q) => ({
               id: "id", // Placeholder
+              upload_id: "",
               question: q.question,
               answer: q.answer,
+              displayOrder: 0,
               options: q.options,
+              pageNumber,
+              ocrText: null,
+              originalQuestion: q.question,
             }));
           } catch (err) {
             console.error("Error processing slide", {
@@ -193,10 +198,8 @@ Return JSON array only:
     console.error("Error in generateQuestions:", error);
     throw error;
   } finally {
-    // Final Cleanup
     try {
       await fs.unlink(pdfPath).catch(() => { });
-      // Try to cleanup any remaining images
       const dirFiles = await fs.readdir(tempDir);
       for (const file of dirFiles) {
         if (file.startsWith(`slides-${fileId}`)) {

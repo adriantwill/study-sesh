@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { Tables } from "../types/database.types";
 import DeleteButton from "./DeleteButton";
+import { useState } from "react";
 
 interface UploadLinkProps {
   upload: Tables<"uploads">;
@@ -23,12 +24,18 @@ export default function UploadLink({
   onDragEnd,
   onDelete,
 }: UploadLinkProps) {
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+
+  function displayElement(id: string) {
+    setIsDeleting(id);
+  }
   return (
     <li
+      id={upload.id}
       draggable={draggable}
       onDragStart={() => onDragStart?.(upload.id)}
       onDragEnd={onDragEnd}
-      className={`${tree ? "py-1 pl-4" : "mt-2"} ${draggable ? "cursor-grab" : ""} ${isDragging ? "opacity-40" : ""}`}
+      className={`${isDeleting === upload.id ? "hidden" : ""} ${tree ? "py-1 pl-4" : "mt-2"} ${draggable ? "cursor-grab" : ""} ${isDragging ? "opacity-40" : ""}`}
     >
       <div className="flex min-h-12 items-center justify-between rounded-md px-2 text-lg hover:bg-background/60">
         <Link href={`/${upload.id}`} className="overflow-x-hidden text-foreground/85 transition-colors hover:text-foreground">
@@ -39,7 +46,7 @@ export default function UploadLink({
             id={upload.id}
             variant="upload"
             name={upload.filename}
-            onDelete={onDelete ? () => onDelete(upload.id) : undefined}
+            displayElement={() => displayElement(upload.id)}
           />
         </div>
       </div>

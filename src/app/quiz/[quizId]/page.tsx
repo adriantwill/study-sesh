@@ -15,7 +15,7 @@ export default async function QuizPage({
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("questions")
-    .select("id, question_text, answer_text, image_url, options")
+    .select("id, upload_id, question_text, answer_text, image_url, display_order, options")
     .eq("upload_id", quizId)
     .order("display_order", { ascending: true });
 
@@ -30,6 +30,7 @@ export default async function QuizPage({
 
   const questions = data.map((q) => ({
     id: q.id,
+    upload_id: q.upload_id ?? quizId,
     question: q.question_text,
     answer: q.answer_text,
     imageUrl: q.image_url,

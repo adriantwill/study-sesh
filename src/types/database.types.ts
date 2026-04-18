@@ -47,7 +47,7 @@ export type Database = {
         Row: {
           answer_text: string
           created_at: string | null
-          display_order: number | null
+          display_order: number
           id: string
           image_url: string | null
           ocr_text: string | null
@@ -60,7 +60,7 @@ export type Database = {
         Insert: {
           answer_text: string
           created_at?: string | null
-          display_order?: number | null
+          display_order: number
           id?: string
           image_url?: string | null
           ocr_text?: string | null
@@ -73,7 +73,7 @@ export type Database = {
         Update: {
           answer_text?: string
           created_at?: string | null
-          display_order?: number | null
+          display_order?: number
           id?: string
           image_url?: string | null
           ocr_text?: string | null
@@ -136,7 +136,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      normalize_question_display_order: {
+        Args: { p_upload_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

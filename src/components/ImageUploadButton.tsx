@@ -4,13 +4,9 @@ import { uploadImageAction } from "../app/actions";
 
 interface ImageUploadButtonProps {
   id: string;
-  onImageSelected?: (imageUrl: string) => void;
 }
 
-export default function ImageUploadButton({
-  id,
-  onImageSelected,
-}: ImageUploadButtonProps) {
+export default function ImageUploadButton({ id }: ImageUploadButtonProps) {
   return (
     <form className="flex items-center">
       <label
@@ -29,8 +25,6 @@ export default function ImageUploadButton({
         onChange={async (e) => {
           const file = e.target.files?.[0];
           if (!file) return;
-
-          onImageSelected?.(URL.createObjectURL(file));
 
           const formData = new FormData();
           formData.append("file", file);

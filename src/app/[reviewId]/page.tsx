@@ -19,7 +19,7 @@ export default async function ReviewPage({
     supabase
       .from("questions")
       .select(
-        "id, question_text, answer_text, image_url, display_order, options",
+        "id, upload_id, question_text, answer_text, image_url, display_order, options",
       )
       .eq("upload_id", reviewId)
       .order("display_order", { ascending: true }),
@@ -46,6 +46,7 @@ export default async function ReviewPage({
 
   const questions = data.map((q) => ({
     id: q.id,
+    upload_id: q.upload_id ?? reviewId,
     question: q.question_text,
     answer: q.answer_text,
     imageUrl: q.image_url,
