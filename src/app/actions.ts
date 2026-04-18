@@ -164,13 +164,20 @@ export async function updateQuestionTextAction(
   variant: EditFieldVariant,
 ) {
   const supabase = await createClient();
-  const variantToDatabase: Record<EditFieldVariant, "uploads" | "questions" | "folders"> = {
-    filename: "uploads",
-    description: "uploads",
-    folder_name: "folders",
-    question_text: "questions",
-    answer_text: "questions",
+  const variantConfig: Record<
+    EditFieldVariant,
+    {
+      table: "uploads" | "questions" | "folders";
+      column: string;
+    }
+  > = {
+    filename: { table: "uploads", column: "filename" },
+    description: { table: "uploads", column: "description" },
+    folder_name: { table: "folders", column: "name" },
+    question_text: { table: "questions", column: "question_text" },
+    answer_text: { table: "questions", column: "answer_text" },
   };
+  const { table, column } = variantConfig[variant];
 
   // if (variant === 0 || variant === 1 || variant === 2) {
   //   const { data, error: fetchError } = await supabase
@@ -198,8 +205,8 @@ export async function updateQuestionTextAction(
   //   }
   // } else {
   const { error } = await supabase
-    .from(variantToDatabase[variant])
-    .update({ [variant]: text })
+    .from(table)
+    .update({ [column]: text })
     .eq("id", id);
 
   if (error) {

@@ -41,7 +41,11 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
   const [activeFolderId, setActiveFolderId] = useState<string | null>(null);
   const [dropFolderId, setDropFolderId] = useState<string | null>(null);
   const nestedFolders = folders as FolderRow[];
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
+  function displayElement(id: string) {
+    setIsDeleting(id);
+  }
   const foldersByParentId = groupBy(
     nestedFolders,
     (folder) => folder.parent_id ?? null,
@@ -188,7 +192,7 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
     const folderUploads = uploadsByFolderId.get(folder.id) ?? [];
 
     return (
-      <div key={folder.id}>
+      <div className={`${isDeleting === folder.id ? "hidden" : ""}`} key={folder.id}>
         <li
           draggable
           onDragStart={() => handleFolderDragStart(folder.id)}
@@ -214,6 +218,7 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
             variant="folder"
             id={folder.id}
             name={folder.name}
+            displayElement={() => displayElement(folder.id)}
           />
         </li>
 

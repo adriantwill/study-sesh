@@ -21,7 +21,6 @@ function ResizableImage({ src }: { src: string }) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [aspectRatio, setAspectRatio] = useState<number | null>(null);
   const [maxHeight, setMaxHeight] = useState<number>();
-
   useEffect(() => {
     const wrapper = wrapperRef.current;
     if (!wrapper || !aspectRatio) return;
@@ -67,6 +66,11 @@ export default function Test({ questions: initialQuestions, reviewId }: TestProp
   const [previewQuestions, setPreviewQuestions] = useState(initialQuestions);
   const isAnyEditing = editingFields.size > 0;
 
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+
+  function displayElement(id: string) {
+    setIsDeleting(id);
+  }
   useEffect(() => {
     setPreviewQuestions(initialQuestions);
   }, [initialQuestions]);
@@ -123,7 +127,7 @@ export default function Test({ questions: initialQuestions, reviewId }: TestProp
     });
   }
 
-  async function handleDrop(questionId: string) {
+  async function handleDrop() {
     if (!activeId) {
       handleDragEnd();
       return;
@@ -147,19 +151,18 @@ export default function Test({ questions: initialQuestions, reviewId }: TestProp
           const nextDisplayOrder = previewQuestions[idx + 1]?.displayOrder ?? null;
 
           return (
-            <React.Fragment key={q.id}>
+            <div className={`space-y-2  ${isDeleting === q.id ? "hidden" : ""}`} key={q.id}>
               <li
                 draggable={!isAnyEditing}
                 onDragStart={() => handleDragStart(q.id)}
                 onDragEnd={handleDragEnd}
                 onDragOver={(e) => handleDragOver(e, q.id)}
-                onDrop={() => void handleDrop(q.id)}
+                onDrop={() => void handleDrop()}
                 className={`transition-[opacity,transform,box-shadow] duration-150 ${activeId === q.id
                   ? "cursor-grabbing opacity-0"
                   : ""
                   } ${dragOverId === q.id ? "scale-[1.01] shadow-lg" : ""
-                  } ${isAnyEditing ? "cursor-default" : "cursor-grab"
-                  }`}
+                  } ${isAnyEditing ? "cursor-default" : "cursor-grab"}`}
               >
                 <div className="bg-muted rounded-lg shadow p-6 flex items-start gap-4">
                   <div className="shrink-0 w-8 h-8 bg-muted-hover rounded-full flex items-center justify-center text-sm font-medium">
@@ -180,6 +183,7 @@ export default function Test({ questions: initialQuestions, reviewId }: TestProp
                         id={q.id}
                         variant="question"
                         name={q.question}
+                        displayElement={() => displayElement(q.id)}
                       />
                     </div>
                     {q.imageUrl && (
@@ -230,7 +234,7 @@ export default function Test({ questions: initialQuestions, reviewId }: TestProp
                 prevDisplayOrder={prevDisplayOrder}
                 nextDisplayOrder={nextDisplayOrder}
               />
-            </React.Fragment>
+            </div>
           );
         })}
       </ul>
