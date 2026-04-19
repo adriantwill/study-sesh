@@ -14,6 +14,14 @@ import type { DeleteButtonVariant, EditFieldVariant, StudyQuestion } from "../ty
 
 const DISPLAY_ORDER_STEP = 100;
 
+async function removePdfOrThrow(storagePath: string) {
+  const { error } = await removePdf(storagePath);
+  if (error) {
+    console.error("Error deleting PDF from storage:", error);
+    throw new Error("Failed to delete PDF from storage");
+  }
+}
+
 export async function normalizeQuestionDisplayOrder(uploadId: string) {
   const supabase = await createClient();
   const { error } = await supabase.rpc("normalize_question_display_order", {
@@ -72,7 +80,7 @@ export async function uploadRecordAction(
   if (uploadError || !upload) {
     console.error("Error inserting upload:", uploadError);
     if (storagePath) {
-      await removePdf(storagePath);
+      await removePdfOrThrow(storagePath);
     }
     throw new Error("Failed to save upload to database");
   }
@@ -98,7 +106,7 @@ export async function uploadRecordAction(
       console.error("Error inserting questions:", questionsError);
       await supabase.from("uploads").delete().eq("id", upload.id);
       if (storagePath) {
-        await removePdf(storagePath);
+        await removePdfOrThrow(storagePath);
       }
       throw new Error("Failed to save questions to database");
     }
@@ -150,12 +158,12 @@ export async function deleteItemAction(
 
       if (deleteQuestionsError) throw deleteQuestionsError;
 
+      if (upload?.storage_path) {
+        await removePdfOrThrow(upload.storage_path);
+      }
+
       const { error } = await supabase.from("uploads").delete().eq("id", id);
       if (error) throw error;
-
-      if (upload?.storage_path) {
-        await removePdf(upload.storage_path);
-      }
 
       revalidatePath("/");
     }
