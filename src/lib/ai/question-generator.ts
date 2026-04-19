@@ -39,9 +39,9 @@ export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
 
     // Process each generated image by reading the directory
     const allFiles = await fs.readdir(tempDir);
-    const imageFiles = allFiles.filter(
-      (f) => f.startsWith(`slides-${fileId}`) && f.endsWith(".png"),
-    );
+    const imageFiles = allFiles
+      .filter((f) => f.startsWith(`slides-${fileId}`) && f.endsWith(".png"))
+      .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
     const allQuestions: StudyQuestion[] = [];
 
@@ -51,6 +51,8 @@ export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
       const batchResults = await Promise.all(
         batch.map(async (fileName) => {
           const imagePath = path.join(tempDir, fileName);
+          const pageMatch = fileName.match(/-(\d+)\.png$/);
+          const pageNumber = pageMatch ? Number.parseInt(pageMatch[1], 10) : null;
 
           try {
             const imageBuffer = await fs.readFile(imagePath);
