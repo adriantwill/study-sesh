@@ -25,7 +25,7 @@ export default function AddFolder() {
       onClick={handleCreateFolder}
       disabled={isCreating}
       type="button"
-      className="hover:text-secondary cursor-pointer flex min-h-14 items-center gap-3 rounded-md px-2 text-lg transition-colors disabled:cursor-default disabled:opacity-60"
+      className="flex min-h-14 cursor-pointer items-center gap-3 rounded-md px-2 text-lg transition-colors hover:text-primary disabled:cursor-default disabled:opacity-60"
     >
       <div>
         <FolderPlus size={24} strokeWidth={1.5} className="text-foreground/80 transition-colors hover:text-foreground" />

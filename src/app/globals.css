@@ -5,21 +5,11 @@
 	--color-foreground: var(--fg);
 	--color-primary: var(--primary);
 	--color-primary-foreground: var(--primary-fg);
-	--color-secondary: var(--secondary);
-	--color-secondary-foreground: var(--secondary-fg);
-	--color-accent: var(--accent);
-	--color-accent-foreground: var(--accent-fg);
 	--color-muted: var(--muted);
 	--color-muted-foreground: var(--muted-fg);
 	--color-muted-hover: var(--muted-hover);
 	--color-border: var(--border);
-	--color-input: var(--input);
-	--color-ring: var(--ring);
-	--color-success: var(--success);
-	--color-warning: var(--warning);
-	--color-error: var(--error);
-	--color-button-primary: var(--btn-primary);
-	--color-button-primary-foreground: var(--btn-primary-fg);
+	--color-highlight: var(--highlight);
 
 	--font-sans: var(--font-faustina);
 
@@ -74,25 +64,16 @@
 }
 
 :root {
-	--bg: #fafafa;
+	--bg: #D8EBF9;
 	--fg: #171717;
 	--primary: #3b82f6;
 	--primary-fg: #ffffff;
-	--secondary: #64748b;
-	--secondary-fg: #ffffff;
-	--accent: #8b5cf6;
-	--accent-fg: #ffffff;
-	--muted: #ffffff;
+	--muted: #F4F1E2;
 	--muted-fg: #64748b;
-	--muted-hover: #f4f4f5;
+	--muted-hover: #F7F5EB;
 	--border: #d4d4d8;
-	--input: #d4d4d8;
-	--ring: #3b82f6;
-	--success: #22c55e;
-	--warning: #f59e0b;
-	--error: #ef4444;
-	--btn-primary: #000000;
-	--btn-primary-fg: #ffffff;
+	--highlight: #dbeafe;
+	--foreground: #513229;
 }
 
 /* Dark mode values */
@@ -101,22 +82,13 @@
 		--bg: #000000;
 		--fg: #fafafa;
 		--primary: #60a5fa;
-		--primary-fg: #1e293b;
-		--secondary: #64748b;
-		--secondary-fg: #f1f5f9;
-		--accent: #a78bfa;
-		--accent-fg: #1e293b;
-		--muted: #18181b;
-		--muted-fg: #a1a1aa;
-		--muted-hover: #27272a;
-		--border: #3f3f46;
-		--input: #3f3f46;
-		--ring: #60a5fa;
-		--success: #4ade80;
-		--warning: #fbbf24;
-		--error: #f87171;
-		--btn-primary: #ffffff;
-		--btn-primary-fg: #000000;
+		--primary-fg: #081120;
+		--muted: #131313;
+		--muted-fg: #ababab;
+		--muted-hover: #202020;
+		--border: #333333;
+		--highlight: #1e3a5f;
+		--foreground: #ababab;
 	}
 }
 /* Light mode values (default) */
@@ -143,13 +115,13 @@
 }
 
 .choice-border-correct::after {
-	border-color: var(--color-success, #22c55e);
+	border-color: var(--color-primary);
 	opacity: 1;
 	animation: var(--animate-choice-border-sweep);
 }
 
 .choice-border-wrong::after {
-	border-color: var(--color-error, #ef4444);
+	border-color: color-mix(in srgb, var(--color-foreground) 45%, transparent);
 	opacity: 1;
 	animation: var(--animate-choice-border-sweep);
 }

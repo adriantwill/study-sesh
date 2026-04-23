@@ -11,6 +11,11 @@ const faustina = Faustina({
 export const metadata: Metadata = {
 	title: "Study Sesh",
 	description: "Custom flashcards from your slides",
+	icons: {
+		icon: [{ url: "/logo.png", type: "image/png" }],
+		apple: [{ url: "/icon.png", type: "image/png" }],
+		shortcut: ["/icon.png"],
+	},
 };
 
 export default function RootLayout({

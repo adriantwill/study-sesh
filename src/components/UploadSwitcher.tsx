@@ -100,7 +100,7 @@ export default function UploadSwitcher() {
   }
   return (
     <div className="bg-muted rounded-lg shadow p-8 w-200 flex flex-col gap-8 min-h-0 ">
-      <div className="relative grid grid-cols-2 overflow-hidden rounded-2xl border border-muted-hover">
+      <div className="relative grid grid-cols-2 overflow-hidden rounded-2xl border border-muted">
         <span
           aria-hidden="true"
           className={`pointer-events-none absolute inset-y-0 left-0 w-1/2 rounded-2xl bg-muted-hover transition-transform duration-300 ease-out ${selectedOption === 0 ? "translate-x-0" : "translate-x-full"
@@ -121,7 +121,7 @@ export default function UploadSwitcher() {
 
       {error && ( //upload butotn below
         <div
-          className="h-28 overflow-y-auto mb-4 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-red-900 shadow-sm"
+          className="mb-4 h-28 overflow-y-auto rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-foreground shadow-sm"
           role="alert"
         >
           <p className="font-medium">Error</p>
@@ -149,7 +149,7 @@ Question 2:Answer 2`}
                 setFile(null);
                 setError(null);
               }}
-              className="text-sm text-error hover:underline"
+              className="text-sm text-primary hover:underline"
             >
               Remove
             </button>
@@ -184,7 +184,7 @@ Question 2:Answer 2`}
           type="button"
           onClick={selectedOption === 0 ? handleUpload : handleGenerate}
           disabled={loading}
-          className="w-full bg-button-primary text-button-primary-foreground py-3 rounded-[0.12rem] font-medium hover:opacity-85 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full rounded-[0.12rem] bg-primary py-3 font-medium text-primary-foreground hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-50"
           aria-label="Generate study questions from uploaded file"
         >
           {loading ? "Generating questions..." : "Generate Study Questions"}
@@ -198,7 +198,7 @@ Question 2:Answer 2`}
           </div>
           <div className="w-full bg-muted rounded-full h-2">
             <div
-              className="bg-button-primary h-2 rounded-full transition-all duration-300"
+              className="h-2 rounded-full bg-primary transition-all duration-300"
               style={{ width: `${progress}%` }}
               role="progressbar"
               aria-valuenow={Math.round(progress)}

@@ -200,7 +200,7 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
           onDragOver={(event) => handleDragOver(event, folder.id)}
           onDragLeave={(event) => handleDragLeave(event, folder.id)}
           onDrop={(event) => handleDrop(event, folder.id)}
-          className={`flex min-h-14 items-center gap-3 rounded-md px-2 text-lg transition-colors ${activeFolderId === folder.id ? "opacity-40" : ""} ${dropFolderId === folder.id ? "bg-background ring-1 ring-border" : "hover:bg-background"} cursor-grab`}
+          className={`flex min-h-14 items-center gap-3 rounded-md px-2 text-lg transition-colors ${activeFolderId === folder.id ? "opacity-40" : ""} ${dropFolderId === folder.id ? "bg-background ring-1 ring-border" : "hover:bg-muted-hover"} cursor-grab`}
         >
           <button
             type="button"

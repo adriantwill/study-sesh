@@ -127,7 +127,7 @@ export default function EditField({
           className={`box-border h-full w-full resize-none rounded border border-border bg-transparent px-0 py-0 font-medium text-foreground focus:outline-none`}
         />
       ) : (
-        <span className="box-border w-full whitespace-pre-wrap rounded border border-transparent px-0 py-0">
+        <span className="box-border w-full whitespace-pre-wrap rounded border border-transparent">
           {variant === "folder_name" ? text : parseMarkdown(text)}
         </span>
       )}
@@ -138,7 +138,7 @@ export default function EditField({
               type="button"
               onClick={applyBulletList}
               aria-label="Add bullets"
-              className="flex items-center justify-center enabled:cursor-pointer enabled:hover:text-secondary"
+              className="flex items-center justify-center enabled:cursor-pointer enabled:hover:text-primary"
             >
               <List size={16} />
             </button>
@@ -146,7 +146,7 @@ export default function EditField({
               type="button"
               onClick={() => applyFormat("**")}
               aria-label="Bold text"
-              className="flex items-center justify-center enabled:cursor-pointer enabled:hover:text-secondary"
+              className="flex items-center justify-center enabled:cursor-pointer enabled:hover:text-primary"
             >
               <Bold size={16} />
             </button>
@@ -154,7 +154,7 @@ export default function EditField({
               type="button"
               onClick={() => applyFormat("==")}
               aria-label="Highlight text"
-              className="flex items-center justify-center enabled:cursor-pointer enabled:hover:text-secondary"
+              className="flex items-center justify-center enabled:cursor-pointer enabled:hover:text-primary"
             >
               <Highlighter size={16} />
             </button>
@@ -164,7 +164,7 @@ export default function EditField({
           type="button"
           onClick={handleSave}
           aria-label={`Edit text`}
-          className="flex items-center justify-center enabled:cursor-pointer enabled:hover:text-secondary "
+          className="flex items-center justify-center enabled:cursor-pointer enabled:hover:text-primary "
         >
           {!isEditing ? <Pencil size={16} /> : <Check size={16} />}
         </button>

@@ -9,8 +9,8 @@ export default function NotesCard() {
 
   return (
     <section className="h-full w-full max-w-2xl overflow-hidden rounded-xl border border-border bg-muted shadow-sm">
-      <header className="border-b border-border bg-primary px-4 py-3">
-        <h2 className="text-2xl font-bold leading-tight text-primary-foreground">
+      <header className="border-b border-border bg-muted-hover px-4 py-3">
+        <h2 className="text-2xl font-bold leading-tight text-foreground">
           Notes
         </h2>
       </header>

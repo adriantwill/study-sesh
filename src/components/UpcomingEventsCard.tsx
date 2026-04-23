@@ -3,8 +3,8 @@ import { Sparkles } from "lucide-react";
 export default function UpcomingEventsCard() {
   return (
     <section className="flex w-80 h-full max-w-xs flex-col overflow-hidden rounded-xl border border-border bg-muted shadow-sm">
-      <header className="border-b border-border bg-primary px-4 py-3">
-        <h2 className="text-2xl font-bold leading-tight text-primary-foreground">
+      <header className="border-b border-border bg-muted-hover px-4 py-3">
+        <h2 className="text-2xl font-bold leading-tight text-foreground">
           Upcoming Events
         </h2>
       </header>

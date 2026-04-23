@@ -214,8 +214,8 @@ export default function FlashcardView({
                   type="button"
                   onClick={index === 0 ? handleComplete : handleSkip}
                   className={`text-muted-foreground p-4 rounded-full transition-all duration-200 ${index === 0
-                    ? "hover:bg-green-500/10 hover:text-green-500"
-                    : "hover:bg-red-500/10 hover:text-red-500"
+                    ? "hover:bg-primary/10 hover:text-primary"
+                    : "hover:bg-muted hover:text-foreground"
                     }`}
                 >
                   <Icon size={40} strokeWidth={2.5} />
