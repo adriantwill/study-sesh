@@ -71,13 +71,13 @@ export default async function ReviewPage({
             <div className="flex gap-6">
               <Link
                 href={`/study/${reviewId}`}
-                className="text-2xl text-primary hover:text-secondary"
+                className="text-2xl text-primary hover:text-foreground"
               >
                 Study
               </Link>
               <Link
                 href={`/quiz/${reviewId}`}
-                className="text-2xl text-primary hover:text-secondary"
+                className="text-2xl text-primary hover:text-foreground"
               >
                 Quiz
               </Link>

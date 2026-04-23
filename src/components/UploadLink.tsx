@@ -37,7 +37,7 @@ export default function UploadLink({
       onDragEnd={onDragEnd}
       className={`${isDeleting === upload.id ? "hidden" : ""} ${tree ? "py-1 pl-4" : "mt-2"} ${draggable ? "cursor-grab" : ""} ${isDragging ? "opacity-40" : ""}`}
     >
-      <div className="flex min-h-12 items-center justify-between rounded-md px-2 text-lg hover:bg-background/60">
+      <div className="flex min-h-12 items-center justify-between rounded-md px-2 text-lg hover:bg-muted-hover duration-200 py-1">
         <Link href={`/${upload.id}`} className="overflow-x-hidden text-foreground/85 transition-colors hover:text-foreground">
           {upload.filename}
         </Link>

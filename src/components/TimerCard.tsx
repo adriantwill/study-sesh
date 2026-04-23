@@ -60,8 +60,8 @@ export default function TimerCard() {
 
   return (
     <section className={`flex flex-col  w-full max-w-2xl overflow-hidden rounded-xl border border-border bg-muted shadow-sm transition-all duration-300 ease-in-out ${expand ? "h-full" : "h-13"}`}>
-      <header className="flex items-center justify-between border-b border-border bg-primary px-4 min-h-12">
-        <h2 className="text-2xl font-bold leading-tight text-primary-foreground">
+      <header className="flex min-h-12 items-center justify-between border-b border-border bg-muted-hover px-4">
+        <h2 className="text-2xl font-bold leading-tight text-foreground">
           Timer
         </h2>
         <button onClick={() => setExpand(!expand)} type="button">
@@ -138,7 +138,7 @@ export default function TimerCard() {
             setEndTime(null);
             setRemainingMs(DEFAULT_DURATION_MS);
           }}
-          className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-base font-medium text-foreground transition-colors duration-200 hover:bg-background"
+          className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-base font-medium text-foreground transition-colors duration-200 hover:bg-muted-hover"
         >
           <RotateCcw className="size-4" />
           Reset

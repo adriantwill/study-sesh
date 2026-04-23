@@ -9,7 +9,7 @@ export function parseMarkdown(text: string): (string | JSX.Element)[] {
 
   highlightSegments.forEach((segment, index) => {
     if (index % 2 === 1) {
-      parts.push(<mark key={key++} className="rounded bg-yellow-200 px-0.5 text-inherit">{segment}</mark>);
+      parts.push(<mark key={key++} className="rounded bg-highlight px-0.5 text-inherit">{segment}</mark>);
     } else {
       const boldRegex = /\*\*(.+?)\*\*/g;
       const boldSegments = segment.split(boldRegex);

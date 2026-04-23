@@ -12,7 +12,7 @@ export default function ImageUploadButton({ id }: ImageUploadButtonProps) {
       <label
         htmlFor={`file-upload-${id}`}
         aria-label="Upload image"
-        className={`flex items-center justify-center cursor-pointer hover:text-secondary`}
+        className={`flex items-center justify-center cursor-pointer hover:text-primary`}
       >
         <ImageIcon size={16} />
       </label>
