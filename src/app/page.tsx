@@ -1,5 +1,6 @@
 import { ArrowDown } from "lucide-react";
 
+import BrandMark from "../components/BrandMark";
 import FoldersList from "../components/FoldersList";
 import UploadSwitcher from "../components/UploadSwitcher";
 import { createClient } from "../lib/supabase/server";
@@ -22,7 +23,10 @@ export default async function Home() {
     <main>
       <section className="min-h-screen flex items-center flex-col justify-center ">
         <div className="absolute top-8 text-center space-y-4">
-          <h1 className=" text-5xl font-bold text-foreground">Study Sesh</h1>
+          <h1 className="flex items-center justify-center gap-3 text-5xl font-bold text-foreground">
+            <span>Study Sesh</span>
+            <BrandMark size={54} className="translate-y-0.5" />
+          </h1>
           <p className=" text-muted-foreground text-xl">
             Upload PowerPoint PDF to generate study questions
           </p>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import BrandMark from "../../components/BrandMark";
 import EditField from "../../components/EditField";
 import FlashcardView from "../../components/FlashcardView";
 import Test from "../../components/Test";
@@ -65,7 +66,9 @@ export default async function ReviewPage({
         <div className="space-y-2">
           <div className="flex justify-between items-center ">
             <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
-              <Link href="/">🏠</Link>
+              <Link href="/" aria-label="Go to home page">
+                <BrandMark size={32} />
+              </Link>
               <EditField variant="filename" textField={title} id={reviewId} />
             </h1>
             <div className="flex gap-6">
