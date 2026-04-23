@@ -127,7 +127,7 @@ export default function EditField({
           className={`box-border h-full w-full resize-none rounded border border-border bg-transparent px-0 py-0 font-medium text-foreground focus:outline-none`}
         />
       ) : (
-        <span className="box-border w-full whitespace-pre-wrap rounded border border-transparent px-0 py-0">
+        <span className="box-border w-full whitespace-pre-wrap rounded border border-transparent">
           {variant === "folder_name" ? text : parseMarkdown(text)}
         </span>
       )}
