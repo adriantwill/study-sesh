@@ -47,11 +47,13 @@ export type Database = {
         Row: {
           answer_text: string
           created_at: string | null
-          display_order: number
+          deleted: boolean
+          display_order: number | null
           id: string
           image_url: string | null
           ocr_text: string | null
           options: string[]
+          original_answer_text: string | null
           original_question_text: string | null
           page_number: number | null
           question_text: string
@@ -60,11 +62,13 @@ export type Database = {
         Insert: {
           answer_text: string
           created_at?: string | null
-          display_order: number
+          deleted?: boolean
+          display_order?: number | null
           id?: string
           image_url?: string | null
           ocr_text?: string | null
           options?: string[]
+          original_answer_text?: string | null
           original_question_text?: string | null
           page_number?: number | null
           question_text: string
@@ -73,11 +77,13 @@ export type Database = {
         Update: {
           answer_text?: string
           created_at?: string | null
-          display_order?: number
+          deleted?: boolean
+          display_order?: number | null
           id?: string
           image_url?: string | null
           ocr_text?: string | null
           options?: string[]
+          original_answer_text?: string | null
           original_question_text?: string | null
           page_number?: number | null
           question_text?: string

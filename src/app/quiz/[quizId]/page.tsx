@@ -17,6 +17,7 @@ export default async function QuizPage({
     .from("questions")
     .select("id, upload_id, question_text, answer_text, image_url, display_order, options")
     .eq("upload_id", quizId)
+    .eq("deleted", false)
     .order("display_order", { ascending: true });
 
   if (error) {

@@ -19,6 +19,7 @@ export default async function StudyPage({
 					"id, upload_id, question_text, answer_text, image_url, display_order",
 				)
 				.eq("upload_id", studyId)
+				.eq("deleted", false)
 				.order("display_order", { ascending: true }),
 			supabase.from("uploads").select("filename").eq("id", studyId).single(),
 		]);

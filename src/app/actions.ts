@@ -92,6 +92,7 @@ export async function uploadRecordAction(
       question_text: q.question,
       original_question_text: q.originalQuestion ?? q.question,
       answer_text: q.answer,
+      original_answer_text: q.originalAnswer ?? q.answer,
       page_number: q.pageNumber ?? null,
       ocr_text: q.ocrText ?? null,
       display_order: (idx + 1) * DISPLAY_ORDER_STEP,
@@ -123,7 +124,10 @@ export async function deleteItemAction(
 
   try {
     if (variant === "question") {
-      const { error } = await supabase.from("questions").delete().eq("id", id);
+      const { error } = await supabase
+        .from("questions")
+        .update({ deleted: true })
+        .eq("id", id);
       if (error) throw error;
       revalidatePath("/[reviewId]", "page");
     } else if (variant === "folder") {
@@ -292,6 +296,7 @@ export async function addQuestionAction(
       question_text: "Untitled Question",
       original_question_text: "User Added Question",
       answer_text: "Untitled Answer",
+      original_answer_text: "Untitled Answer",
       page_number: null,
       ocr_text: null,
       display_order: displayOrder,

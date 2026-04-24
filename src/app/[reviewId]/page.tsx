@@ -23,6 +23,7 @@ export default async function ReviewPage({
         "id, upload_id, question_text, answer_text, image_url, display_order, options",
       )
       .eq("upload_id", reviewId)
+      .eq("deleted", false)
       .order("display_order", { ascending: true }),
     supabase
       .from("uploads")
