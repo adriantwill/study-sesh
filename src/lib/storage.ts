@@ -2,7 +2,7 @@ import { createClient } from "./supabase/server";
 
 const QUESTION_IMAGES_BUCKET = "question-images";
 const PDFS_BUCKET = "pdfs";
-const TABLE_UPLOADS_BUCKET = "table-uploads";
+const TABLE_UPLOADS_BUCKET = "spreadsheets";
 
 export async function uploadFile(
 	bucket: string,

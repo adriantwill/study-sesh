@@ -2,7 +2,11 @@
 import { FileUp } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { uploadAndGenerateAction, uploadRecordAction } from "../app/actions";
+import {
+  uploadAndGenerateAction,
+  uploadRecordAction,
+  uploadTableAction,
+} from "../app/actions";
 import type { StudyQuestion } from "../types";
 
 export default function UploadSwitcher() {
@@ -59,6 +63,42 @@ export default function UploadSwitcher() {
       setLoading(false);
     }
   };
+
+  async function handleTableUpload() {
+    if (!file) return;
+    setLoading(true);
+    setError(null);
+
+    const formData = new FormData();
+    formData.append("xlsx", file);
+
+    try {
+      await uploadTableAction(formData);
+      setFile(null);
+    } catch (err) {
+      console.error("Table upload error:", err);
+      setError(
+        err instanceof Error ? err.message : "Failed to upload table",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleSubmit() {
+    if (selectedOption === 0) {
+      await handleUpload();
+      return;
+    }
+
+    if (selectedOption === 1) {
+      await handleGenerate();
+      return;
+    }
+
+    await handleTableUpload();
+  }
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
       setFile(e.target.files[0]);
@@ -209,12 +249,15 @@ Question 2:Answer 2`}
       >
         <button
           type="button"
-          onClick={selectedOption === 0 ? handleUpload : handleGenerate}
-          disabled={loading || showGenerateButton}
+          onClick={handleSubmit}
+          disabled={loading}
           className="w-full rounded-[0.12rem] bg-primary py-3 font-medium text-primary-foreground hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-50"
           aria-label="Generate study questions from uploaded file"
         >
-          {loading ? "Generating questions..." : "Generate Study Questions"}
+          {loading && selectedOption === 2 && "Uploading table..."}
+          {loading && selectedOption !== 2 && "Generating questions..."}
+          {!loading && selectedOption === 2 && "Upload Table"}
+          {!loading && selectedOption !== 2 && "Generate Study Questions"}
         </button>
       </div>
       {loading && selectedOption === 0 && (
