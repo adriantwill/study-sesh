@@ -2,6 +2,7 @@ import { createClient } from "./supabase/server";
 
 const QUESTION_IMAGES_BUCKET = "question-images";
 const PDFS_BUCKET = "pdfs";
+const TABLE_UPLOADS_BUCKET = "table-uploads";
 
 export async function uploadFile(
 	bucket: string,
@@ -23,6 +24,10 @@ export async function uploadPdf(path: string, file: File) {
 	return uploadFile(PDFS_BUCKET, path, file);
 }
 
+export async function uploadTableFile(path: string, file: File) {
+	return uploadFile(TABLE_UPLOADS_BUCKET, path, file);
+}
+
 export async function removeFile(
 	bucket: string,
 	path: string,
@@ -36,6 +41,10 @@ export async function removeFile(
 
 export async function removePdf(path: string) {
 	return removeFile(PDFS_BUCKET, path);
+}
+
+export async function removeTableFile(path: string) {
+	return removeFile(TABLE_UPLOADS_BUCKET, path);
 }
 
 export async function getPublicUrl(

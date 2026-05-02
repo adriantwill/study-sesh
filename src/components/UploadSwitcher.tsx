@@ -143,10 +143,14 @@ export default function UploadSwitcher() {
         </div>
       )}
       <div
-        className={`border-dashed border-2 border-border rounded-lg transition-all duration-300 ease-out h-56 ${selectedOption === 1 ? " p-0" : "p-12 text-center"
-          }`}
+        className="relative h-56 overflow-hidden rounded-lg border-2 border-dashed border-border transition-all duration-300 ease-out"
       >
-        {selectedOption === 1 ? (
+        <div
+          className={`absolute inset-0 transition-all duration-300 ease-out ${selectedOption === 1
+            ? "translate-y-0 opacity-100"
+            : "pointer-events-none translate-y-2 opacity-0"
+            }`}
+        >
           <textarea
             className="h-full w-full resize-none rounded-lg bg-transparent p-4 outline-none"
             value={textInput}
@@ -154,39 +158,48 @@ export default function UploadSwitcher() {
             placeholder={`Question 1:Answer 1
 Question 2:Answer 2`}
           />
-        ) : file ? (
-          <div className="flex h-full flex-col items-center justify-center">
-            <p className="text-sm text-muted-foreground mb-4">{file.name}</p>
-            <button
-              type="button"
-              onClick={() => {
-                setFile(null);
-                setError(null);
-              }}
-              className="text-sm text-primary hover:underline"
-            >
-              Remove
-            </button>
-          </div>
-        ) : (
-          <div className="flex h-full items-center justify-center">
-            <input
-              type="file"
-              accept={fileAccept}
-              onChange={handleFileChange}
-              className="hidden"
-              id={fileInputId}
-              aria-label={fileAriaLabel}
-            />
-            <label
-              htmlFor={fileInputId}
-              className="cursor-pointer text-muted-foreground hover:text-foreground flex flex-col items-center"
-            >
-              <FileUp size={16} className="mb-4" />
-              <div className="font-medium">{fileLabel}</div>
-            </label>
-          </div>
-        )}
+        </div>
+
+        <div
+          className={`absolute inset-0 p-12 text-center transition-all duration-300 ease-out ${selectedOption !== 1
+            ? "translate-y-0 opacity-100"
+            : "pointer-events-none -translate-y-2 opacity-0"
+            }`}
+        >
+          {file ? (
+            <div className="flex h-full flex-col items-center justify-center">
+              <p className="text-sm text-muted-foreground mb-4">{file.name}</p>
+              <button
+                type="button"
+                onClick={() => {
+                  setFile(null);
+                  setError(null);
+                }}
+                className="text-sm text-primary hover:underline"
+              >
+                Remove
+              </button>
+            </div>
+          ) : (
+            <div className="flex h-full items-center justify-center">
+              <input
+                type="file"
+                accept={fileAccept}
+                onChange={handleFileChange}
+                className="hidden"
+                id={fileInputId}
+                aria-label={fileAriaLabel}
+              />
+              <label
+                htmlFor={fileInputId}
+                className="cursor-pointer text-muted-foreground hover:text-foreground flex flex-col items-center"
+              >
+                <FileUp size={16} className="mb-4" />
+                <div className="font-medium">{fileLabel}</div>
+              </label>
+            </div>
+          )}
+        </div>
       </div>
       <div
         className={`origin-center overflow-hidden transition-all duration-300 ease-out ${showGenerateButton
