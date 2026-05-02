@@ -1,6 +1,7 @@
 import { ArrowDown } from "lucide-react";
 
 import BrandMark from "../components/BrandMark";
+import FlashcardsToolButton from "../components/FlashcardsToolButton";
 import FoldersList from "../components/FoldersList";
 import UploadSwitcher from "../components/UploadSwitcher";
 import { createClient } from "../lib/supabase/server";
@@ -37,7 +38,7 @@ export default async function Home() {
       <hr className="border-border" />
       <section className="min-h-screen max-h-screen flex flex-col p-8 items-center">
         <div className="gap-8 h-screen min-h-0 flex flex-col">
-          <h2 className="text-3xl font-bold ">Your Tools</h2>
+          <FlashcardsToolButton />
           <div className="bg-muted flex flex-1 min-h-0 flex-col rounded-sm shadow w-200">
             <ul className="flex-1 min-h-0 flex flex-col overflow-y-auto px-6 py-4">
               <FoldersList folders={folders ?? []} uploads={data} />
