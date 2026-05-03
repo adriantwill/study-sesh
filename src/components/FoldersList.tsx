@@ -67,6 +67,34 @@ export default function FoldersList({ folders, uploads, tables }: FoldersListPro
   const rootUploads = uploads.filter((upload) => upload.folder_id === null);
   const rootTables = tables.filter((table) => table.folder_id === null);
   const rootFolders = foldersByParentId.get(null) ?? [];
+  const visibleFolderIds = new Set<string>();
+  const visibilityMemo = new Map<string, boolean>();
+
+  function folderIsVisible(folderId: string): boolean {
+    const cached = visibilityMemo.get(folderId);
+    if (cached !== undefined) return cached;
+
+    const childFolders = foldersByParentId.get(folderId) ?? [];
+    const hasActiveFiles =
+      activeTool === "flashcards"
+        ? uploadsByFolderId.has(folderId)
+        : tablesByFolderId.has(folderId);
+    const hasAnyFiles =
+      uploadsByFolderId.has(folderId) || tablesByFolderId.has(folderId);
+    const hasVisibleChild = childFolders.some((childFolder) =>
+      folderIsVisible(childFolder.id),
+    );
+    const isEmpty = !hasAnyFiles && childFolders.length === 0;
+    const isVisible = hasActiveFiles || hasVisibleChild || isEmpty;
+
+    visibilityMemo.set(folderId, isVisible);
+    if (isVisible) visibleFolderIds.add(folderId);
+    return isVisible;
+  }
+
+  for (const folder of nestedFolders) {
+    folderIsVisible(folder.id);
+  }
 
   function toggleFolder(folderId: string) {
     setOpenFolderIds((current) => {
@@ -256,7 +284,9 @@ export default function FoldersList({ folders, uploads, tables }: FoldersListPro
               ? folderUploads.map((upload) => renderUpload(upload, true))
               : folderTables.map((table) => renderTable(table, true))}
 
-            {childFolders.map(renderFolder)}
+            {childFolders
+              .filter((folder) => visibleFolderIds.has(folder.id))
+              .map(renderFolder)}
           </ul>
         </div>
         {!folder.parent_id && <hr className="mt-2 border-border/50" />}
@@ -271,7 +301,9 @@ export default function FoldersList({ folders, uploads, tables }: FoldersListPro
         <ul className="flex-1 min-h-0 flex flex-col overflow-y-auto px-6 py-4">
 
           <div className="transition-transform duration-300 space-y-2">
-            {rootFolders.map(renderFolder)}
+            {rootFolders
+              .filter((folder) => visibleFolderIds.has(folder.id))
+              .map(renderFolder)}
           </div>
           <AddFolder />
           <ul
