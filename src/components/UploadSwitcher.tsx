@@ -2,18 +2,34 @@
 import { FileUp } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { uploadAndGenerateAction, uploadRecordAction } from "../app/actions";
+import {
+  uploadAndGenerateAction,
+  uploadRecordAction,
+  uploadTableAction,
+} from "../app/actions";
 import type { StudyQuestion } from "../types";
 
 export default function UploadSwitcher() {
-  const [selectedOption, setSelectedOption] = useState<0 | 1>(0);
+  const [selectedOption, setSelectedOption] = useState<0 | 1 | 2>(0);
   const [file, setFile] = useState<File | null>(null);
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [textInput, setTextInput] = useState("");
-  const showGenerateButton = Boolean(file) || (textInput.trim().length > 0 && selectedOption === 1);
+  const showGenerateButton = (selectedOption !== 1 && Boolean(file)) || (textInput.trim().length > 0 && selectedOption === 1);
+  const fileAccept = selectedOption === 2
+    ? ".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    : "application/pdf";
+  const fileInputId = selectedOption === 2 ? "xlsx-upload" : "pdf-upload";
+  const fileLabel = selectedOption === 2 ? "Click to upload xlsx" : "Click to upload pdf";
+  const fileAriaLabel = selectedOption === 2 ? "Upload xlsx file" : "Upload pdf file";
+
+  function selectOption(option: 0 | 1 | 2) {
+    setSelectedOption(option);
+    setFile(null);
+    setError(null);
+  }
 
   async function handleUpload() {
     if (!file) return;
@@ -47,6 +63,42 @@ export default function UploadSwitcher() {
       setLoading(false);
     }
   };
+
+  async function handleTableUpload() {
+    if (!file) return;
+    setLoading(true);
+    setError(null);
+
+    const formData = new FormData();
+    formData.append("xlsx", file);
+
+    try {
+      await uploadTableAction(formData);
+      setFile(null);
+    } catch (err) {
+      console.error("Table upload error:", err);
+      setError(
+        err instanceof Error ? err.message : "Failed to upload table",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleSubmit() {
+    if (selectedOption === 0) {
+      await handleUpload();
+      return;
+    }
+
+    if (selectedOption === 1) {
+      await handleGenerate();
+      return;
+    }
+
+    await handleTableUpload();
+  }
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
       setFile(e.target.files[0]);
@@ -100,21 +152,23 @@ export default function UploadSwitcher() {
   }
   return (
     <div className="bg-muted rounded-lg shadow p-8 w-200 flex flex-col gap-8 min-h-0 ">
-      <div className="relative grid grid-cols-2 overflow-hidden rounded-2xl border border-muted">
+      <div className="relative grid grid-cols-3 overflow-hidden rounded-2xl border border-muted">
         <span
           aria-hidden="true"
-          className={`pointer-events-none absolute inset-y-0 left-0 w-1/2 rounded-2xl bg-muted-hover transition-transform duration-300 ease-out ${selectedOption === 0 ? "translate-x-0" : "translate-x-full"
-            }`}
+          className="pointer-events-none absolute inset-y-0 left-0 w-1/3 rounded-2xl bg-muted-hover transition-transform duration-300 ease-out"
+          style={{ transform: `translateX(${selectedOption * 100}%)` }}
         />
-        {([0, 1] as const).map((option) => (
+        {([0, 1, 2] as const).map((option) => (
           <button
             key={option}
             className={`relative z-10 text-foreground py-2 w-full cursor-pointer rounded-2xl transition-colors duration-200 ${selectedOption === option ? "text-foreground" : "text-foreground/70"
               }`}
-            onClick={() => setSelectedOption(option)}
+            onClick={() => selectOption(option)}
             type="button"
           >
-            {option === 0 ? "PDF" : "Text"} to Questions
+            {option === 0 && "PDF to Questions"}
+            {option === 1 && "Text to Questions"}
+            {option === 2 && "XLSX to Table"}
           </button>
         ))}
       </div>
@@ -129,10 +183,14 @@ export default function UploadSwitcher() {
         </div>
       )}
       <div
-        className={`border-dashed border-2 border-border rounded-lg transition-all duration-300 ease-out ${selectedOption === 1 ? "h-64 p-0" : "h-48 p-12 text-center"
-          }`}
+        className="relative h-56 overflow-hidden rounded-lg border-2 border-dashed border-border transition-all duration-300 ease-out"
       >
-        {selectedOption === 1 ? (
+        <div
+          className={`absolute inset-0 transition-all duration-300 ease-out ${selectedOption === 1
+            ? "translate-y-0 opacity-100"
+            : "pointer-events-none translate-y-2 opacity-0"
+            }`}
+        >
           <textarea
             className="h-full w-full resize-none rounded-lg bg-transparent p-4 outline-none"
             value={textInput}
@@ -140,39 +198,48 @@ export default function UploadSwitcher() {
             placeholder={`Question 1:Answer 1
 Question 2:Answer 2`}
           />
-        ) : file ? (
-          <div className="flex h-full flex-col items-center justify-center">
-            <p className="text-sm text-muted-foreground mb-4">{file.name}</p>
-            <button
-              type="button"
-              onClick={() => {
-                setFile(null);
-                setError(null);
-              }}
-              className="text-sm text-primary hover:underline"
-            >
-              Remove
-            </button>
-          </div>
-        ) : (
-          <div className="flex h-full items-center justify-center">
-            <input
-              type="file"
-              accept="application/pdf"
-              onChange={handleFileChange}
-              className="hidden"
-              id="pdf-upload"
-              aria-label="Upload pdf file"
-            />
-            <label
-              htmlFor="pdf-upload"
-              className="cursor-pointer text-muted-foreground hover:text-foreground flex flex-col items-center"
-            >
-              <FileUp size={16} className="mb-4" />
-              <div className="font-medium">Click to upload pdf</div>
-            </label>
-          </div>
-        )}
+        </div>
+
+        <div
+          className={`absolute inset-0 p-12 text-center transition-all duration-300 ease-out ${selectedOption !== 1
+            ? "translate-y-0 opacity-100"
+            : "pointer-events-none -translate-y-2 opacity-0"
+            }`}
+        >
+          {file ? (
+            <div className="flex h-full flex-col items-center justify-center">
+              <p className="text-sm text-muted-foreground mb-4">{file.name}</p>
+              <button
+                type="button"
+                onClick={() => {
+                  setFile(null);
+                  setError(null);
+                }}
+                className="text-sm text-primary hover:underline"
+              >
+                Remove
+              </button>
+            </div>
+          ) : (
+            <div className="flex h-full items-center justify-center">
+              <input
+                type="file"
+                accept={fileAccept}
+                onChange={handleFileChange}
+                className="hidden"
+                id={fileInputId}
+                aria-label={fileAriaLabel}
+              />
+              <label
+                htmlFor={fileInputId}
+                className="cursor-pointer text-muted-foreground hover:text-foreground flex flex-col items-center"
+              >
+                <FileUp size={16} className="mb-4" />
+                <div className="font-medium">{fileLabel}</div>
+              </label>
+            </div>
+          )}
+        </div>
       </div>
       <div
         className={`origin-center overflow-hidden transition-all duration-300 ease-out ${showGenerateButton
@@ -182,12 +249,15 @@ Question 2:Answer 2`}
       >
         <button
           type="button"
-          onClick={selectedOption === 0 ? handleUpload : handleGenerate}
+          onClick={handleSubmit}
           disabled={loading}
           className="w-full rounded-[0.12rem] bg-primary py-3 font-medium text-primary-foreground hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-50"
           aria-label="Generate study questions from uploaded file"
         >
-          {loading ? "Generating questions..." : "Generate Study Questions"}
+          {loading && selectedOption === 2 && "Uploading table..."}
+          {loading && selectedOption !== 2 && "Generating questions..."}
+          {!loading && selectedOption === 2 && "Upload Table"}
+          {!loading && selectedOption !== 2 && "Generate Study Questions"}
         </button>
       </div>
       {loading && selectedOption === 0 && (

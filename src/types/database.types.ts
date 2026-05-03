@@ -99,6 +99,44 @@ export type Database = {
           },
         ]
       }
+      table_uploads: {
+        Row: {
+          created_at: string | null
+          filename: string
+          folder_id: string | null
+          id: string
+          parsed_data: Json | null
+          storage_path: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          filename: string
+          folder_id?: string | null
+          id?: string
+          parsed_data?: Json | null
+          storage_path: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          filename?: string
+          folder_id?: string | null
+          id?: string
+          parsed_data?: Json | null
+          storage_path?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "table_uploads_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       uploads: {
         Row: {
           created_at: string | null

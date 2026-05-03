@@ -8,6 +8,7 @@ import { createClient } from "../lib/supabase/server";
 export default async function Home() {
   const supabase = await createClient();
   const { data, error } = await supabase.from("uploads").select().order('filename');
+  const { data: tables, error: tablesError } = await supabase.from("table_uploads").select().order('filename');
   const { data: folders } = await supabase.from("folders").select().order('created_at');
 
   if (error) {
@@ -15,7 +16,12 @@ export default async function Home() {
     throw new Error("Failed to load uploads");
   }
 
-  if (!data) {
+  if (tablesError) {
+    console.error("Error fetching tables:", tablesError);
+    throw new Error("Failed to load tables");
+  }
+
+  if (!data || !tables || !folders) {
     throw new Error("No data returned from database");
   }
 
@@ -37,12 +43,7 @@ export default async function Home() {
       <hr className="border-border" />
       <section className="min-h-screen max-h-screen flex flex-col p-8 items-center">
         <div className="gap-8 h-screen min-h-0 flex flex-col">
-          <h2 className="text-3xl font-bold ">Your Tools</h2>
-          <div className="bg-muted flex flex-1 min-h-0 flex-col rounded-sm shadow w-200">
-            <ul className="flex-1 min-h-0 flex flex-col overflow-y-auto px-6 py-4">
-              <FoldersList folders={folders ?? []} uploads={data} />
-            </ul>
-          </div>
+          <FoldersList folders={folders ?? []} uploads={data} tables={tables} />
         </div>
       </section>
     </main>

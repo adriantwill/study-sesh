@@ -1,12 +1,6 @@
 import type { Metadata } from "next";
-import { Faustina } from "next/font/google";
 import ChunkErrorHandler from "@/src/components/ChunkErrorHandler";
 import "./globals.css";
-
-const faustina = Faustina({
-	variable: "--font-faustina",
-	subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
 	title: "Study Sesh",
@@ -25,9 +19,7 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="en" className="snap-y snap-mandatory">
-			<body
-				className={`bg-background text-foreground font-sans ${faustina.variable} antialiased`}
-			>
+			<body className="bg-background text-foreground font-sans antialiased">
 				<ChunkErrorHandler />
 				{children}
 			</body>

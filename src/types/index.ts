@@ -13,3 +13,4 @@ export interface StudyQuestion {
 }
 export type EditFieldVariant = "question_text" | "answer_text" | "folder_name" | "filename" | "description"
 export type DeleteButtonVariant = "question" | "upload" | "folder"
+export type ToolView = "flashcards" | "tables";

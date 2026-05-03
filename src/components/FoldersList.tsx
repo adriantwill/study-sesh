@@ -1,5 +1,6 @@
 "use client";
 import * as lucideReact from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import {
   updateParentAction,
@@ -8,11 +9,14 @@ import type { Tables } from "../types/database.types";
 import AddFolder from "./AddFolder";
 import DeleteButton from "./DeleteButton";
 import EditField from "./EditField";
+import FlashcardsToolButton from "./FlashcardsToolButton";
 import UploadLink from "./UploadLink";
+import type * as types from "../types";
 
 interface FoldersListProps {
   folders: Tables<"folders">[];
   uploads: Tables<"uploads">[];
+  tables: Tables<"table_uploads">[];
 }
 
 const ROOT_DROP_ID = "__root__";
@@ -35,13 +39,15 @@ function groupBy<T, K>(items: T[], getKey: (item: T) => K) {
   return groups;
 }
 
-export default function FoldersList({ folders, uploads }: FoldersListProps) {
+export default function FoldersList({ folders, uploads, tables }: FoldersListProps) {
   const [openFolderIds, setOpenFolderIds] = useState<Set<string>>(new Set());
   const [activeUploadId, setActiveUploadId] = useState<string | null>(null);
   const [activeFolderId, setActiveFolderId] = useState<string | null>(null);
   const [dropFolderId, setDropFolderId] = useState<string | null>(null);
   const nestedFolders = folders as FolderRow[];
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [activeTool, setActiveTool] = useState<types.ToolView>("flashcards");
+
 
   function displayElement(id: string) {
     setIsDeleting(id);
@@ -55,8 +61,41 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
     uploads.filter((upload) => upload.folder_id !== null),
     (upload) => upload.folder_id!,
   );
+  const tablesByFolderId = groupBy(
+    tables.filter((table) => table.folder_id !== null),
+    (table) => table.folder_id!,
+  );
   const rootUploads = uploads.filter((upload) => upload.folder_id === null);
+  const rootTables = tables.filter((table) => table.folder_id === null);
   const rootFolders = foldersByParentId.get(null) ?? [];
+  const visibleFolderIds = new Set<string>();
+  const visibilityMemo = new Map<string, boolean>();
+
+  function folderIsVisible(folderId: string): boolean {
+    const cached = visibilityMemo.get(folderId);
+    if (cached !== undefined) return cached;
+
+    const childFolders = foldersByParentId.get(folderId) ?? [];
+    const hasActiveFiles =
+      activeTool === "flashcards"
+        ? uploadsByFolderId.has(folderId)
+        : tablesByFolderId.has(folderId);
+    const hasAnyFiles =
+      uploadsByFolderId.has(folderId) || tablesByFolderId.has(folderId);
+    const hasVisibleChild = childFolders.some((childFolder) =>
+      folderIsVisible(childFolder.id),
+    );
+    const isEmpty = !hasAnyFiles && childFolders.length === 0;
+    const isVisible = hasActiveFiles || hasVisibleChild || isEmpty;
+
+    visibilityMemo.set(folderId, isVisible);
+    if (isVisible) visibleFolderIds.add(folderId);
+    return isVisible;
+  }
+
+  for (const folder of nestedFolders) {
+    folderIsVisible(folder.id);
+  }
 
   function toggleFolder(folderId: string) {
     setOpenFolderIds((current) => {
@@ -185,11 +224,30 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
     );
   }
 
+  function renderTable(table: Tables<"table_uploads">, tree = false) {
+    return (
+      <li
+        key={table.id}
+        className={`${tree ? "py-1 pl-4" : "mt-2"}`}
+      >
+        <div className="flex min-h-12 items-center justify-between rounded-md px-2 py-1 text-lg duration-200 hover:bg-muted-hover">
+          <Link
+            href={`/tables/${table.id}`}
+            className="overflow-x-hidden text-foreground/85 transition-colors hover:text-foreground"
+          >
+            {table.filename}
+          </Link>
+        </div>
+      </li>
+    );
+  }
+
   function renderFolder(folder: FolderRow) {
     const isOpen = openFolderIds.has(folder.id);
     const FolderIcon = isOpen ? lucideReact.FolderOpen : lucideReact.Folder;
     const childFolders = foldersByParentId.get(folder.id) ?? [];
     const folderUploads = uploadsByFolderId.get(folder.id) ?? [];
+    const folderTables = tablesByFolderId.get(folder.id) ?? [];
 
     return (
       <div className={`${isDeleting === folder.id ? "hidden" : ""}`} key={folder.id}>
@@ -226,9 +284,13 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
           className={`grid transition-all duration-200 ${isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
         >
           <ul className="ml-3 overflow-hidden">
-            {folderUploads.map((upload) => renderUpload(upload, true))}
+            {activeTool === "flashcards"
+              ? folderUploads.map((upload) => renderUpload(upload, true))
+              : folderTables.map((table) => renderTable(table, true))}
 
-            {childFolders.map(renderFolder)}
+            {childFolders
+              .filter((folder) => visibleFolderIds.has(folder.id))
+              .map(renderFolder)}
           </ul>
         </div>
         {!folder.parent_id && <hr className="mt-2 border-border/50" />}
@@ -238,20 +300,28 @@ export default function FoldersList({ folders, uploads }: FoldersListProps) {
 
   return (
     <>
-      <div className="transition-transform duration-300 space-y-2">
-        {rootFolders.map(renderFolder)}
+      <FlashcardsToolButton activeTool={activeTool} onChange={setActiveTool} />
+      <div className="bg-muted flex flex-1 min-h-0 flex-col rounded-sm shadow w-200">
+        <ul className="flex-1 min-h-0 flex flex-col overflow-y-auto px-6 py-4">
+
+          <div className="transition-transform duration-300 space-y-2">
+            {rootFolders
+              .filter((folder) => visibleFolderIds.has(folder.id))
+              .map(renderFolder)}
+          </div>
+          <AddFolder />
+          <ul
+            onDragOver={(event) => handleDragOver(event, null)}
+            onDragLeave={(event) => handleDragLeave(event, null)}
+            onDrop={(event) => handleDrop(event, null)}
+            className={`flex-1 min-h-14 rounded-md transition-colors ${dropFolderId === ROOT_DROP_ID ? "bg-background/60 ring-1 ring-border" : ""}`}
+          >
+            {activeTool === "flashcards"
+              ? rootUploads.map((upload) => renderUpload(upload))
+              : rootTables.map((table) => renderTable(table))}
+          </ul>
+        </ul>
       </div>
-      <AddFolder />
-      <ul
-        onDragOver={(event) => handleDragOver(event, null)}
-        onDragLeave={(event) => handleDragLeave(event, null)}
-        onDrop={(event) => handleDrop(event, null)}
-        className={`flex-1 min-h-14 rounded-md transition-colors ${dropFolderId === ROOT_DROP_ID ? "bg-background/60 ring-1 ring-border" : ""}`}
-      >
-        {rootUploads.map((upload) =>
-          renderUpload(upload),
-        )}
-      </ul>
     </>
   );
 }
