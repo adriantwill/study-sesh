@@ -12,6 +12,8 @@ import {
   uploadTableFile,
 } from "../lib/storage";
 import { createClient } from "../lib/supabase/server";
+import { parseXlsxTable } from "../lib/xlsx-table";
+import type { Json } from "../types/database.types";
 import type { DeleteButtonVariant, EditFieldVariant, StudyQuestion } from "../types";
 
 const DISPLAY_ORDER_STEP = 100;
@@ -59,6 +61,7 @@ export async function uploadTableAction(formData: FormData) {
   const supabase = await createClient();
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
   const storagePath = `${crypto.randomUUID()}-${safeName}`;
+  const parsedTable = parseXlsxTable(await file.arrayBuffer());
 
   const { error: storageError } = await uploadTableFile(storagePath, file);
   if (storageError) {
@@ -70,6 +73,7 @@ export async function uploadTableAction(formData: FormData) {
     .from("table_uploads")
     .insert({
       filename: file.name,
+      parsed_data: parsedTable as unknown as Json,
       storage_path: storagePath,
     })
     .select()

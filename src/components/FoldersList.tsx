@@ -1,5 +1,6 @@
 "use client";
 import * as lucideReact from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import {
   updateParentAction,
@@ -230,9 +231,12 @@ export default function FoldersList({ folders, uploads, tables }: FoldersListPro
         className={`${tree ? "py-1 pl-4" : "mt-2"}`}
       >
         <div className="flex min-h-12 items-center justify-between rounded-md px-2 py-1 text-lg duration-200 hover:bg-muted-hover">
-          <span className="overflow-x-hidden text-foreground/85">
+          <Link
+            href={`/tables/${table.id}`}
+            className="overflow-x-hidden text-foreground/85 transition-colors hover:text-foreground"
+          >
             {table.filename}
-          </span>
+          </Link>
         </div>
       </li>
     );

@@ -105,6 +105,7 @@ export type Database = {
           filename: string
           folder_id: string | null
           id: string
+          parsed_data: Json | null
           storage_path: string
           user_id: string | null
         }
@@ -113,6 +114,7 @@ export type Database = {
           filename: string
           folder_id?: string | null
           id?: string
+          parsed_data?: Json | null
           storage_path: string
           user_id?: string | null
         }
@@ -121,6 +123,7 @@ export type Database = {
           filename?: string
           folder_id?: string | null
           id?: string
+          parsed_data?: Json | null
           storage_path?: string
           user_id?: string | null
         }
