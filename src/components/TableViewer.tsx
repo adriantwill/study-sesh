@@ -1,127 +1,126 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import type { ParsedTableData } from "../lib/xlsx-table";
 
 interface TableViewerProps {
-  table: ParsedTableData;
+	table: ParsedTableData;
 }
 
-function cellKey(rowIndex: number, colIndex: number) {
-  return `${rowIndex}-${colIndex}`;
-}
+const MERGED_WITH_ABOVE = "&^";
 
 export default function TableViewer({ table }: TableViewerProps) {
-  const [blurredCells, setBlurredCells] = useState<Set<string>>(() => {
-    const initialBlurredCells = new Set<string>();
+	const allCellKeys = Array.from({ length: table.rows.length }, (_, rowIndex) =>
+		Array.from({ length: table.headers.length }, (_, headerIndex) =>
+			cellKey(rowIndex, headerIndex),
+		),
+	).flat();
+	const [blurredCells, setBlurredCells] = useState<Set<string>>(
+		() => new Set(allCellKeys),
+	);
 
-    for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
-      for (let colIndex = 1; colIndex < table.headers.length; colIndex++) {
-        if (!table.rows[rowIndex][colIndex]?.skip) {
-          initialBlurredCells.add(cellKey(rowIndex, colIndex));
-        }
-      }
-    }
+	function toggleCell(key: string) {
+		setBlurredCells((current) => {
+			const next = new Set(current);
+			if (next.has(key)) next.delete(key);
+			else next.add(key);
+			return next;
+		});
+	}
 
-    return initialBlurredCells;
-  });
+	if (table.headers.length === 0) {
+		return (
+			<div className="rounded-sm border border-border bg-muted p-8 text-center text-muted-foreground">
+				No table data found.
+			</div>
+		);
+	}
 
-  const allCellKeys = useMemo(() => {
-    const keys = new Set<string>();
+	return (
+		<div className="space-y-4">
+			<div className="flex gap-2">
+				<button
+					type="button"
+					onClick={() => setBlurredCells(new Set(allCellKeys))}
+					className="rounded-sm border border-border bg-muted px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted-hover"
+				>
+					Blur All
+				</button>
+				<button
+					type="button"
+					onClick={() => setBlurredCells(new Set())}
+					className="rounded-sm border border-border bg-muted px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted-hover"
+				>
+					Unblur All
+				</button>
+			</div>
 
-    for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
-      for (let colIndex = 0; colIndex < table.headers.length; colIndex++) {
-        if (!table.rows[rowIndex][colIndex]?.skip) {
-          keys.add(cellKey(rowIndex, colIndex));
-        }
-      }
-    }
+			<div className="overflow-x-auto rounded-sm border border-border bg-muted shadow-sm">
+				<table className="min-w-full border-collapse">
+					<thead>
+						<tr className="bg-muted-hover">
+							{table.headers.map((header, headerIndex) => (
+								<th
+									key={headerKey(header, headerIndex)}
+									className="border-b border-border px-4 py-3 text-left font-semibold text-foreground"
+								>
+									{header}
+								</th>
+							))}
+						</tr>
+					</thead>
+					<tbody>
+						{table.rows.map((row, rowIndex) => (
+							<tr
+								key={rowKey(row, rowIndex)}
+								className="border-b border-border/70 last:border-b-0"
+							>
+								{table.headers.map((header, headerIndex) => {
+									const key = cellKey(rowIndex, headerIndex);
+									const isBlurred = blurredCells.has(key);
+									const value = displayValue(row[header] ?? "");
 
-    return keys;
-  }, [table]);
+									return (
+										<td
+											key={cellKey(rowIndex, headerIndex)}
+											onClick={() => toggleCell(key)}
+											onKeyDown={(event) => {
+												if (event.key === "Enter" || event.key === " ") {
+													event.preventDefault();
+													toggleCell(key);
+												}
+											}}
+											role="button"
+											tabIndex={0}
+											className={`h-20 cursor-pointer px-4 py-3 align-middle text-foreground transition-all duration-200 ${isBlurred ? "blur-sm" : ""}`}
+										>
+											{value}
+										</td>
+									);
+								})}
+							</tr>
+						))}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	);
+}
 
-  function toggleCell(rowIndex: number, colIndex: number) {
-    const key = cellKey(rowIndex, colIndex);
+function cellKey(rowIndex: number, headerIndex: number) {
+	return `${rowIndex}-${headerIndex}`;
+}
 
-    setBlurredCells((current) => {
-      const next = new Set(current);
+function displayValue(value: string) {
+	return value.startsWith(MERGED_WITH_ABOVE)
+		? value.slice(MERGED_WITH_ABOVE.length)
+		: value;
+}
 
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
+function headerKey(header: string, headerIndex: number) {
+	return header || `column-${headerIndex}`;
+}
 
-      return next;
-    });
-  }
-
-  if (table.headers.length === 0) {
-    return (
-      <div className="rounded-sm border border-border bg-muted p-8 text-center text-muted-foreground">
-        No table data found.
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-4">
-      <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={() => setBlurredCells(allCellKeys)}
-          className="rounded-sm border border-border bg-muted px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted-hover"
-        >
-          Blur All
-        </button>
-        <button
-          type="button"
-          onClick={() => setBlurredCells(new Set())}
-          className="rounded-sm border border-border bg-muted px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted-hover"
-        >
-          Unblur All
-        </button>
-      </div>
-
-      <div className="overflow-x-auto rounded-sm border border-border bg-muted shadow-sm">
-        <table className="min-w-full border-collapse">
-          <thead>
-            <tr className="bg-muted-hover">
-              {table.headers.map((header, index) => (
-                <th
-                  key={`${header}-${index}`}
-                  className="border-b border-border px-4 py-3 text-left font-semibold text-foreground"
-                >
-                  {header}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {table.rows.map((row, rowIndex) => (
-              <tr
-                key={rowIndex}
-                className="border-b border-border/70 last:border-b-0"
-              >
-                {row.map((cell, colIndex) => {
-                  if (cell.skip) return null;
-
-                  const key = cellKey(rowIndex, colIndex);
-                  const isBlurred = blurredCells.has(key);
-
-                  return (
-                    <td
-                      key={key}
-                      rowSpan={cell.rowspan || 1}
-                      onClick={() => toggleCell(rowIndex, colIndex)}
-                      className={`h-20 cursor-pointer px-4 py-3 align-middle text-foreground transition-all duration-200 ${isBlurred ? "blur-sm" : ""}`}
-                    >
-                      {cell.value}
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
+function rowKey(row: Record<string, string>, rowIndex: number) {
+	return JSON.stringify(row) || `row-${rowIndex}`;
 }
