@@ -6,10 +6,8 @@ import { generateQuestions } from "../lib/ai/question-generator";
 import {
   getQuestionImagePublicUrl,
   removePdf,
-  removeTableFile,
   uploadPdf,
   uploadQuestionImage,
-  uploadTableFile,
 } from "../lib/storage";
 import { createClient } from "../lib/supabase/server";
 import { parseXlsxTable } from "../lib/xlsx-table";
@@ -59,29 +57,20 @@ export async function uploadTableAction(formData: FormData) {
   if (!isXlsx) throw new Error("Only XLSX files supported");
 
   const supabase = await createClient();
-  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-  const storagePath = `${crypto.randomUUID()}-${safeName}`;
   const parsedTable = parseXlsxTable(await file.arrayBuffer());
 
-  const { error: storageError } = await uploadTableFile(storagePath, file);
-  if (storageError) {
-    console.error("Error uploading table file:", storageError);
-    throw new Error("Failed to save table file to storage");
-  }
 
   const { data: tableUpload, error: tableUploadError } = await supabase
     .from("table_uploads")
     .insert({
       filename: file.name,
       parsed_data: parsedTable as unknown as Json,
-      storage_path: storagePath,
     })
     .select()
     .single();
 
   if (tableUploadError || !tableUpload) {
     console.error("Error inserting table upload:", tableUploadError);
-    await removeTableFile(storagePath);
     throw new Error("Failed to save table upload to database");
   }
 
