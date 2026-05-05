@@ -106,7 +106,6 @@ export type Database = {
           folder_id: string | null
           id: string
           parsed_data: Json | null
-          storage_path: string
           user_id: string | null
         }
         Insert: {
@@ -115,7 +114,6 @@ export type Database = {
           folder_id?: string | null
           id?: string
           parsed_data?: Json | null
-          storage_path: string
           user_id?: string | null
         }
         Update: {
@@ -124,7 +122,6 @@ export type Database = {
           folder_id?: string | null
           id?: string
           parsed_data?: Json | null
-          storage_path?: string
           user_id?: string | null
         }
         Relationships: [

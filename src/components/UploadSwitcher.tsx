@@ -88,15 +88,12 @@ export default function UploadSwitcher() {
   async function handleSubmit() {
     if (selectedOption === 0) {
       await handleUpload();
-      return;
-    }
-
-    if (selectedOption === 1) {
+    } else if (selectedOption === 1) {
       await handleGenerate();
-      return;
+    } else {
+      await handleTableUpload();
     }
 
-    await handleTableUpload();
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

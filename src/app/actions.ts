@@ -6,13 +6,11 @@ import { generateQuestions } from "../lib/ai/question-generator";
 import {
   getQuestionImagePublicUrl,
   removePdf,
-  removeTableFile,
   uploadPdf,
   uploadQuestionImage,
-  uploadTableFile,
 } from "../lib/storage";
 import { createClient } from "../lib/supabase/server";
-import { parseXlsxTable } from "../lib/xlsx-table";
+import { isParsedTableData, parseXlsxTable } from "../lib/xlsx-table";
 import type { Json } from "../types/database.types";
 import type { DeleteButtonVariant, EditFieldVariant, StudyQuestion } from "../types";
 
@@ -59,29 +57,20 @@ export async function uploadTableAction(formData: FormData) {
   if (!isXlsx) throw new Error("Only XLSX files supported");
 
   const supabase = await createClient();
-  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-  const storagePath = `${crypto.randomUUID()}-${safeName}`;
   const parsedTable = parseXlsxTable(await file.arrayBuffer());
 
-  const { error: storageError } = await uploadTableFile(storagePath, file);
-  if (storageError) {
-    console.error("Error uploading table file:", storageError);
-    throw new Error("Failed to save table file to storage");
-  }
 
   const { data: tableUpload, error: tableUploadError } = await supabase
     .from("table_uploads")
     .insert({
       filename: file.name,
       parsed_data: parsedTable as unknown as Json,
-      storage_path: storagePath,
     })
     .select()
     .single();
 
   if (tableUploadError || !tableUpload) {
     console.error("Error inserting table upload:", tableUploadError);
-    await removeTableFile(storagePath);
     throw new Error("Failed to save table upload to database");
   }
 
@@ -280,6 +269,56 @@ export async function updateQuestionTextAction(
   // }
 
   revalidatePath("/[reviewId]", "page");
+}
+
+export async function updateTableCellAction(
+  tableId: string,
+  rowIndex: number,
+  header: string,
+  value: string,
+) {
+  const supabase = await createClient();
+
+  const { data, error: fetchError } = await supabase
+    .from("table_uploads")
+    .select("parsed_data")
+    .eq("id", tableId)
+    .single();
+
+  if (fetchError || !data) {
+    console.error("Load table error:", fetchError);
+    throw new Error("Failed to load table");
+  }
+
+  if (!isParsedTableData(data.parsed_data)) {
+    throw new Error("Invalid table data");
+  }
+
+  const row = data.parsed_data.rows[rowIndex];
+  if (!row || !(header in row)) {
+    throw new Error("Invalid cell");
+  }
+
+  const nextTable = {
+    headers: [...data.parsed_data.headers],
+    rows: data.parsed_data.rows.map((currentRow, currentIndex) =>
+      currentIndex === rowIndex
+        ? { ...currentRow, [header]: value }
+        : { ...currentRow },
+    ),
+  };
+
+  const { error: updateError } = await supabase
+    .from("table_uploads")
+    .update({ parsed_data: nextTable as unknown as Json })
+    .eq("id", tableId);
+
+  if (updateError) {
+    console.error("Update table cell error:", updateError);
+    throw new Error("Failed to update table cell");
+  }
+
+  revalidatePath(`/tables/${tableId}`);
 }
 
 export async function uploadImageAction(

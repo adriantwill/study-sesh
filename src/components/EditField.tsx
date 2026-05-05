@@ -164,7 +164,7 @@ export default function EditField({
           type="button"
           onClick={handleSave}
           aria-label={`Edit text`}
-          className="flex items-center justify-center enabled:cursor-pointer enabled:hover:text-primary "
+          className="flex items-center justify-center enabled:cursor-pointer enabled:hover:text-primary z-10"
         >
           {!isEditing ? <Pencil size={16} /> : <Check size={16} />}
         </button>

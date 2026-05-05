@@ -1,122 +1,91 @@
 import * as XLSX from "xlsx";
 
-export interface TableCellData {
-	value: string;
-	rowspan?: number;
-	skip?: boolean;
-}
+const MERGED_WITH_ABOVE = "&^";
 
 export interface ParsedTableData {
 	headers: string[];
-	rows: TableCellData[][];
+	rows: Record<string, string>[];
 }
 
-function isTableCellData(value: unknown): value is TableCellData {
-	if (typeof value !== "object" || value === null) return false;
+function cellText(sheet: XLSX.WorkSheet, row: number, col: number) {
+	const cell = sheet[XLSX.utils.encode_cell({ r: row, c: col })];
+	return cell == null ? "" : String(cell.w ?? cell.v ?? "");
+}
 
-	const cell = value as Partial<TableCellData>;
-	return (
-		typeof cell.value === "string" &&
-		(cell.rowspan === undefined || typeof cell.rowspan === "number") &&
-		(cell.skip === undefined || typeof cell.skip === "boolean")
-	);
+function mergedWithAboveValue(sheet: XLSX.WorkSheet, row: number, col: number) {
+	for (const merge of sheet["!merges"] ?? []) {
+		const inMerge =
+			row >= merge.s.r &&
+			row <= merge.e.r &&
+			col >= merge.s.c &&
+			col <= merge.e.c;
+
+		if (inMerge && row > merge.s.r) {
+			return `${MERGED_WITH_ABOVE}${cellText(sheet, merge.s.r, merge.s.c)}`;
+		}
+	}
+
+	return null;
+}
+
+export function parseXlsxTable(data: ArrayBuffer): ParsedTableData {
+	const workbook = XLSX.read(data);
+	const sheetName = workbook.SheetNames[0];
+	const sheet = sheetName ? workbook.Sheets[sheetName] : undefined;
+
+	if (!sheet) return { headers: [], rows: [] };
+
+	const nonEmptyCells = Object.keys(sheet)
+		.filter((key) => !key.startsWith("!"))
+		.map((key) => ({
+			position: XLSX.utils.decode_cell(key),
+			value: String(sheet[key]?.w ?? sheet[key]?.v ?? "").trim(),
+		}))
+		.filter((cell) => cell.value !== "");
+
+	if (nonEmptyCells.length === 0) return { headers: [], rows: [] };
+
+	const headerRow = Math.min(...nonEmptyCells.map((cell) => cell.position.r));
+	const columns = nonEmptyCells
+		.filter((cell) => cell.position.r === headerRow)
+		.map((cell) => cell.position.c)
+		.sort((a, b) => a - b);
+	const bodyRows = Array.from(
+		new Set(
+			nonEmptyCells
+				.map((cell) => cell.position.r)
+				.filter((row) => row > headerRow),
+		),
+	).sort((a, b) => a - b);
+
+	const headers: string[] = [];
+	for (const col of columns) {
+		headers.push(cellText(sheet, headerRow, col));
+	}
+
+	const rows: Record<string, string>[] = [];
+	for (const row of bodyRows) {
+		const parsedRow: Record<string, string> = {};
+
+		for (const [columnIndex, col] of columns.entries()) {
+			const header = headers[columnIndex];
+			parsedRow[header] =
+				mergedWithAboveValue(sheet, row, col) ?? cellText(sheet, row, col);
+		}
+
+		if (Object.values(parsedRow).some((value) => value.trim() !== "")) {
+			rows.push(parsedRow);
+		}
+	}
+
+	return { headers, rows };
 }
 
 export function isParsedTableData(value: unknown): value is ParsedTableData {
-	if (typeof value !== "object" || value === null) return false;
-
-	const table = value as Partial<ParsedTableData>;
 	return (
-		Array.isArray(table.headers) &&
-		table.headers.every((header) => typeof header === "string") &&
-		Array.isArray(table.rows) &&
-		table.rows.every(
-			(row) => Array.isArray(row) && row.every(isTableCellData),
-		)
+		typeof value === "object" &&
+		value !== null &&
+		Array.isArray((value as ParsedTableData).headers) &&
+		Array.isArray((value as ParsedTableData).rows)
 	);
-}
-
-function hasCellValue(cell?: TableCellData) {
-	return cell?.value !== undefined && cell.value !== null && cell.value !== "";
-}
-
-function trimTrailingEmptyColumnsAndRows(
-	data: TableCellData[][],
-): TableCellData[][] {
-	if (data.length === 0) return data;
-
-	let lastColWithData = data[0].length - 1;
-
-	while (lastColWithData >= 0) {
-		const hasDataInColumn = data.some((row) =>
-			hasCellValue(row[lastColWithData]),
-		);
-		if (hasDataInColumn) break;
-		lastColWithData--;
-	}
-
-	const trimmedCols = data.map((row) => row.slice(0, lastColWithData + 1));
-
-	for (let i = trimmedCols.length - 1; i >= 0; i--) {
-		if (!trimmedCols[i].some(hasCellValue)) trimmedCols.splice(i, 1);
-	}
-
-	return trimmedCols;
-}
-
-function processSheetWithMerges(worksheet: XLSX.WorkSheet): TableCellData[][] {
-	const range = XLSX.utils.decode_range(worksheet["!ref"] || "A1");
-	const merges = worksheet["!merges"] || [];
-	const data: TableCellData[][] = [];
-
-	for (let row = range.s.r; row <= range.e.r; row++) {
-		const rowData: TableCellData[] = [];
-
-		for (let col = range.s.c; col <= range.e.c; col++) {
-			const cellRef = XLSX.utils.encode_cell({ r: row, c: col });
-			const cell = worksheet[cellRef];
-
-			rowData.push({
-				value: cell ? String(cell.w ?? cell.v ?? "") : "",
-				skip: false,
-			});
-		}
-
-		data.push(rowData);
-	}
-
-	for (const merge of merges) {
-		const startRow = merge.s.r - range.s.r;
-		const endRow = merge.e.r - range.s.r;
-		const col = merge.s.c - range.s.c;
-		const rowspan = endRow - startRow + 1;
-
-		if (data[startRow]?.[col]) {
-			data[startRow][col].rowspan = rowspan;
-		}
-
-		for (let r = startRow + 1; r <= endRow; r++) {
-			if (data[r]?.[col]) {
-				data[r][col].skip = true;
-			}
-		}
-	}
-
-	return trimTrailingEmptyColumnsAndRows(data);
-}
-
-export function parseXlsxTable(arrayBuffer: ArrayBuffer): ParsedTableData {
-	const workbook = XLSX.read(arrayBuffer, { type: "array" });
-	const firstSheetName = workbook.SheetNames[0];
-
-	if (!firstSheetName) {
-		return { headers: [], rows: [] };
-	}
-
-	const worksheet = workbook.Sheets[firstSheetName];
-	const tableData = processSheetWithMerges(worksheet);
-	const headers = (tableData[0] ?? []).map((cell) => cell.value);
-	const rows = tableData.slice(1);
-
-	return { headers, rows };
 }

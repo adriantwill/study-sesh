@@ -1,57 +1,19 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import type { ParsedTableData } from "../lib/xlsx-table";
 
 interface TableViewerProps {
   table: ParsedTableData;
 }
 
-function cellKey(rowIndex: number, colIndex: number) {
-  return `${rowIndex}-${colIndex}`;
-}
+const MERGED_WITH_ABOVE = "&^";
 
 export default function TableViewer({ table }: TableViewerProps) {
-  const [blurredCells, setBlurredCells] = useState<Set<string>>(() => {
-    const initialBlurredCells = new Set<string>();
-
-    for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
-      for (let colIndex = 1; colIndex < table.headers.length; colIndex++) {
-        if (!table.rows[rowIndex][colIndex]?.skip) {
-          initialBlurredCells.add(cellKey(rowIndex, colIndex));
-        }
-      }
-    }
-
-    return initialBlurredCells;
-  });
-
-  const allCellKeys = useMemo(() => {
-    const keys = new Set<string>();
-
-    for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
-      for (let colIndex = 0; colIndex < table.headers.length; colIndex++) {
-        if (!table.rows[rowIndex][colIndex]?.skip) {
-          keys.add(cellKey(rowIndex, colIndex));
-        }
-      }
-    }
-
-    return keys;
-  }, [table]);
-
-  function toggleCell(rowIndex: number, colIndex: number) {
-    const key = cellKey(rowIndex, colIndex);
-
-    setBlurredCells((current) => {
-      const next = new Set(current);
-
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-
-      return next;
-    });
-  }
+  const allCellKeys = table.rows.flatMap((row, rowIndex) =>
+    table.headers.map((header, headerIndex) => cellKey(rowIndex, headerIndex)),
+  );
+  const [blurredCells, setBlurredCells] = useState(() => new Set(allCellKeys));
 
   if (table.headers.length === 0) {
     return (
@@ -66,7 +28,7 @@ export default function TableViewer({ table }: TableViewerProps) {
       <div className="flex gap-2">
         <button
           type="button"
-          onClick={() => setBlurredCells(allCellKeys)}
+          onClick={() => setBlurredCells(new Set(allCellKeys))}
           className="rounded-sm border border-border bg-muted px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted-hover"
         >
           Blur All
@@ -84,9 +46,9 @@ export default function TableViewer({ table }: TableViewerProps) {
         <table className="min-w-full border-collapse">
           <thead>
             <tr className="bg-muted-hover">
-              {table.headers.map((header, index) => (
+              {table.headers.map((header, headerIndex) => (
                 <th
-                  key={`${header}-${index}`}
+                  key={`${header}-${headerIndex}`}
                   className="border-b border-border px-4 py-3 text-left font-semibold text-foreground"
                 >
                   {header}
@@ -100,20 +62,28 @@ export default function TableViewer({ table }: TableViewerProps) {
                 key={rowIndex}
                 className="border-b border-border/70 last:border-b-0"
               >
-                {row.map((cell, colIndex) => {
-                  if (cell.skip) return null;
-
-                  const key = cellKey(rowIndex, colIndex);
+                {table.headers.map((header, headerIndex) => {
+                  const key = cellKey(rowIndex, headerIndex);
                   const isBlurred = blurredCells.has(key);
+                  const rawValue = row[header] ?? "";
+                  if (rawValue.startsWith(MERGED_WITH_ABOVE)) return null;
+                  const value = displayValue(rawValue);
 
                   return (
                     <td
                       key={key}
-                      rowSpan={cell.rowspan || 1}
-                      onClick={() => toggleCell(rowIndex, colIndex)}
+                      rowSpan={getRowSpan(table, rowIndex, header)}
+                      onClick={() => {
+                        setBlurredCells((current) => {
+                          const next = new Set(current);
+                          if (next.has(key)) next.delete(key);
+                          else next.add(key);
+                          return next;
+                        });
+                      }}
                       className={`h-20 cursor-pointer px-4 py-3 align-middle text-foreground transition-all duration-200 ${isBlurred ? "blur-sm" : ""}`}
                     >
-                      {cell.value}
+                      {value}
                     </td>
                   );
                 })}
@@ -124,4 +94,25 @@ export default function TableViewer({ table }: TableViewerProps) {
       </div>
     </div>
   );
+}
+
+function cellKey(rowIndex: number, headerIndex: number) {
+  return `${rowIndex}-${headerIndex}`;
+}
+
+function displayValue(value: string) {
+  return value.startsWith(MERGED_WITH_ABOVE)
+    ? value.slice(MERGED_WITH_ABOVE.length)
+    : value;
+}
+
+function getRowSpan(table: ParsedTableData, rowIndex: number, header: string) {
+  let rowSpan = 1;
+
+  for (let nextRowIndex = rowIndex + 1; nextRowIndex < table.rows.length; nextRowIndex++) {
+    if (!(table.rows[nextRowIndex][header] ?? "").startsWith(MERGED_WITH_ABOVE)) break;
+    rowSpan++;
+  }
+
+  return rowSpan;
 }
