@@ -32,26 +32,50 @@ export function parseXlsxTable(data: ArrayBuffer): ParsedTableData {
 	const workbook = XLSX.read(data);
 	const sheetName = workbook.SheetNames[0];
 	const sheet = sheetName ? workbook.Sheets[sheetName] : undefined;
-	const range = sheet?.["!ref"] ? XLSX.utils.decode_range(sheet["!ref"]) : null;
 
-	if (!sheet || !range) return { headers: [], rows: [] };
+	if (!sheet) return { headers: [], rows: [] };
+
+	const nonEmptyCells = Object.keys(sheet)
+		.filter((key) => !key.startsWith("!"))
+		.map((key) => ({
+			position: XLSX.utils.decode_cell(key),
+			value: String(sheet[key]?.w ?? sheet[key]?.v ?? "").trim(),
+		}))
+		.filter((cell) => cell.value !== "");
+
+	if (nonEmptyCells.length === 0) return { headers: [], rows: [] };
+
+	const headerRow = Math.min(...nonEmptyCells.map((cell) => cell.position.r));
+	const columns = nonEmptyCells
+		.filter((cell) => cell.position.r === headerRow)
+		.map((cell) => cell.position.c)
+		.sort((a, b) => a - b);
+	const bodyRows = Array.from(
+		new Set(
+			nonEmptyCells
+				.map((cell) => cell.position.r)
+				.filter((row) => row > headerRow),
+		),
+	).sort((a, b) => a - b);
 
 	const headers: string[] = [];
-	for (let col = range.s.c; col <= range.e.c; col++) {
-		headers.push(cellText(sheet, range.s.r, col));
+	for (const col of columns) {
+		headers.push(cellText(sheet, headerRow, col));
 	}
 
 	const rows: Record<string, string>[] = [];
-	for (let row = range.s.r + 1; row <= range.e.r; row++) {
+	for (const row of bodyRows) {
 		const parsedRow: Record<string, string> = {};
 
-		for (let col = range.s.c; col <= range.e.c; col++) {
-			const header = headers[col - range.s.c];
+		for (const [columnIndex, col] of columns.entries()) {
+			const header = headers[columnIndex];
 			parsedRow[header] =
 				mergedWithAboveValue(sheet, row, col) ?? cellText(sheet, row, col);
 		}
 
-		rows.push(parsedRow);
+		if (Object.values(parsedRow).some((value) => value.trim() !== "")) {
+			rows.push(parsedRow);
+		}
 	}
 
 	return { headers, rows };

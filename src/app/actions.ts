@@ -10,7 +10,7 @@ import {
   uploadQuestionImage,
 } from "../lib/storage";
 import { createClient } from "../lib/supabase/server";
-import { parseXlsxTable } from "../lib/xlsx-table";
+import { isParsedTableData, parseXlsxTable } from "../lib/xlsx-table";
 import type { Json } from "../types/database.types";
 import type { DeleteButtonVariant, EditFieldVariant, StudyQuestion } from "../types";
 
@@ -269,6 +269,56 @@ export async function updateQuestionTextAction(
   // }
 
   revalidatePath("/[reviewId]", "page");
+}
+
+export async function updateTableCellAction(
+  tableId: string,
+  rowIndex: number,
+  header: string,
+  value: string,
+) {
+  const supabase = await createClient();
+
+  const { data, error: fetchError } = await supabase
+    .from("table_uploads")
+    .select("parsed_data")
+    .eq("id", tableId)
+    .single();
+
+  if (fetchError || !data) {
+    console.error("Load table error:", fetchError);
+    throw new Error("Failed to load table");
+  }
+
+  if (!isParsedTableData(data.parsed_data)) {
+    throw new Error("Invalid table data");
+  }
+
+  const row = data.parsed_data.rows[rowIndex];
+  if (!row || !(header in row)) {
+    throw new Error("Invalid cell");
+  }
+
+  const nextTable = {
+    headers: [...data.parsed_data.headers],
+    rows: data.parsed_data.rows.map((currentRow, currentIndex) =>
+      currentIndex === rowIndex
+        ? { ...currentRow, [header]: value }
+        : { ...currentRow },
+    ),
+  };
+
+  const { error: updateError } = await supabase
+    .from("table_uploads")
+    .update({ parsed_data: nextTable as unknown as Json })
+    .eq("id", tableId);
+
+  if (updateError) {
+    console.error("Update table cell error:", updateError);
+    throw new Error("Failed to update table cell");
+  }
+
+  revalidatePath(`/tables/${tableId}`);
 }
 
 export async function uploadImageAction(
