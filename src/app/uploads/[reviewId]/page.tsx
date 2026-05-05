@@ -1,9 +1,9 @@
 import Link from "next/link";
-import BrandMark from "../../components/BrandMark";
-import EditField from "../../components/EditField";
-import FlashcardView from "../../components/FlashcardView";
-import Test from "../../components/Test";
-import { createClient } from "../../lib/supabase/server";
+import BrandMark from "../../../components/BrandMark";
+import EditField from "../../../components/EditField";
+import FlashcardView from "../../../components/FlashcardView";
+import Test from "../../../components/Test";
+import { createClient } from "../../../lib/supabase/server";
 
 export default async function ReviewPage({
   params,

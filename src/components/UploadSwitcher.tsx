@@ -52,7 +52,7 @@ export default function UploadSwitcher() {
     try {
       const result = await uploadAndGenerateAction(formData);
       setProgress(100);
-      router.push(`/${result.uploadId}`);
+      router.push(`/uploads/${result.uploadId}`);
     } catch (err) {
       console.error("Upload error:", err);
       setError(
@@ -137,7 +137,7 @@ export default function UploadSwitcher() {
       );
     try {
       const upload = await uploadRecordAction("Untitled", questionList);
-      router.push(`/${upload.id}`);
+      router.push(`/uploads/${upload.id}`);
     } catch (err) {
       console.error("Upload error:", err);
       setError(

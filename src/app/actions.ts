@@ -173,7 +173,7 @@ export async function deleteItemAction(
           .update({ deleted: true })
           .eq("id", id);
         if (error) throw error;
-        revalidatePath("/[reviewId]", "page");
+        revalidatePath("/uploads/[reviewId]", "page");
         break;
       }
       case "folder": {
@@ -284,7 +284,7 @@ export async function updateQuestionTextAction(
   }
   // }
 
-  revalidatePath("/[reviewId]", "page");
+  revalidatePath("/uploads/[reviewId]", "page");
 }
 
 export async function updateTableCellAction(
@@ -369,7 +369,7 @@ export async function uploadImageAction(
     throw new Error("Failed to link image to question");
   }
 
-  revalidatePath("/[reviewId]", "page");
+  revalidatePath("/uploads/[reviewId]", "page");
 }
 
 export async function addQuestionAction(
@@ -408,7 +408,7 @@ export async function addQuestionAction(
     console.error("Add question error:", error);
     throw new Error("Failed to add question");
   }
-  revalidatePath(`/${uploadId}`);
+  revalidatePath(`/uploads/${uploadId}`);
   if (
     prevDisplayOrder != null &&
     nextDisplayOrder != null &&
@@ -417,7 +417,7 @@ export async function addQuestionAction(
     after(async () => {
       try {
         await normalizeQuestionDisplayOrder(uploadId);
-        revalidatePath(`/${uploadId}`);
+        revalidatePath(`/uploads/${uploadId}`);
       } catch (error) {
         console.error("Background normalize question order error:", error);
       }
@@ -530,5 +530,5 @@ export async function reorderQuestionsAction(activeId: string, questions: StudyQ
     throw new Error("Failed to reorder questions");
   }
 
-  revalidatePath(`/${activeQuestion.upload_id}`);
+  revalidatePath(`/uploads/${activeQuestion.upload_id}`);
 }
