@@ -2,11 +2,11 @@
 
 import { Trash2 } from "lucide-react";
 import { deleteItemAction } from "../app/actions";
-import { DeleteButtonVariant } from "../types";
+import type * as types from "../types";
 
 interface DeleteButtonProps {
   id: string;
-  variant: DeleteButtonVariant;
+  variant: types.DeleteButtonVariant;
   name: string;
   displayElement?: () => Promise<void> | void;
 }

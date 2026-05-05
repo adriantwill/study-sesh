@@ -157,53 +157,69 @@ export async function deleteItemAction(
   const supabase = await createClient();
 
   try {
-    if (variant === "question") {
-      const { error } = await supabase
-        .from("questions")
-        .update({ deleted: true })
-        .eq("id", id);
-      if (error) throw error;
-      revalidatePath("/[reviewId]", "page");
-    } else if (variant === "folder") {
-      const { error: detachError } = await supabase
-        .from("uploads")
-        .update({ folder_id: null })
-        .eq("folder_id", id);
-
-      if (detachError) throw detachError;
-
-      const { error: detachFoldersError } = await supabase
-        .from("folders")
-        .update({ parent_id: null } as never)
-        .eq("parent_id", id);
-
-      if (detachFoldersError) throw detachFoldersError;
-
-      const { error } = await supabase.from("folders").delete().eq("id", id);
-      if (error) throw error;
-      revalidatePath("/");
-    } else {
-      const { data: upload } = await supabase
-        .from("uploads")
-        .select("storage_path")
-        .eq("id", id)
-        .single();
-
-      const { error: deleteQuestionsError } = await supabase
-        .from("questions")
-        .delete()
-        .eq("upload_id", id);
-
-      if (deleteQuestionsError) throw deleteQuestionsError;
-
-      if (upload?.storage_path) {
-        await removePdfOrThrow(upload.storage_path);
+    switch (variant) {
+      case "table_uploads": {
+        const { error } = await supabase
+          .from(variant)
+          .delete()
+          .eq("id", id);
+        if (error) throw error;
+        revalidatePath("/");
+        break;
       }
+      case "questions": {
+        const { error } = await supabase
+          .from("questions")
+          .update({ deleted: true })
+          .eq("id", id);
+        if (error) throw error;
+        revalidatePath("/[reviewId]", "page");
+        break;
+      }
+      case "folder": {
+        const { error: detachError } = await supabase
+          .from("uploads")
+          .update({ folder_id: null })
+          .eq("folder_id", id);
 
-      const { error } = await supabase.from("uploads").delete().eq("id", id);
-      if (error) throw error;
+        if (detachError) throw detachError;
 
-      revalidatePath("/");
+        const { error: detachFoldersError } = await supabase
+          .from("folders")
+          .update({ parent_id: null } as never)
+          .eq("parent_id", id);
+
+        if (detachFoldersError) throw detachFoldersError;
+
+        const { error } = await supabase.from("folders").delete().eq("id", id);
+        if (error) throw error;
+        revalidatePath("/");
+        break;
+      }
+      case "upload": {
+        const { data: upload } = await supabase
+          .from("uploads")
+          .select("storage_path")
+          .eq("id", id)
+          .single();
+
+        const { error: deleteQuestionsError } = await supabase
+          .from("questions")
+          .delete()
+          .eq("upload_id", id);
+
+        if (deleteQuestionsError) throw deleteQuestionsError;
+
+        if (upload?.storage_path) {
+          await removePdfOrThrow(upload.storage_path);
+        }
+
+        const { error } = await supabase.from("uploads").delete().eq("id", id);
+        if (error) throw error;
+
+        revalidatePath("/");
+        break;
+      }
     }
   } catch (error) {
     console.error("Delete error:", error);

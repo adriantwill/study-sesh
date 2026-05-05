@@ -1,6 +1,5 @@
 "use client";
 import * as lucideReact from "lucide-react";
-import Link from "next/link";
 import { useState } from "react";
 import {
   updateParentAction,
@@ -226,19 +225,15 @@ export default function FoldersList({ folders, uploads, tables }: FoldersListPro
 
   function renderTable(table: Tables<"table_uploads">, tree = false) {
     return (
-      <li
+      <UploadLink
         key={table.id}
-        className={`${tree ? "py-1 pl-4" : "mt-2"}`}
-      >
-        <div className="flex min-h-12 items-center justify-between rounded-md px-2 py-1 text-lg duration-200 hover:bg-muted-hover">
-          <Link
-            href={`/tables/${table.id}`}
-            className="overflow-x-hidden text-foreground/85 transition-colors hover:text-foreground"
-          >
-            {table.filename}
-          </Link>
-        </div>
-      </li>
+        upload={table}
+        tree={tree}
+        draggable
+        isDragging={activeUploadId === table.id}
+        onDragStart={handleUploadDragStart}
+        onDragEnd={resetDragState}
+      />
     );
   }
 
