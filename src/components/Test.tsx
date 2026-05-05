@@ -181,7 +181,7 @@ export default function Test({ questions: initialQuestions, reviewId }: TestProp
                       <ImageUploadButton id={q.id} />
                       <DeleteButton
                         id={q.id}
-                        variant="question"
+                        variant="questions"
                         name={q.question}
                         displayElement={() => displayElement(q.id)}
                       />

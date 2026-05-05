@@ -1,6 +1,5 @@
 "use client";
 import * as lucideReact from "lucide-react";
-import Link from "next/link";
 import { useState } from "react";
 import {
   updateParentAction,
@@ -210,7 +209,7 @@ export default function FoldersList({ folders, uploads, tables }: FoldersListPro
     void moveDraggedItem(targetId);
   }
 
-  function renderUpload(upload: Tables<"uploads">, tree = false) {
+  function renderUpload(upload: Tables<"uploads"> | Tables<"table_uploads">, tree = false, variant: "uploads" | "table_uploads") {
     return (
       <UploadLink
         key={upload.id}
@@ -220,25 +219,8 @@ export default function FoldersList({ folders, uploads, tables }: FoldersListPro
         isDragging={activeUploadId === upload.id}
         onDragStart={handleUploadDragStart}
         onDragEnd={resetDragState}
+        variant={variant}
       />
-    );
-  }
-
-  function renderTable(table: Tables<"table_uploads">, tree = false) {
-    return (
-      <li
-        key={table.id}
-        className={`${tree ? "py-1 pl-4" : "mt-2"}`}
-      >
-        <div className="flex min-h-12 items-center justify-between rounded-md px-2 py-1 text-lg duration-200 hover:bg-muted-hover">
-          <Link
-            href={`/tables/${table.id}`}
-            className="overflow-x-hidden text-foreground/85 transition-colors hover:text-foreground"
-          >
-            {table.filename}
-          </Link>
-        </div>
-      </li>
     );
   }
 
@@ -285,8 +267,8 @@ export default function FoldersList({ folders, uploads, tables }: FoldersListPro
         >
           <ul className="ml-3 overflow-hidden">
             {activeTool === "flashcards"
-              ? folderUploads.map((upload) => renderUpload(upload, true))
-              : folderTables.map((table) => renderTable(table, true))}
+              ? folderUploads.map((upload) => renderUpload(upload, true, "uploads"))
+              : folderTables.map((table) => renderUpload(table, true, "table_uploads"))}
 
             {childFolders
               .filter((folder) => visibleFolderIds.has(folder.id))
@@ -317,8 +299,8 @@ export default function FoldersList({ folders, uploads, tables }: FoldersListPro
             className={`flex-1 min-h-14 rounded-md transition-colors ${dropFolderId === ROOT_DROP_ID ? "bg-background/60 ring-1 ring-border" : ""}`}
           >
             {activeTool === "flashcards"
-              ? rootUploads.map((upload) => renderUpload(upload))
-              : rootTables.map((table) => renderTable(table))}
+              ? rootUploads.map((upload) => renderUpload(upload, false, "uploads"))
+              : rootTables.map((table) => renderUpload(table, false, "table_uploads"))}
           </ul>
         </ul>
       </div>

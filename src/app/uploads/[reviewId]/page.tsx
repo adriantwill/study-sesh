@@ -1,9 +1,9 @@
 import Link from "next/link";
-import BrandMark from "../../components/BrandMark";
-import EditField from "../../components/EditField";
-import FlashcardView from "../../components/FlashcardView";
-import Test from "../../components/Test";
-import { createClient } from "../../lib/supabase/server";
+import BrandMark from "../../../components/BrandMark";
+import EditField from "../../../components/EditField";
+import FlashcardView from "../../../components/FlashcardView";
+import Test from "../../../components/Test";
+import { createClient } from "../../../lib/supabase/server";
 
 export default async function ReviewPage({
   params,
@@ -52,7 +52,7 @@ export default async function ReviewPage({
     question: q.question_text,
     answer: q.answer_text,
     imageUrl: q.image_url,
-    displayOrder: q.display_order,
+    displayOrder: q.display_order ?? 0,
     options: q.options,
   }));
 
