@@ -196,7 +196,7 @@ export async function deleteItemAction(
         revalidatePath("/");
         break;
       }
-      case "upload": {
+      case "uploads": {
         const { data: upload } = await supabase
           .from("uploads")
           .select("storage_path")
@@ -334,7 +334,7 @@ export async function updateTableCellAction(
     throw new Error("Failed to update table cell");
   }
 
-  revalidatePath(`/tables/${tableId}`);
+  revalidatePath(`/tables_uploads/${tableId}`);
 }
 
 export async function uploadImageAction(

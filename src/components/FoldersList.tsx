@@ -214,12 +214,12 @@ export default function FoldersList({ folders, uploads, tables }: FoldersListPro
       <UploadLink
         key={upload.id}
         upload={upload}
-        href={`/uploads/${upload.id}`}
         tree={tree}
         draggable
         isDragging={activeUploadId === upload.id}
         onDragStart={handleUploadDragStart}
         onDragEnd={resetDragState}
+        variant="uploads"
       />
     );
   }
@@ -229,12 +229,12 @@ export default function FoldersList({ folders, uploads, tables }: FoldersListPro
       <UploadLink
         key={table.id}
         upload={table}
-        href={`/tables/${table.id}`}
         tree={tree}
         draggable
         isDragging={activeUploadId === table.id}
         onDragStart={handleUploadDragStart}
         onDragEnd={resetDragState}
+        variant="table_uploads"
       />
     );
   }

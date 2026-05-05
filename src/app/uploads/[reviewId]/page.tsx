@@ -52,7 +52,7 @@ export default async function ReviewPage({
     question: q.question_text,
     answer: q.answer_text,
     imageUrl: q.image_url,
-    displayOrder: q.display_order,
+    displayOrder: q.display_order ?? 0,
     options: q.options,
   }));
 

@@ -44,7 +44,7 @@ export default async function StudyPage({
     question: q.question_text,
     answer: q.answer_text,
     imageUrl: q.image_url,
-    displayOrder: q.display_order,
+    displayOrder: q.display_order ?? 0,
   }));
 
   const title = upload.filename;
