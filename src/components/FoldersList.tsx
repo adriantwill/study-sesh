@@ -209,7 +209,7 @@ export default function FoldersList({ folders, uploads, tables }: FoldersListPro
     void moveDraggedItem(targetId);
   }
 
-  function renderUpload(upload: Tables<"uploads">, tree = false) {
+  function renderUpload(upload: Tables<"uploads"> | Tables<"table_uploads">, tree = false, variant: "uploads" | "table_uploads") {
     return (
       <UploadLink
         key={upload.id}
@@ -219,22 +219,7 @@ export default function FoldersList({ folders, uploads, tables }: FoldersListPro
         isDragging={activeUploadId === upload.id}
         onDragStart={handleUploadDragStart}
         onDragEnd={resetDragState}
-        variant="uploads"
-      />
-    );
-  }
-
-  function renderTable(table: Tables<"table_uploads">, tree = false) {
-    return (
-      <UploadLink
-        key={table.id}
-        upload={table}
-        tree={tree}
-        draggable
-        isDragging={activeUploadId === table.id}
-        onDragStart={handleUploadDragStart}
-        onDragEnd={resetDragState}
-        variant="table_uploads"
+        variant={variant}
       />
     );
   }
@@ -282,8 +267,8 @@ export default function FoldersList({ folders, uploads, tables }: FoldersListPro
         >
           <ul className="ml-3 overflow-hidden">
             {activeTool === "flashcards"
-              ? folderUploads.map((upload) => renderUpload(upload, true))
-              : folderTables.map((table) => renderTable(table, true))}
+              ? folderUploads.map((upload) => renderUpload(upload, true, "uploads"))
+              : folderTables.map((table) => renderUpload(table, true, "table_uploads"))}
 
             {childFolders
               .filter((folder) => visibleFolderIds.has(folder.id))
@@ -314,8 +299,8 @@ export default function FoldersList({ folders, uploads, tables }: FoldersListPro
             className={`flex-1 min-h-14 rounded-md transition-colors ${dropFolderId === ROOT_DROP_ID ? "bg-background/60 ring-1 ring-border" : ""}`}
           >
             {activeTool === "flashcards"
-              ? rootUploads.map((upload) => renderUpload(upload))
-              : rootTables.map((table) => renderTable(table))}
+              ? rootUploads.map((upload) => renderUpload(upload, false, "uploads"))
+              : rootTables.map((table) => renderUpload(table, false, "table_uploads"))}
           </ul>
         </ul>
       </div>

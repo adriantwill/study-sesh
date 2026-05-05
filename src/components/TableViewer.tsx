@@ -73,17 +73,21 @@ export default function TableViewer({ table }: TableViewerProps) {
                     <td
                       key={key}
                       rowSpan={getRowSpan(table, rowIndex, header)}
-                      onClick={() => {
-                        setBlurredCells((current) => {
-                          const next = new Set(current);
-                          if (next.has(key)) next.delete(key);
-                          else next.add(key);
-                          return next;
-                        });
-                      }}
                       className={`h-20 cursor-pointer px-4 py-3 align-middle text-foreground transition-all duration-200 ${isBlurred ? "blur-sm" : ""}`}
                     >
-                      {value}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setBlurredCells((current) => {
+                            const next = new Set(current);
+                            if (next.has(key)) next.delete(key);
+                            else next.add(key);
+                            return next;
+                          });
+                        }}
+                      >
+                        {value}
+                      </button>
                     </td>
                   );
                 })}
