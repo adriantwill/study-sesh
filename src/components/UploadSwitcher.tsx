@@ -9,91 +9,121 @@ import {
 } from "../app/actions";
 import type { StudyQuestion } from "../types";
 
+type UploadMode = "pdf" | "text" | "xlsx";
+
+const uploadModeOrder: UploadMode[] = ["pdf", "text", "xlsx"];
+
+const uploadModeConfig: Record<
+  UploadMode,
+  {
+    label: string;
+    submitLabel: string;
+    loadingLabel: string;
+    accept?: string;
+    inputId?: string;
+    fileLabel?: string;
+    fileAriaLabel?: string;
+  }
+> = {
+  pdf: {
+    label: "PDF to Questions",
+    submitLabel: "Generate Study Questions",
+    loadingLabel: "Generating questions...",
+    accept: "application/pdf",
+    inputId: "pdf-upload",
+    fileLabel: "Click to upload pdf",
+    fileAriaLabel: "Upload pdf file",
+  },
+  text: {
+    label: "Text to Questions",
+    submitLabel: "Generate Study Questions",
+    loadingLabel: "Generating questions...",
+  },
+  xlsx: {
+    label: "XLSX to Table",
+    submitLabel: "Upload Table",
+    loadingLabel: "Uploading table...",
+    accept: ".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    inputId: "xlsx-upload",
+    fileLabel: "Click to upload xlsx",
+    fileAriaLabel: "Upload xlsx file",
+  },
+};
+
 export default function UploadSwitcher() {
-  const [selectedOption, setSelectedOption] = useState<0 | 1 | 2>(0);
+  const [mode, setMode] = useState<UploadMode>("pdf");
   const [file, setFile] = useState<File | null>(null);
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [textInput, setTextInput] = useState("");
-  const showGenerateButton = (selectedOption !== 1 && Boolean(file)) || (textInput.trim().length > 0 && selectedOption === 1);
-  const fileAccept = selectedOption === 2
-    ? ".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    : "application/pdf";
-  const fileInputId = selectedOption === 2 ? "xlsx-upload" : "pdf-upload";
-  const fileLabel = selectedOption === 2 ? "Click to upload xlsx" : "Click to upload pdf";
-  const fileAriaLabel = selectedOption === 2 ? "Upload xlsx file" : "Upload pdf file";
+  const activeMode = uploadModeConfig[mode];
+  const modeIndex = uploadModeOrder.indexOf(mode);
+  const isTextMode = mode === "text";
+  const canSubmit = isTextMode ? textInput.trim().length > 0 : Boolean(file);
 
-  function selectOption(option: 0 | 1 | 2) {
-    setSelectedOption(option);
+  function selectMode(nextMode: UploadMode) {
+    setMode(nextMode);
     setFile(null);
     setError(null);
   }
 
-  async function handleUpload() {
+  async function handleFileUpload(fileMode: "pdf" | "xlsx") {
     if (!file) return;
     setLoading(true);
     setError(null);
-    setProgress(0);
 
     const formData = new FormData();
-    formData.append("pdf", file);
+    formData.append(fileMode, file);
 
-    const fileSizeMB = file.size / (1024 * 1024);
-    const estimatedSeconds = Math.max(5, fileSizeMB * 10);
-    const totalTicks = (estimatedSeconds * 1000) / 100;
-    const incrementPerTick = 95 / totalTicks;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
 
-    const intervalId = setInterval(() => {
-      setProgress((prev) => Math.min(prev + incrementPerTick, 95));
-    }, 100);
+    if (fileMode === "pdf") {
+      setProgress(0);
+      const fileSizeMB = file.size / (1024 * 1024);
+      const estimatedSeconds = Math.max(5, fileSizeMB * 10);
+      const totalTicks = (estimatedSeconds * 1000) / 100;
+      const incrementPerTick = 95 / totalTicks;
 
-    try {
-      const result = await uploadAndGenerateAction(formData);
-      setProgress(100);
-      router.push(`/uploads/${result.uploadId}`);
-    } catch (err) {
-      console.error("Upload error:", err);
-      setError(
-        err instanceof Error ? err.message : "Failed to generate questions",
-      );
-    } finally {
-      clearInterval(intervalId);
-      setLoading(false);
+      intervalId = setInterval(() => {
+        setProgress((prev) => Math.min(prev + incrementPerTick, 95));
+      }, 100);
     }
-  };
-
-  async function handleTableUpload() {
-    if (!file) return;
-    setLoading(true);
-    setError(null);
-
-    const formData = new FormData();
-    formData.append("xlsx", file);
 
     try {
-      await uploadTableAction(formData);
-      setFile(null);
+      if (fileMode === "pdf") {
+        const result = await uploadAndGenerateAction(formData);
+        setProgress(100);
+        router.push(`/uploads/${result.uploadId}`);
+      } else {
+        const result = await uploadTableAction(formData);
+        router.push(`/table_uploads/${result.tableUploadId}`);
+      }
+
     } catch (err) {
-      console.error("Table upload error:", err);
+      console.error(`${fileMode.toUpperCase()} upload error:`, err);
       setError(
-        err instanceof Error ? err.message : "Failed to upload table",
+        err instanceof Error
+          ? err.message
+          : fileMode === "pdf"
+            ? "Failed to generate questions"
+            : "Failed to upload table",
       );
     } finally {
+      if (intervalId) clearInterval(intervalId);
       setLoading(false);
     }
   }
 
   async function handleSubmit() {
-    if (selectedOption === 0) {
-      await handleUpload();
-    } else if (selectedOption === 1) {
+    if (mode === "pdf") {
+      await handleFileUpload("pdf");
+    } else if (mode === "text") {
       await handleGenerate();
     } else {
-      await handleTableUpload();
+      await handleFileUpload("xlsx");
     }
-
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -153,19 +183,17 @@ export default function UploadSwitcher() {
         <span
           aria-hidden="true"
           className="pointer-events-none absolute inset-y-0 left-0 w-1/3 rounded-2xl bg-muted-hover transition-transform duration-300 ease-out"
-          style={{ transform: `translateX(${selectedOption * 100}%)` }}
+          style={{ transform: `translateX(${modeIndex * 100}%)` }}
         />
-        {([0, 1, 2] as const).map((option) => (
+        {uploadModeOrder.map((modeOption) => (
           <button
-            key={option}
-            className={`relative z-10 text-foreground py-2 w-full cursor-pointer rounded-2xl transition-colors duration-200 ${selectedOption === option ? "text-foreground" : "text-foreground/70"
+            key={modeOption}
+            className={`relative z-10 text-foreground py-2 w-full cursor-pointer rounded-2xl transition-colors duration-200 ${mode === modeOption ? "text-foreground" : "text-foreground/70"
               }`}
-            onClick={() => selectOption(option)}
+            onClick={() => selectMode(modeOption)}
             type="button"
           >
-            {option === 0 && "PDF to Questions"}
-            {option === 1 && "Text to Questions"}
-            {option === 2 && "XLSX to Table"}
+            {uploadModeConfig[modeOption].label}
           </button>
         ))}
       </div>
@@ -183,7 +211,7 @@ export default function UploadSwitcher() {
         className="relative h-56 overflow-hidden rounded-lg border-2 border-dashed border-border transition-all duration-300 ease-out"
       >
         <div
-          className={`absolute inset-0 transition-all duration-300 ease-out ${selectedOption === 1
+          className={`absolute inset-0 transition-all duration-300 ease-out ${isTextMode
             ? "translate-y-0 opacity-100"
             : "pointer-events-none translate-y-2 opacity-0"
             }`}
@@ -198,7 +226,7 @@ Question 2:Answer 2`}
         </div>
 
         <div
-          className={`absolute inset-0 p-12 text-center transition-all duration-300 ease-out ${selectedOption !== 1
+          className={`absolute inset-0 p-12 text-center transition-all duration-300 ease-out ${!isTextMode
             ? "translate-y-0 opacity-100"
             : "pointer-events-none -translate-y-2 opacity-0"
             }`}
@@ -221,25 +249,25 @@ Question 2:Answer 2`}
             <div className="flex h-full items-center justify-center">
               <input
                 type="file"
-                accept={fileAccept}
+                accept={activeMode.accept}
                 onChange={handleFileChange}
                 className="hidden"
-                id={fileInputId}
-                aria-label={fileAriaLabel}
+                id={activeMode.inputId}
+                aria-label={activeMode.fileAriaLabel}
               />
               <label
-                htmlFor={fileInputId}
+                htmlFor={activeMode.inputId}
                 className="cursor-pointer text-muted-foreground hover:text-foreground flex flex-col items-center"
               >
                 <FileUp size={16} className="mb-4" />
-                <div className="font-medium">{fileLabel}</div>
+                <div className="font-medium">{activeMode.fileLabel}</div>
               </label>
             </div>
           )}
         </div>
       </div>
       <div
-        className={`origin-center overflow-hidden transition-all duration-300 ease-out ${showGenerateButton
+        className={`origin-center overflow-hidden transition-all duration-300 ease-out ${canSubmit
           ? " h-12"
           : "h-0 pointer-events-none -mt-4 -mb-4"
           }`}
@@ -251,13 +279,10 @@ Question 2:Answer 2`}
           className="w-full rounded-[0.12rem] bg-primary py-3 font-medium text-primary-foreground hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-50"
           aria-label="Generate study questions from uploaded file"
         >
-          {loading && selectedOption === 2 && "Uploading table..."}
-          {loading && selectedOption !== 2 && "Generating questions..."}
-          {!loading && selectedOption === 2 && "Upload Table"}
-          {!loading && selectedOption !== 2 && "Generate Study Questions"}
+          {loading ? activeMode.loadingLabel : activeMode.submitLabel}
         </button>
       </div>
-      {loading && selectedOption === 0 && (
+      {loading && mode === "pdf" && (
         <div className="space-y-2">
           <div className="flex justify-between text-sm text-muted-foreground">
             <span>Processing slides...</span>

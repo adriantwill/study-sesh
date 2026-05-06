@@ -22,7 +22,14 @@ export default function TableViewer({ table }: TableViewerProps) {
       </div>
     );
   }
-
+  function toggleCell(key: string) {
+    setBlurredCells((current) => {
+      const next = new Set(current);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }
   return (
     <div className="space-y-4">
       <div className="flex gap-2">
@@ -67,27 +74,28 @@ export default function TableViewer({ table }: TableViewerProps) {
                   const isBlurred = blurredCells.has(key);
                   const rawValue = row[header] ?? "";
                   if (rawValue.startsWith(MERGED_WITH_ABOVE)) return null;
-                  const value = displayValue(rawValue);
+                  const value =
+                    rawValue.startsWith(MERGED_WITH_ABOVE)
+                      ? rawValue.slice(MERGED_WITH_ABOVE.length)
+                      : rawValue;
+
 
                   return (
                     <td
                       key={key}
                       rowSpan={getRowSpan(table, rowIndex, header)}
                       className={`h-20 cursor-pointer px-4 py-3 align-middle text-foreground transition-all duration-200 ${isBlurred ? "blur-sm" : ""}`}
+                      onClick={() => {
+                        toggleCell(key);
+                      }}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          toggleCell(key);
+                        }
+                      }}
                     >
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setBlurredCells((current) => {
-                            const next = new Set(current);
-                            if (next.has(key)) next.delete(key);
-                            else next.add(key);
-                            return next;
-                          });
-                        }}
-                      >
-                        {value}
-                      </button>
+                      {value}
                     </td>
                   );
                 })}
@@ -102,12 +110,6 @@ export default function TableViewer({ table }: TableViewerProps) {
 
 function cellKey(rowIndex: number, headerIndex: number) {
   return `${rowIndex}-${headerIndex}`;
-}
-
-function displayValue(value: string) {
-  return value.startsWith(MERGED_WITH_ABOVE)
-    ? value.slice(MERGED_WITH_ABOVE.length)
-    : value;
 }
 
 function getRowSpan(table: ParsedTableData, rowIndex: number, header: string) {
