@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { ParsedTableData } from "../lib/xlsx-table";
+import FlashcardsToolButton from "./MediumToolButton";
 
 interface TableViewerProps {
 	table: ParsedTableData;
@@ -33,20 +34,18 @@ export default function TableViewer({ table }: TableViewerProps) {
 	return (
 		<div className="space-y-4">
 			<div className="flex gap-2">
-				<button
-					type="button"
-					onClick={() => setBlurredCells(new Set(allCellKeys))}
-					className="rounded-sm border border-border bg-muted px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted-hover"
-				>
-					Blur All
-				</button>
-				<button
-					type="button"
-					onClick={() => setBlurredCells(new Set())}
-					className="rounded-sm border border-border bg-muted px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted-hover"
-				>
-					Unblur All
-				</button>
+				<FlashcardsToolButton
+					options={[
+						{
+							label: "Blur All",
+							onClick: () => setBlurredCells(new Set(allCellKeys)),
+						},
+						{
+							label: "Unblur All",
+							onClick: () => setBlurredCells(new Set()),
+						},
+					]}
+				/>
 			</div>
 
 			<div className="overflow-x-auto rounded-sm border border-border bg-muted shadow-sm">

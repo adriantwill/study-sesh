@@ -7,7 +7,7 @@ import type { Tables } from "../types/database.types";
 import AddFolder from "./AddFolder";
 import DeleteButton from "./DeleteButton";
 import EditField from "./EditField";
-import FlashcardsToolButton from "./FlashcardsToolButton";
+import FlashcardsToolButton from "./MediumToolButton";
 import UploadLink from "./UploadLink";
 
 interface FoldersListProps {
@@ -309,7 +309,20 @@ export default function FoldersList({
 
 	return (
 		<>
-			<FlashcardsToolButton activeTool={activeTool} onChange={setActiveTool} />
+			<FlashcardsToolButton
+				options={[
+					{
+						label: "Flashcards",
+						onClick: () => setActiveTool("flashcards"),
+						active: activeTool === "flashcards",
+					},
+					{
+						label: "Tables",
+						onClick: () => setActiveTool("tables"),
+						active: activeTool === "tables",
+					},
+				]}
+			/>
 			<div className="bg-muted flex flex-1 min-h-0 flex-col rounded-sm shadow w-200">
 				<ul className="flex-1 min-h-0 flex flex-col overflow-y-auto px-6 py-4">
 					<div className="transition-transform duration-300 space-y-2">
