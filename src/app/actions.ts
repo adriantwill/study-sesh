@@ -237,7 +237,7 @@ export async function updateQuestionTextAction(
 	const variantConfig: Record<
 		EditFieldVariant,
 		{
-			table: "uploads" | "questions" | "folders";
+			table: "uploads" | "questions" | "folders" | "table_uploads";
 			column: string;
 		}
 	> = {
@@ -246,34 +246,13 @@ export async function updateQuestionTextAction(
 		folder_name: { table: "folders", column: "name" },
 		question_text: { table: "questions", column: "question_text" },
 		answer_text: { table: "questions", column: "answer_text" },
+		table_uploads: {
+			table: "table_uploads",
+			column: "filename",
+		},
 	};
 	const { table, column } = variantConfig[variant];
 
-	// if (variant === 0 || variant === 1 || variant === 2) {
-	//   const { data, error: fetchError } = await supabase
-	//     .from("questions")
-	//     .select("options")
-	//     .eq("id", id)
-	//     .single();
-
-	//   if (fetchError) {
-	//     console.error("Update options fetch error:", fetchError);
-	//     throw new Error("Failed to load options");
-	//   }
-
-	//   const updatedOptions = [...(data.options ?? [])];
-	//   updatedOptions[variant] = text;
-
-	//   const { error: optionError } = await supabase
-	//     .from("questions")
-	//     .update({ options: updatedOptions })
-	//     .eq("id", id);
-
-	//   if (optionError) {
-	//     console.error("Update option error:", optionError);
-	//     throw new Error("Failed to update option");
-	//   }
-	// } else {
 	const { error } = await supabase
 		.from(table)
 		.update({ [column]: text })
@@ -283,7 +262,6 @@ export async function updateQuestionTextAction(
 		console.error("Update text error:", error);
 		throw new Error("Failed to update text");
 	}
-	// }
 
 	revalidatePath("/uploads/[reviewId]", "page");
 }
