@@ -16,7 +16,8 @@ export type EditFieldVariant =
 	| "answer_text"
 	| "folder_name"
 	| "filename"
-	| "description";
+	| "description"
+	| "table_uploads";
 export type DeleteButtonVariant =
 	| "questions"
 	| "table_uploads"
