@@ -1,4 +1,5 @@
 import Link from "next/link";
+import EditTitle from "@/src/components/EditTitle";
 import BrandMark from "../../../components/BrandMark";
 import EditField from "../../../components/EditField";
 import FlashcardView from "../../../components/FlashcardView";
@@ -64,14 +65,7 @@ export default async function ReviewPage({
 			<div className="max-w-4xl space-y-10 mx-auto">
 				<div className="space-y-2">
 					<div className="flex items-center gap-6">
-						<h1 className="flex min-w-0 flex-1 flex-nowrap items-center gap-2 text-3xl font-bold text-foreground">
-							<Link href="/" aria-label="Go to home page">
-								<BrandMark size={32} />
-							</Link>
-							<div className="flex min-w-0 flex-1 items-center gap-2 [&>span]:block [&>span]:min-w-0 [&>span]:flex-1 [&>span]:truncate [&>span]:overflow-hidden [&>span]:whitespace-nowrap [&>textarea]:min-w-0 [&>textarea]:flex-1 [&>div]:shrink-0">
-								<EditField variant="filename" textField={title} id={reviewId} />
-							</div>
-						</h1>
+						<EditTitle title={title} reviewId={reviewId} />
 						<div className="flex shrink-0 gap-6">
 							<Link
 								href={`/study/${reviewId}`}
