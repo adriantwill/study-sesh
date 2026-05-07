@@ -67,8 +67,8 @@
 	--color-border: var(--border);
 	--color-highlight: var(--highlight);
 
-	--font-sans: "Faustina", ui-serif, Georgia, Cambria, "Times New Roman", Times,
-		serif;
+	--font-sans:
+		"Faustina", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
 
 	--animate-slide-in-right: slide-in-right 0.3s cubic-bezier(0.16, 1, 0.3, 1)
 		forwards;
@@ -121,13 +121,13 @@
 }
 
 :root {
-	--bg: #D8EBF9;
+	--bg: #d8ebf9;
 	--fg: #171717;
 	--primary: #3b82f6;
 	--primary-fg: #ffffff;
-	--muted: #F4F1E2;
+	--muted: #f4f1e2;
 	--muted-fg: #64748b;
-	--muted-hover: #F7F5EB;
+	--muted-hover: #f7f5eb;
 	--border: #d4d4d8;
 	--highlight: #dbeafe;
 	--foreground: #513229;

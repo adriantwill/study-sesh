@@ -5,32 +5,36 @@ import { useState } from "react";
 import { addFolderAction } from "../app/actions";
 
 export default function AddFolder() {
-  const [isCreating, setIsCreating] = useState(false);
+	const [isCreating, setIsCreating] = useState(false);
 
-  async function handleCreateFolder() {
-    if (isCreating) return;
+	async function handleCreateFolder() {
+		if (isCreating) return;
 
-    try {
-      setIsCreating(true);
-      await addFolderAction();
-    } catch (error) {
-      console.error("Failed to add folder:", error);
-    } finally {
-      setIsCreating(false);
-    }
-  }
+		try {
+			setIsCreating(true);
+			await addFolderAction();
+		} catch (error) {
+			console.error("Failed to add folder:", error);
+		} finally {
+			setIsCreating(false);
+		}
+	}
 
-  return (
-    <button
-      onClick={handleCreateFolder}
-      disabled={isCreating}
-      type="button"
-      className="flex min-h-14 cursor-pointer items-center gap-3 rounded-md px-2 text-lg transition-colors hover:text-primary disabled:cursor-default disabled:opacity-60"
-    >
-      <div>
-        <FolderPlus size={24} strokeWidth={1.5} className="text-foreground/80 transition-colors hover:text-foreground" />
-      </div>
-      <span className="whitespace-pre-wrap ">New Folder</span>
-    </button>
-  );
+	return (
+		<button
+			onClick={handleCreateFolder}
+			disabled={isCreating}
+			type="button"
+			className="flex min-h-14 cursor-pointer items-center gap-3 rounded-md px-2 text-lg transition-colors hover:text-primary disabled:cursor-default disabled:opacity-60"
+		>
+			<div>
+				<FolderPlus
+					size={24}
+					strokeWidth={1.5}
+					className="text-foreground/80 transition-colors hover:text-foreground"
+				/>
+			</div>
+			<span className="whitespace-pre-wrap ">New Folder</span>
+		</button>
+	);
 }

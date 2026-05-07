@@ -7,7 +7,9 @@ export default function ChunkErrorHandler() {
 		const handleError = (event: ErrorEvent) => {
 			const isChunkError =
 				event.message?.includes("Loading chunk") ||
-				event.message?.includes("Failed to fetch dynamically imported module") ||
+				event.message?.includes(
+					"Failed to fetch dynamically imported module",
+				) ||
 				event.message?.includes("ChunkLoadError");
 
 			if (isChunkError) {
