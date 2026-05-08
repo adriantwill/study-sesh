@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import type { TableName } from "../types";
 import type { Tables } from "../types/database.types";
 import DeleteButton from "./DeleteButton";
 
@@ -13,7 +14,7 @@ interface UploadLinkProps {
 	onDragStart?: (uploadId: string) => void;
 	onDragEnd?: () => void;
 	onDelete?: (uploadId: string) => Promise<void> | void;
-	variant: "uploads" | "table_uploads";
+	variant: TableName; //just 		variant: "uploads" | "table_uploads",
 }
 
 export default function UploadLink({
@@ -48,7 +49,7 @@ export default function UploadLink({
 				<div className="flex items-center gap-3 text-foreground/70">
 					<DeleteButton
 						id={upload.id}
-						variant={variant}
+						table={variant}
 						name={upload.filename}
 						displayElement={() => displayElement(upload.id)}
 					/>

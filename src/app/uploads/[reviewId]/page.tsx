@@ -1,6 +1,5 @@
 import Link from "next/link";
 import EditTitle from "@/src/components/EditTitle";
-import BrandMark from "../../../components/BrandMark";
 import EditField from "../../../components/EditField";
 import FlashcardView from "../../../components/FlashcardView";
 import Test from "../../../components/Test";
@@ -87,6 +86,8 @@ export default async function ReviewPage({
 								variant="description"
 								textField={description}
 								id={reviewId}
+								table={"uploads"}
+								col={"description"}
 							/>
 						</div>
 					</div>

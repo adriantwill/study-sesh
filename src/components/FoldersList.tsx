@@ -3,6 +3,7 @@ import * as lucideReact from "lucide-react";
 import { useState } from "react";
 import { updateParentAction } from "../app/actions";
 import type * as types from "../types";
+import type { TableName } from "../types";
 import type { Tables } from "../types/database.types";
 import AddFolder from "./AddFolder";
 import DeleteButton from "./DeleteButton";
@@ -156,7 +157,7 @@ export default function FoldersList({
 
 		if (uploadId) {
 			try {
-				await updateParentAction(uploadId, parentId, "upload");
+				await updateParentAction(uploadId, parentId, "uploads", "folder_id");
 				if (parentId) {
 					setOpenFolderIds((current) => new Set(current).add(parentId));
 				}
@@ -170,7 +171,12 @@ export default function FoldersList({
 		if (!draggedFolderId) return;
 
 		try {
-			await updateParentAction(draggedFolderId, parentId, "folder");
+			await updateParentAction(
+				draggedFolderId,
+				parentId,
+				"folders",
+				"parent_id",
+			);
 			if (parentId) {
 				setOpenFolderIds((current) => new Set(current).add(parentId));
 			}
@@ -224,7 +230,7 @@ export default function FoldersList({
 	function renderUpload(
 		upload: Tables<"uploads"> | Tables<"table_uploads">,
 		tree = false,
-		variant: "uploads" | "table_uploads",
+		variant: TableName, //just 		variant: "uploads" | "table_uploads",
 	) {
 		return (
 			<UploadLink
@@ -276,9 +282,11 @@ export default function FoldersList({
 						variant="folder_name"
 						textField={folder.name}
 						id={folder.id}
+						table={"folders"}
+						col={"name"}
 					/>
 					<DeleteButton
-						variant="folder"
+						table="folders"
 						id={folder.id}
 						name={folder.name}
 						displayElement={() => displayElement(folder.id)}

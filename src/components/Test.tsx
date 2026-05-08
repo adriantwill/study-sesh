@@ -183,11 +183,13 @@ export default function Test({
 														isEditing,
 													)
 												}
+												table={"questions"}
+												col={"question_text"}
 											/>
 											<ImageUploadButton id={q.id} />
 											<DeleteButton
 												id={q.id}
-												variant="questions"
+												table="questions"
 												name={q.question}
 												displayElement={() => displayElement(q.id)}
 											/>
@@ -208,29 +210,10 @@ export default function Test({
 															isEditing,
 														)
 													}
+													table={"questions"}
+													col={"answer_text"}
 												/>
 											</div>
-											{/*<div className="text-sm mt-4">Wrong Options</div>
-                      <div className="grid grid-cols-3 gap-4">
-                        {[0, 1, 2].map((optionIdx) => (
-                          <div
-                            key={`${q.id}-option-${optionIdx}`}
-                            className="flex items-center justify-between mt-2 p-4 rounded-lg bg-muted-hover"
-                          >
-                            <EditField
-                              variant={optionIdx as 0 | 1 | 2}
-                              textField={q.options?.[optionIdx] ?? ""}
-                              id={q.id}
-                              onEditingChange={(isEditing) =>
-                                handleEditingChange(
-                                  `${q.id}:option_${optionIdx}`,
-                                  isEditing,
-                                )
-                              }
-                            />
-                          </div>
-                        ))}
-                      </div>*/}
 										</details>
 									</div>
 								</div>

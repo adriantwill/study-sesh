@@ -2,28 +2,28 @@
 
 import { Trash2 } from "lucide-react";
 import { deleteItemAction } from "../app/actions";
-import type * as types from "../types";
+import type { TableName } from "../types";
 
 interface DeleteButtonProps {
 	id: string;
-	variant: types.DeleteButtonVariant;
+	table: TableName;
 	name: string;
 	displayElement?: () => Promise<void> | void;
 }
 
 export default function DeleteButton({
 	id,
-	variant,
+	table,
 	name,
 	displayElement,
 }: DeleteButtonProps) {
 	async function handleDelete() {
-		const confirmed = confirm(`Delete this ${variant} "${name}"?`);
+		const confirmed = confirm(`Delete this ${table} "${name}"?`);
 		if (confirmed) {
 			if (displayElement) {
 				displayElement();
 			}
-			await deleteItemAction(id, variant);
+			await deleteItemAction(id, table);
 		}
 	}
 
@@ -31,7 +31,7 @@ export default function DeleteButton({
 		<button
 			type="button"
 			onClick={handleDelete}
-			aria-label={`Delete ${variant}`}
+			aria-label={`Delete ${table}`}
 			className="flex items-center justify-center hover:cursor-pointer hover:text-primary"
 		>
 			<Trash2 size={16} />

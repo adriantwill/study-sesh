@@ -17,10 +17,21 @@ export type EditFieldVariant =
 	| "folder_name"
 	| "filename"
 	| "description"
-	| "table_uploads";
+	| "table_uploads"
+	| "name";
 export type DeleteButtonVariant =
 	| "questions"
 	| "table_uploads"
 	| "uploads"
 	| "folder";
 export type ToolView = "flashcards" | "tables";
+export type TableName = "uploads" | "questions" | "folders" | "table_uploads";
+export type ColumnName =
+	| "filename"
+	| "description"
+	| "table_uploads"
+	| "name"
+	| "question_text"
+	| "answer_text"
+	| "parent_id"
+	| "folder_id";

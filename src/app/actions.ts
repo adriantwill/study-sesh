@@ -11,11 +11,7 @@ import {
 } from "../lib/storage";
 import { createClient } from "../lib/supabase/server";
 import { isParsedTableData, parseXlsxTable } from "../lib/xlsx-table";
-import type {
-	DeleteButtonVariant,
-	EditFieldVariant,
-	StudyQuestion,
-} from "../types";
+import type { ColumnName, StudyQuestion, TableName } from "../types";
 import type { Json } from "../types/database.types";
 
 const DISPLAY_ORDER_STEP = 100;
@@ -154,10 +150,7 @@ export async function uploadRecordAction(
 	return upload;
 }
 
-export async function deleteItemAction(
-	id: string,
-	variant: DeleteButtonVariant,
-) {
+export async function deleteItemAction(id: string, variant: TableName) {
 	const supabase = await createClient();
 
 	try {
@@ -177,7 +170,7 @@ export async function deleteItemAction(
 				revalidatePath("/uploads/[reviewId]", "page");
 				break;
 			}
-			case "folder": {
+			case "folders": {
 				const { error: detachError } = await supabase
 					.from("uploads")
 					.update({ folder_id: null })
@@ -231,27 +224,10 @@ export async function deleteItemAction(
 export async function updateQuestionTextAction(
 	id: string,
 	text: string,
-	variant: EditFieldVariant,
+	table: TableName,
+	column: ColumnName,
 ) {
 	const supabase = await createClient();
-	const variantConfig: Record<
-		EditFieldVariant,
-		{
-			table: "uploads" | "questions" | "folders" | "table_uploads";
-			column: string;
-		}
-	> = {
-		filename: { table: "uploads", column: "filename" },
-		description: { table: "uploads", column: "description" },
-		folder_name: { table: "folders", column: "name" },
-		question_text: { table: "questions", column: "question_text" },
-		answer_text: { table: "questions", column: "answer_text" },
-		table_uploads: {
-			table: "table_uploads",
-			column: "filename",
-		},
-	};
-	const { table, column } = variantConfig[variant];
 
 	const { error } = await supabase
 		.from(table)
@@ -432,11 +408,10 @@ export async function addFolderAction() {
 export async function updateParentAction(
 	id: string,
 	parentId: string | null,
-	variant: "upload" | "folder",
+	table: TableName,
+	column: ColumnName,
 ) {
 	const supabase = await createClient();
-	const table = variant === "upload" ? "uploads" : "folders";
-	const column = variant === "upload" ? "folder_id" : "parent_id";
 
 	const { error } = await supabase
 		.from(table)
@@ -445,7 +420,7 @@ export async function updateParentAction(
 
 	if (error) {
 		console.error("Update parent error:", error);
-		throw new Error(`Failed to update ${variant} parent`);
+		throw new Error(`Failed to update ${table} parent`);
 	}
 
 	revalidatePath("/");

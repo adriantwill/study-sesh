@@ -1,12 +1,15 @@
 "use client";
+import { table } from "node:console";
 import { Bold, Check, Highlighter, List, Pencil } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { updateQuestionTextAction } from "../app/actions";
 import { parseMarkdown } from "../lib/markdown";
-import type { EditFieldVariant } from "../types";
+import type { ColumnName, EditFieldVariant, TableName } from "../types";
 
 interface EditFieldProps {
 	variant: EditFieldVariant;
+	table: TableName;
+	col: ColumnName;
 	textField: string;
 	id: string;
 	onEditingChange?: (isEditing: boolean) => void;
@@ -17,6 +20,8 @@ export default function EditField({
 	textField,
 	id,
 	onEditingChange,
+	table,
+	col,
 }: EditFieldProps) {
 	const [isEditing, setIsEditing] = useState(false);
 	const [text, setText] = useState(textField);
@@ -55,7 +60,7 @@ export default function EditField({
 
 		if (nextText !== textField) {
 			try {
-				await updateQuestionTextAction(id, nextText, variant);
+				await updateQuestionTextAction(id, nextText, table, col);
 			} catch (error) {
 				console.error("Failed to save text:", error);
 				setText(textField);
