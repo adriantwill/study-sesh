@@ -3,28 +3,32 @@ import { Bold, Check, Highlighter, List, Pencil } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { updateQuestionTextAction } from "../app/actions";
 import { parseMarkdown } from "../lib/markdown";
-import type { ColumnName, EditFieldVariant, TableName } from "../types";
+import type { Database } from "../types/database.types";
 
-interface EditFieldProps {
-	variant: EditFieldVariant;
-	table: TableName;
-	col: ColumnName;
+type PublicTables = Database["public"]["Tables"];
+type EditFieldTable = keyof PublicTables;
+type EditFieldColumn<T extends EditFieldTable> = keyof PublicTables[T]["Row"];
+
+interface EditFieldProps<T extends EditFieldTable> {
+	table: T;
+	col: EditFieldColumn<T>;
 	textField: string;
 	id: string;
 	onEditingChange?: (isEditing: boolean) => void;
 }
 
-export default function EditField({
-	variant,
+export default function EditField<T extends EditFieldTable>({
 	textField,
 	id,
 	onEditingChange,
 	table,
 	col,
-}: EditFieldProps) {
+}: EditFieldProps<T>) {
 	const [isEditing, setIsEditing] = useState(false);
 	const [text, setText] = useState(textField);
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
+	const isFolderName = table === "folders" && col === "name";
+	const isAnswerText = table === "questions" && col === "answer_text";
 
 	useEffect(() => {
 		setText(textField);
@@ -34,7 +38,7 @@ export default function EditField({
 		const value = e.target.value;
 		const cursorPos = e.target.selectionStart;
 
-		if (variant !== "folder_name" && value.endsWith("- ")) {
+		if (!isAnswerText && value.endsWith("- ")) {
 			const newValue = `${value.slice(0, -2)}• `;
 			setText(newValue);
 			setTimeout(() => {
@@ -130,11 +134,11 @@ export default function EditField({
 				/>
 			) : (
 				<span className="box-border w-full whitespace-pre-wrap rounded border border-transparent">
-					{variant === "folder_name" ? text : parseMarkdown(text)}
+					{isFolderName ? text : parseMarkdown(text)}
 				</span>
 			)}
 			<div className="flex items-center gap-2">
-				{isEditing && variant === "answer_text" ? (
+				{isEditing && isAnswerText ? (
 					<>
 						<button
 							type="button"

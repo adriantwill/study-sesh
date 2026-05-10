@@ -174,7 +174,6 @@ export default function Test({
 									<div className="flex-1 w-1">
 										<div className="flex items-center gap-2">
 											<EditField
-												variant={"question_text"}
 												textField={q.question}
 												id={q.id}
 												onEditingChange={(isEditing) =>
@@ -201,7 +200,6 @@ export default function Test({
 											</summary>
 											<div className="gap-2 flex items-center justify-between mt-2 p-4 rounded-lg bg-muted-hover">
 												<EditField
-													variant={"answer_text"}
 													textField={q.answer}
 													id={q.id}
 													onEditingChange={(isEditing) =>

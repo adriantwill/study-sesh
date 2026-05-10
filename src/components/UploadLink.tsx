@@ -2,9 +2,13 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import type { TableName } from "../types";
-import type { Tables } from "../types/database.types";
+import type { Database, Tables } from "../types/database.types";
 import DeleteButton from "./DeleteButton";
+
+type UploadLinkTable = keyof Pick<
+	Database["public"]["Tables"],
+	"uploads" | "table_uploads"
+>;
 
 interface UploadLinkProps {
 	upload: Tables<"uploads"> | Tables<"table_uploads">;
@@ -14,7 +18,7 @@ interface UploadLinkProps {
 	onDragStart?: (uploadId: string) => void;
 	onDragEnd?: () => void;
 	onDelete?: (uploadId: string) => Promise<void> | void;
-	variant: TableName; //just 		variant: "uploads" | "table_uploads",
+	variant: UploadLinkTable; //just 		variant: "uploads" | "table_uploads",
 }
 
 export default function UploadLink({

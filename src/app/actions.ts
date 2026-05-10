@@ -11,10 +11,13 @@ import {
 } from "../lib/storage";
 import { createClient } from "../lib/supabase/server";
 import { isParsedTableData, parseXlsxTable } from "../lib/xlsx-table";
-import type { StudyQuestion, TableName } from "../types";
-import type { Json } from "../types/database.types";
+import type { parentColumnByTable, StudyQuestion } from "../types";
+import type { Database, Json } from "../types/database.types";
 
 const DISPLAY_ORDER_STEP = 100;
+type PublicTables = Database["public"]["Tables"];
+type ActionTableName = keyof PublicTables;
+type ActionColumnName<T extends ActionTableName> = keyof PublicTables[T]["Row"];
 
 async function removePdfOrThrow(storagePath: string) {
 	const { error } = await removePdf(storagePath);
@@ -150,7 +153,7 @@ export async function uploadRecordAction(
 	return upload;
 }
 
-export async function deleteItemAction(id: string, variant: TableName) {
+export async function deleteItemAction(id: string, variant: ActionTableName) {
 	const supabase = await createClient();
 
 	try {
@@ -221,9 +224,12 @@ export async function deleteItemAction(id: string, variant: TableName) {
 	}
 }
 
-export async function updateQuestionTextAction<
-	T extends keyof typeof parentColumnByTable,
->(id: string, text: string, table: T, column: (typeof parentColumnByTable)[T]) {
+export async function updateQuestionTextAction<T extends ActionTableName>(
+	id: string,
+	text: string,
+	table: T,
+	column: ActionColumnName<T>,
+) {
 	const supabase = await createClient();
 
 	const { error } = await supabase
@@ -402,7 +408,6 @@ export async function addFolderAction() {
 	return data;
 }
 
-import type { parentColumnByTable } from "../types";
 export async function updateParentAction<
 	T extends keyof typeof parentColumnByTable,
 >(

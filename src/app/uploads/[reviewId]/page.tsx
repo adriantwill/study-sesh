@@ -76,7 +76,6 @@ export default async function ReviewPage({
 					<div className="flex min-w-0">
 						<div className="flex min-w-0 flex-1 gap-2">
 							<EditField
-								variant="description"
 								textField={description}
 								id={reviewId}
 								table={"uploads"}

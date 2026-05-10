@@ -1,3 +1,5 @@
+import type { Database } from "./database.types";
+
 export interface StudyQuestion {
 	id: string;
 	upload_id: string;
@@ -11,33 +13,17 @@ export interface StudyQuestion {
 	originalQuestion?: string | null;
 	originalAnswer?: string | null;
 }
-export type EditFieldVariant =
-	| "question_text"
-	| "answer_text"
-	| "folder_name"
-	| "filename"
-	| "description"
-	| "table_uploads"
-	| "name";
 export type DeleteButtonVariant =
 	| "questions"
 	| "table_uploads"
 	| "uploads"
 	| "folder";
 export type ToolView = "flashcards" | "tables";
-export type TableName = "uploads" | "questions" | "folders" | "table_uploads";
-export type ColumnName =
-	| "filename"
-	| "description"
-	| "table_uploads"
-	| "name"
-	| "question_text"
-	| "answer_text"
-	| "parent_id"
-	| "folder_id";
 
 export const parentColumnByTable = {
 	uploads: "folder_id",
 	table_uploads: "folder_id",
 	folders: "parent_id",
-} as const satisfies Partial<Record<TableName, ColumnName>>;
+} as const satisfies Partial<{
+	[T in keyof Database["public"]["Tables"]]: keyof Database["public"]["Tables"][T]["Row"];
+}>;

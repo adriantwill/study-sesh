@@ -3,13 +3,17 @@ import * as lucideReact from "lucide-react";
 import { useState } from "react";
 import { updateParentAction } from "../app/actions";
 import type * as types from "../types";
-import type { TableName } from "../types";
-import type { Tables } from "../types/database.types";
+import type { Database, Tables } from "../types/database.types";
 import AddFolder from "./AddFolder";
 import DeleteButton from "./DeleteButton";
 import EditField from "./EditField";
 import FlashcardsToolButton from "./MediumToolButton";
 import UploadLink from "./UploadLink";
+
+type UploadTable = keyof Pick<
+	Database["public"]["Tables"],
+	"uploads" | "table_uploads"
+>;
 
 interface FoldersListProps {
 	folders: Tables<"folders">[];
@@ -230,7 +234,7 @@ export default function FoldersList({
 	function renderUpload(
 		upload: Tables<"uploads"> | Tables<"table_uploads">,
 		tree = false,
-		variant: TableName, //just 		variant: "uploads" | "table_uploads",
+		variant: UploadTable, //just 		variant: "uploads" | "table_uploads",
 	) {
 		return (
 			<UploadLink
@@ -279,7 +283,6 @@ export default function FoldersList({
 						/>
 					</button>
 					<EditField
-						variant="folder_name"
 						textField={folder.name}
 						id={folder.id}
 						table={"folders"}
