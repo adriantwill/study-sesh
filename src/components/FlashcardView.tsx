@@ -12,11 +12,13 @@ import StudyProgress from "./StudyProgress";
 export default function FlashcardView({
 	questions: initialQuestions,
 	height,
+	mode = "review",
 }: {
 	questions: StudyQuestion[];
 	height?: string;
+	mode?: "review" | "study";
 }) {
-	const isStudyMode = height === "h-130";
+	const isStudyMode = mode === "study";
 	const [questions, setQuestions] = useState(initialQuestions);
 	const [actionHistory, setActionHistory] = useState<
 		Array<{

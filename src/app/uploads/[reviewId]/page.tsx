@@ -53,28 +53,28 @@ export default async function ReviewPage({
 		: "No description provided";
 
 	return (
-		<div className="min-h-screen bg-background p-8">
-			<div className="max-w-4xl space-y-10 mx-auto">
+		<div className="min-h-dvh bg-background p-8">
+			<div className="mx-auto max-w-4xl space-y-10">
 				<div className="space-y-2">
-					<div className="flex items-center gap-6">
+					<div className="flex min-w-0 items-center gap-4">
 						<EditTitle title={title} reviewId={reviewId} />
-						<div className="flex shrink-0 gap-6">
+						<div className="flex shrink-0 gap-4">
 							<Link
 								href={`/study/${reviewId}`}
-								className="text-2xl text-primary hover:text-foreground"
+								className="whitespace-nowrap text-xl text-primary hover:text-foreground"
 							>
 								Study
 							</Link>
 							<Link
 								href={`/quiz/${reviewId}`}
-								className="text-2xl text-primary hover:text-foreground"
+								className="whitespace-nowrap text-xl text-primary hover:text-foreground"
 							>
 								Quiz
 							</Link>
 						</div>
 					</div>
-					<div className="flex">
-						<div className="flex gap-2">
+					<div className="flex min-w-0">
+						<div className="flex min-w-0 flex-1 gap-2">
 							<EditField
 								variant="description"
 								textField={description}
@@ -85,7 +85,10 @@ export default async function ReviewPage({
 						</div>
 					</div>
 				</div>
-				<FlashcardView questions={questions} height="h-104" />
+				<FlashcardView
+					questions={questions}
+					height="h-[min(26rem,calc(100dvh-14rem))] min-h-80"
+				/>
 				<div className="h-px opacity-40 bg-foreground"></div>
 				<div className="space-y-4">
 					<h2 className="text-2xl font-medium text-foreground">

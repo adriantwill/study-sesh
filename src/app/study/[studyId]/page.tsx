@@ -44,16 +44,20 @@ export default async function StudyPage({
 	const title = upload.filename;
 
 	return (
-		<div className="flex min-h-dvh flex-col px-4 py-6 sm:px-8 sm:py-8">
-			<h1 className="mx-auto flex w-full max-w-5xl min-w-0 items-center justify-center gap-2 text-center font-bold text-foreground text-3xl">
+		<div className="flex min-h-dvh flex-col p-8">
+			<h1 className="mx-auto flex w-full max-w-5xl min-w-0 items-center justify-center gap-2 text-center text-3xl font-bold text-foreground">
 				<Link href="/" aria-label="Go to home page" className="shrink-0">
 					<BrandMark size={32} />
 				</Link>
 				<span className="min-w-0 truncate whitespace-nowrap">{title}</span>
 			</h1>
 			<div className="flex flex-1 items-center justify-center py-6">
-				<div className="w-full max-w-5xl ">
-					<FlashcardView questions={questions} height="h-130" />
+				<div className="w-full max-w-5xl">
+					<FlashcardView
+						questions={questions}
+						height="h-[min(32.5rem,calc(100dvh-14rem))] min-h-80"
+						mode="study"
+					/>
 				</div>
 			</div>
 		</div>
