@@ -13,14 +13,17 @@ export default function EditTitle({ title, reviewId }: EditTitleProps) {
 			<Link href="/" aria-label="Go to home page">
 				<BrandMark size={32} />
 			</Link>
-			<div className="flex min-w-0 flex-1 items-center gap-2 [&>span]:block [&>span]:min-w-0 [&>span]:flex-1 [&>span]:truncate [&>span]:overflow-hidden [&>span]:whitespace-nowrap [&>textarea]:min-w-0 [&>textarea]:flex-1 [&>div]:shrink-0">
+			<Link
+				href={`/uploads/${reviewId}`}
+				className="flex min-w-0 flex-1 items-center gap-2 [&>span]:block [&>span]:min-w-0 [&>span]:flex-1 [&>span]:truncate [&>span]:overflow-hidden [&>span]:whitespace-nowrap [&>textarea]:min-w-0 [&>textarea]:flex-1 [&>div]:shrink-0"
+			>
 				<EditField
 					textField={title}
 					id={reviewId}
 					table={"uploads"}
 					col={"filename"}
 				/>
-			</div>
+			</Link>
 		</h1>
 	);
 }
