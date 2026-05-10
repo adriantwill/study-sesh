@@ -2,11 +2,15 @@
 
 import { Trash2 } from "lucide-react";
 import { deleteItemAction } from "../app/actions";
-import type { TableName } from "../types";
+import type { Database } from "../types/database.types";
 
+type DeleteButtonTable = keyof Pick<
+	Database["public"]["Tables"],
+	"questions" | "uploads" | "folders" | "table_uploads"
+>;
 interface DeleteButtonProps {
 	id: string;
-	table: TableName;
+	table: DeleteButtonTable;
 	name: string;
 	displayElement?: () => Promise<void> | void;
 }

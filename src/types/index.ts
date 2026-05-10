@@ -35,3 +35,9 @@ export type ColumnName =
 	| "answer_text"
 	| "parent_id"
 	| "folder_id";
+
+export const parentColumnByTable = {
+	uploads: "folder_id",
+	table_uploads: "folder_id",
+	folders: "parent_id",
+} as const satisfies Partial<Record<TableName, ColumnName>>;

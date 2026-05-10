@@ -221,18 +221,15 @@ export async function deleteItemAction(id: string, variant: TableName) {
 	}
 }
 
-export async function updateQuestionTextAction(
-	id: string,
-	text: string,
-	table: TableName,
-	column: ColumnName,
-) {
+export async function updateQuestionTextAction<
+	T extends keyof typeof parentColumnByTable,
+>(id: string, text: string, table: T, column: (typeof parentColumnByTable)[T]) {
 	const supabase = await createClient();
 
 	const { error } = await supabase
 		.from(table)
-		.update({ [column]: text })
-		.eq("id", id);
+		.update({ [column]: text } as never)
+		.eq("id", id as never);
 
 	if (error) {
 		console.error("Update text error:", error);
@@ -405,18 +402,21 @@ export async function addFolderAction() {
 	return data;
 }
 
-export async function updateParentAction(
+import type { parentColumnByTable } from "../types";
+export async function updateParentAction<
+	T extends keyof typeof parentColumnByTable,
+>(
 	id: string,
 	parentId: string | null,
-	table: TableName,
-	column: ColumnName,
+	table: T,
+	column: (typeof parentColumnByTable)[T],
 ) {
 	const supabase = await createClient();
 
 	const { error } = await supabase
 		.from(table)
 		.update({ [column]: parentId } as never)
-		.eq("id", id);
+		.eq("id", id as never);
 
 	if (error) {
 		console.error("Update parent error:", error);
@@ -425,10 +425,10 @@ export async function updateParentAction(
 
 	revalidatePath("/");
 }
-
+type ReorderQuestion = Pick<StudyQuestion, "id" | "displayOrder" | "upload_id">;
 export async function reorderQuestionsAction(
 	activeId: string,
-	questions: StudyQuestion[],
+	questions: ReorderQuestion[],
 ) {
 	if (questions.length === 0) return;
 

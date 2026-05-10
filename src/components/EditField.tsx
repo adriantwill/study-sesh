@@ -1,5 +1,4 @@
 "use client";
-import { table } from "node:console";
 import { Bold, Check, Highlighter, List, Pencil } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { updateQuestionTextAction } from "../app/actions";
