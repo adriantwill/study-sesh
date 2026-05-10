@@ -13,11 +13,6 @@ export interface StudyQuestion {
 	originalQuestion?: string | null;
 	originalAnswer?: string | null;
 }
-export type DeleteButtonVariant =
-	| "questions"
-	| "table_uploads"
-	| "uploads"
-	| "folder";
 export type ToolView = "flashcards" | "tables";
 
 export const parentColumnByTable = {
