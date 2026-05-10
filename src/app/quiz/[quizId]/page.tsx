@@ -32,16 +32,16 @@ export default async function QuizPage({
 
 	const questions = data.map((q) => questionRowToStudyQuestion(q));
 	return (
-		<div className="max-w-5xl mx-auto">
+		<div className="mx-auto max-w-5xl">
 			{questions.map((q, i) => (
 				<div
 					key={q.id}
-					className="h-screen snap-start my-auto px-6 flex flex-col items-center justify-center"
+					className="flex min-h-dvh snap-start flex-col items-center justify-center px-6 py-8"
 				>
-					<div className="px-12 py-6 w-full h-145 rounded-lg shadow bg-muted flex flex-col ">
+					<div className="flex h-[min(36rem,calc(100dvh-6rem))] min-h-96 w-full flex-col overflow-y-auto rounded-lg bg-muted px-8 py-6 shadow">
 						<div className="text-muted-foreground">Question {i + 1}</div>
-						<div className="flex flex-col justify-center space-y-24 flex-1">
-							<div className="text-3xl font-medium text-center text-foreground whitespace-pre-wrap">
+						<div className="flex flex-1 flex-col justify-center space-y-16">
+							<div className="whitespace-pre-wrap text-center text-[clamp(1.5rem,4vw,1.875rem)] font-medium text-foreground">
 								{parseMarkdown(q.question)}
 							</div>
 							<QuizChoices choices={q.options ?? []} answer={q.answer} />
