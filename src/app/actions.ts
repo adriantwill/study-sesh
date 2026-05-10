@@ -11,7 +11,7 @@ import {
 } from "../lib/storage";
 import { createClient } from "../lib/supabase/server";
 import { isParsedTableData, parseXlsxTable } from "../lib/xlsx-table";
-import type { ColumnName, StudyQuestion, TableName } from "../types";
+import type { StudyQuestion, TableName } from "../types";
 import type { Json } from "../types/database.types";
 
 const DISPLAY_ORDER_STEP = 100;

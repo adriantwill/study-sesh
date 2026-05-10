@@ -2,7 +2,7 @@ import QuizCard from "@/src/components/QuizCard";
 import QuizChoices from "@/src/components/QuizChoices";
 import { parseMarkdown } from "@/src/lib/markdown";
 import { createClient } from "@/src/lib/supabase/server";
-import { shuffleArray } from "@/src/utils/cards";
+import { questionRowToStudyQuestion } from "@/src/utils/cards";
 
 export default async function QuizPage({
 	params,
@@ -30,14 +30,7 @@ export default async function QuizPage({
 		throw new Error("No questions found");
 	}
 
-	const questions = data.map((q) => ({
-		id: q.id,
-		upload_id: q.upload_id ?? quizId,
-		question: q.question_text,
-		answer: q.answer_text,
-		imageUrl: q.image_url,
-		choices: shuffleArray([...(q.options ?? []), q.answer_text]).slice(0, 4),
-	}));
+	const questions = data.map((q) => questionRowToStudyQuestion(q));
 	return (
 		<div className="max-w-5xl mx-auto">
 			{questions.map((q, i) => (
@@ -51,7 +44,7 @@ export default async function QuizPage({
 							<div className="text-3xl font-medium text-center text-foreground whitespace-pre-wrap">
 								{parseMarkdown(q.question)}
 							</div>
-							<QuizChoices choices={q.choices} answer={q.answer} />
+							<QuizChoices choices={q.options ?? []} answer={q.answer} />
 						</div>
 					</div>
 					<QuizCard />

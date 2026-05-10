@@ -2,6 +2,7 @@ import Link from "next/link";
 import BrandMark from "@/src/components/BrandMark";
 import FlashcardView from "@/src/components/FlashcardView";
 import { createClient } from "@/src/lib/supabase/server";
+import { questionRowToStudyQuestion } from "@/src/utils/cards";
 
 export default async function StudyPage({
 	params,
@@ -16,7 +17,7 @@ export default async function StudyPage({
 			supabase
 				.from("questions")
 				.select(
-					"id, upload_id, question_text, answer_text, image_url, display_order",
+					"id, upload_id, question_text, answer_text, image_url, display_order, options",
 				)
 				.eq("upload_id", studyId)
 				.eq("deleted", false)
@@ -38,14 +39,7 @@ export default async function StudyPage({
 		throw new Error("Failed to load title");
 	}
 
-	const questions = data.map((q) => ({
-		id: q.id,
-		upload_id: q.upload_id ?? studyId,
-		question: q.question_text,
-		answer: q.answer_text,
-		imageUrl: q.image_url,
-		displayOrder: q.display_order ?? 0,
-	}));
+	const questions = data.map((q) => questionRowToStudyQuestion(q));
 
 	const title = upload.filename;
 

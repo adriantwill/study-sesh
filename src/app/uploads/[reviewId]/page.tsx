@@ -1,5 +1,6 @@
 import Link from "next/link";
 import EditTitle from "@/src/components/EditTitle";
+import { questionRowToStudyQuestion } from "@/src/utils/cards";
 import EditField from "../../../components/EditField";
 import FlashcardView from "../../../components/FlashcardView";
 import Test from "../../../components/Test";
@@ -44,15 +45,7 @@ export default async function ReviewPage({
 		throw new Error("Failed to load title");
 	}
 
-	const questions = data.map((q) => ({
-		id: q.id,
-		upload_id: q.upload_id ?? reviewId,
-		question: q.question_text,
-		answer: q.answer_text,
-		imageUrl: q.image_url,
-		displayOrder: q.display_order ?? 0,
-		options: q.options,
-	}));
+	const questions = data.map((q) => questionRowToStudyQuestion(q));
 
 	const title = upload.filename;
 	const description = upload.description
