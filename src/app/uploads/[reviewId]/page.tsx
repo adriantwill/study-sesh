@@ -1,5 +1,6 @@
 import Link from "next/link";
 import EditTitle from "@/src/components/EditTitle";
+import ScrollToTopButton from "@/src/components/ScrollToTopButton";
 import { questionRowToStudyQuestion } from "@/src/utils/cards";
 import EditField from "../../../components/EditField";
 import FlashcardView from "../../../components/FlashcardView";
@@ -96,6 +97,7 @@ export default async function ReviewPage({
 					<Test questions={questions} reviewId={reviewId} />
 				</div>
 			</div>
+			<ScrollToTopButton />
 		</div>
 	);
 }
