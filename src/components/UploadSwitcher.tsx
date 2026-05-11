@@ -95,9 +95,7 @@ export default function UploadSwitcher() {
 
 		try {
 			if (fileMode === "pdf") {
-				const result = await uploadAndGenerateAction(formData);
-				setProgress(100);
-				router.push(`/uploads/${result.uploadId}`);
+				await uploadAndGenerateAction(formData);
 			} else {
 				const result = await uploadTableAction(formData);
 				router.push(`/table_uploads/${result.tableUploadId}`);

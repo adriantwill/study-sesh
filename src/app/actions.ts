@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import router from "next/router";
 import { after } from "next/server";
 import { generateQuestions } from "../lib/ai/question-generator";
 import {
@@ -41,6 +42,7 @@ export async function uploadAndGenerateAction(formData: FormData) {
 		throw new Error("No PDF provided");
 	if (file.type !== "application/pdf") throw new Error("Only PDFs supported");
 	const upload = await createUpload(file);
+	router.push(`/uploads/${upload.id}`);
 	await generateQuestions(file, upload.id);
 	// if (questions.length === 0) {
 	// 	throw new Error("No questions generated from this PDF");
