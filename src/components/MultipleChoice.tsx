@@ -32,10 +32,10 @@ export default function MultipleChoice({
 		<button
 			type="button"
 			onClick={checkAnswer}
-			className={`bg-muted w-full overflow-y-visible rounded py-3 whitespace-pre-wrap flex justify-between text-xl text-foreground px-4 items-center border gap-3 transition choice-border-anim ${
+			className={`choice-border-anim flex w-full items-center justify-between gap-3 rounded border bg-muted px-4 py-3 text-xl whitespace-pre-wrap text-foreground transition ${
 				revealResult
-					? "border-transparent cursor-default"
-					: "border-border cursor-pointer"
+					? "cursor-default border-transparent"
+					: "cursor-pointer border-border"
 			} ${resultClass}`}
 		>
 			{parseMarkdown(choice)}

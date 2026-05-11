@@ -10,7 +10,7 @@ export default function FlashcardsToolButton({
 	options,
 }: FlashcardsToolButtonProps) {
 	return (
-		<div className="flex gap-3 mb-4">
+		<div className="mb-4 flex gap-3">
 			{options.map((option) => (
 				<button
 					key={option.label}

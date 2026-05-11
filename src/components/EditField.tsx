@@ -8,6 +8,8 @@ import type { Database } from "../types/database.types";
 type PublicTables = Database["public"]["Tables"];
 type EditFieldTable = keyof PublicTables;
 type EditFieldColumn<T extends EditFieldTable> = keyof PublicTables[T]["Row"];
+const iconButtonClass =
+	"flex items-center justify-center enabled:cursor-pointer enabled:hover:text-primary";
 
 interface EditFieldProps<T extends EditFieldTable> {
 	table: T;
@@ -130,7 +132,7 @@ export default function EditField<T extends EditFieldTable>({
 					onChange={handleTextChange}
 					onPointerDown={(e) => e.stopPropagation()}
 					rows={Math.max(1, text.split("\n").length)}
-					className={`box-border h-full w-full resize-none rounded border border-border bg-transparent px-0 py-0 font-medium text-foreground focus:outline-none`}
+					className="box-border h-full w-full resize-none rounded border border-border bg-transparent px-0 py-0 font-medium text-foreground focus:outline-none"
 				/>
 			) : (
 				<span className="box-border w-full whitespace-pre-wrap rounded border border-transparent">
@@ -144,7 +146,7 @@ export default function EditField<T extends EditFieldTable>({
 							type="button"
 							onClick={applyBulletList}
 							aria-label="Add bullets"
-							className="flex items-center justify-center enabled:cursor-pointer enabled:hover:text-primary"
+							className={iconButtonClass}
 						>
 							<List size={16} />
 						</button>
@@ -152,7 +154,7 @@ export default function EditField<T extends EditFieldTable>({
 							type="button"
 							onClick={() => applyFormat("**")}
 							aria-label="Bold text"
-							className="flex items-center justify-center enabled:cursor-pointer enabled:hover:text-primary"
+							className={iconButtonClass}
 						>
 							<Bold size={16} />
 						</button>
@@ -160,7 +162,7 @@ export default function EditField<T extends EditFieldTable>({
 							type="button"
 							onClick={() => applyFormat("==")}
 							aria-label="Highlight text"
-							className="flex items-center justify-center enabled:cursor-pointer enabled:hover:text-primary"
+							className={iconButtonClass}
 						>
 							<Highlighter size={16} />
 						</button>
@@ -169,8 +171,8 @@ export default function EditField<T extends EditFieldTable>({
 				<button
 					type="button"
 					onClick={handleSave}
-					aria-label={`Edit text`}
-					className="flex items-center justify-center enabled:cursor-pointer enabled:hover:text-primary z-10"
+					aria-label="Edit text"
+					className={`${iconButtonClass} z-10`}
 				>
 					{!isEditing ? <Pencil size={16} /> : <Check size={16} />}
 				</button>

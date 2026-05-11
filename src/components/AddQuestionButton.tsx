@@ -33,6 +33,7 @@ export default function AddQuestionButton({
 		<button
 			type="button"
 			onClick={addUntitledQuestion}
+			aria-label="Add question"
 			className="flex w-full cursor-pointer justify-center py-2 text-muted-foreground hover:text-primary"
 		>
 			<Plus size={20} />

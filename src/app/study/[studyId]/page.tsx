@@ -1,5 +1,4 @@
-import Link from "next/link";
-import BrandMark from "@/src/components/BrandMark";
+import EditTitle from "@/src/components/EditTitle";
 import FlashcardView from "@/src/components/FlashcardView";
 import { createClient } from "@/src/lib/supabase/server";
 import { questionRowToStudyQuestion } from "@/src/utils/cards";
@@ -45,12 +44,7 @@ export default async function StudyPage({
 
 	return (
 		<div className="flex min-h-dvh flex-col px-8 py-[clamp(0.75rem,4dvh,2rem)]">
-			<h1 className="mx-auto flex w-full max-w-5xl min-w-0 items-center justify-center gap-2 text-center text-3xl font-bold text-foreground">
-				<Link href="/" aria-label="Go to home page" className="shrink-0">
-					<BrandMark size={32} />
-				</Link>
-				<span className="min-w-0 truncate whitespace-nowrap">{title}</span>
-			</h1>
+			<EditTitle title={title} reviewId={studyId} />
 			<div className="flex flex-1 items-center justify-center py-[clamp(0.25rem,3dvh,1.5rem)]">
 				<div className="w-full max-w-5xl [&>[role=listbox]]:space-y-[clamp(0.5rem,4dvh,3rem)]">
 					<FlashcardView

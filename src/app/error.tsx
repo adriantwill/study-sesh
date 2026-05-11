@@ -1,5 +1,7 @@
 "use client";
 
+import { ErrorState } from "@/src/components/PageState";
+
 // biome-ignore lint/suspicious/noShadowRestrictedNames: Next.js requires this naming
 export default function Error({
 	error,
@@ -9,20 +11,10 @@ export default function Error({
 	reset: () => void;
 }) {
 	return (
-		<div className="min-h-screen bg-background flex items-center justify-center p-8">
-			<div className="max-w-md w-full bg-muted rounded-lg shadow p-8 text-center">
-				<h2 className="text-2xl font-bold text-foreground mb-4">
-					Something went wrong
-				</h2>
-				<p className="text-muted-foreground mb-6">{error.message}</p>
-				<button
-					type="button"
-					onClick={reset}
-					className="rounded-lg bg-primary px-6 py-2 font-medium text-primary-foreground hover:opacity-85"
-				>
-					Try again
-				</button>
-			</div>
-		</div>
+		<ErrorState
+			title="Something went wrong"
+			message={error.message}
+			onReset={reset}
+		/>
 	);
 }

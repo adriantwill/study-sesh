@@ -36,21 +36,18 @@ export default async function Home() {
 
 	return (
 		<main>
-			<section className="relative flex min-h-dvh flex-col items-center justify-center p-8">
-				<div className="absolute inset-x-8 top-8 space-y-4 text-center">
-					<h1 className="flex items-center justify-center gap-3 text-[clamp(2.25rem,8vw,3rem)] font-bold text-foreground">
-						<span>Study Sesh</span>
-						<BrandMark size={54} className="translate-y-0.5" />
-					</h1>
-					<p className="text-xl text-muted-foreground">
-						Upload PowerPoint PDF to generate study questions
-					</p>
+			<section className="flex min-h-dvh flex-col items-center p-8">
+				<h1 className="flex justify-center gap-3 text-[clamp(2.25rem,8vw,3rem)] font-bold text-foreground">
+					<span>Study Sesh</span>
+					<BrandMark size={54} className="translate-y-0.5" />
+				</h1>
+				<div className="flex flex-1 items-center">
+					<UploadSwitcher />
 				</div>
-				<UploadSwitcher />
-				<ArrowDown className="absolute bottom-8" />
+				<ArrowDown />
 			</section>
 			<hr className="border-border" />
-			<section className="flex min-h-dvh flex-col items-center p-8">
+			<section className="flex h-dvh flex-col items-center p-8">
 				<FoldersList folders={folders ?? []} uploads={data} tables={tables} />
 			</section>
 		</main>

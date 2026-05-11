@@ -1,3 +1,5 @@
+import { ArrowLeft, ArrowRight } from "lucide-react";
+
 interface NavigationButtonProps {
 	direction: "prev" | "next";
 	changeDirection: (direction: -1 | 1) => void;
@@ -7,13 +9,16 @@ export default function NavigationButton({
 	direction,
 	changeDirection,
 }: NavigationButtonProps) {
+	const Icon = direction === "prev" ? ArrowLeft : ArrowRight;
+
 	return (
 		<button
 			type="button"
 			onClick={() => changeDirection(direction === "prev" ? -1 : 1)}
-			className="rounded-full p-3 my-36 hover:text-foreground text-muted-foreground font-medium transition-colors cursor-pointer"
+			aria-label={direction === "prev" ? "Previous card" : "Next card"}
+			className="my-36 cursor-pointer rounded-full p-3 font-medium text-muted-foreground transition-colors hover:text-foreground"
 		>
-			{direction === "prev" ? "←" : "→"}
+			<Icon aria-hidden="true" className="size-5" />
 		</button>
 	);
 }

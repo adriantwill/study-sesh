@@ -49,15 +49,13 @@ export default async function ReviewPage({
 	const questions = data.map((q) => questionRowToStudyQuestion(q));
 
 	const title = upload.filename;
-	const description = upload.description
-		? upload.description
-		: "No description provided";
+	const description = upload.description ?? "No description provided";
 
 	return (
-		<div className="min-h-dvh bg-background p-8">
+		<div className="min-h-dvh p-8">
 			<div className="mx-auto max-w-4xl space-y-10">
 				<div className="space-y-2">
-					<div className="flex min-w-0 items-center gap-4">
+					<div className="flex min-w-0 items-center justify-between gap-4">
 						<EditTitle title={title} reviewId={reviewId} />
 						<div className="flex shrink-0 gap-4">
 							<Link
@@ -74,22 +72,20 @@ export default async function ReviewPage({
 							</Link>
 						</div>
 					</div>
-					<div className="flex min-w-0">
-						<div className="flex min-w-0 flex-1 gap-2">
-							<EditField
-								textField={description}
-								id={reviewId}
-								table={"uploads"}
-								col={"description"}
-							/>
-						</div>
+					<div className="flex w-fit gap-2">
+						<EditField
+							textField={description}
+							id={reviewId}
+							table="uploads"
+							col="description"
+						/>
 					</div>
 				</div>
 				<FlashcardView
 					questions={questions}
 					height="h-[min(26rem,calc(100dvh-14rem))] min-h-80"
 				/>
-				<div className="h-px opacity-40 bg-foreground"></div>
+				<div className="h-px bg-foreground/40" />
 				<div className="space-y-4">
 					<h2 className="text-2xl font-medium text-foreground">
 						Question Bank

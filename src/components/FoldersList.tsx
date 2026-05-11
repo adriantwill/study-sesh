@@ -41,6 +41,12 @@ function groupBy<T, K>(items: T[], getKey: (item: T) => K) {
 	return groups;
 }
 
+function hasFolderId<T extends { folder_id: string | null }>(
+	item: T,
+): item is T & { folder_id: string } {
+	return item.folder_id !== null;
+}
+
 export default function FoldersList({
 	folders,
 	uploads,
@@ -65,12 +71,12 @@ export default function FoldersList({
 		nestedFolders.map((folder) => [folder.id, folder]),
 	);
 	const uploadsByFolderId = groupBy(
-		uploads.filter((upload) => upload.folder_id !== null),
-		(upload) => upload.folder_id!,
+		uploads.filter(hasFolderId),
+		(upload) => upload.folder_id,
 	);
 	const tablesByFolderId = groupBy(
-		tables.filter((table) => table.folder_id !== null),
-		(table) => table.folder_id!,
+		tables.filter(hasFolderId),
+		(table) => table.folder_id,
 	);
 	const rootUploads = uploads.filter((upload) => upload.folder_id === null);
 	const rootTables = tables.filter((table) => table.folder_id === null);
@@ -205,6 +211,7 @@ export default function FoldersList({
 		event: React.DragEvent<HTMLElement>,
 		targetId: string | null,
 	) {
+		event.stopPropagation();
 		if (!canDropTo(targetId)) return;
 		event.preventDefault();
 		const nextDropId = targetId ?? ROOT_DROP_ID;
@@ -215,6 +222,7 @@ export default function FoldersList({
 		event: React.DragEvent<HTMLElement>,
 		targetId: string | null,
 	) {
+		event.stopPropagation();
 		const currentDropId = targetId ?? ROOT_DROP_ID;
 
 		if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
@@ -226,6 +234,7 @@ export default function FoldersList({
 		event: React.DragEvent<HTMLElement>,
 		targetId: string | null,
 	) {
+		event.stopPropagation();
 		if (!canDropTo(targetId)) return;
 		event.preventDefault();
 		void moveDraggedItem(targetId);
@@ -285,8 +294,8 @@ export default function FoldersList({
 					<EditField
 						textField={folder.name}
 						id={folder.id}
-						table={"folders"}
-						col={"name"}
+						table="folders"
+						col="name"
 					/>
 					<DeleteButton
 						table="folders"
@@ -334,28 +343,26 @@ export default function FoldersList({
 					},
 				]}
 			/>
-			<div className="bg-muted flex flex-1 min-h-0 flex-col rounded-sm shadow w-200">
-				<ul className="flex-1 min-h-0 flex flex-col overflow-y-auto px-6 py-4">
-					<div className="transition-transform duration-300 space-y-2">
-						{rootFolders
-							.filter((folder) => visibleFolderIds.has(folder.id))
-							.map(renderFolder)}
-					</div>
-					<AddFolder />
-					<ul
-						onDragOver={(event) => handleDragOver(event, null)}
-						onDragLeave={(event) => handleDragLeave(event, null)}
-						onDrop={(event) => handleDrop(event, null)}
-						className={`flex-1 min-h-14 rounded-md transition-colors ${dropFolderId === ROOT_DROP_ID ? "bg-background/60 ring-1 ring-border" : ""}`}
-					>
-						{activeTool === "flashcards"
-							? rootUploads.map((upload) =>
-									renderUpload(upload, false, "uploads"),
-								)
-							: rootTables.map((table) =>
-									renderUpload(table, false, "table_uploads"),
-								)}
-					</ul>
+			<div className=" flex min-h-0 w-200 flex-1 flex-col rounded-sm overflow-y-auto px-6 py-4 bg-muted shadow">
+				<ul className="space-y-2 transition-transform duration-300">
+					{rootFolders
+						.filter((folder) => visibleFolderIds.has(folder.id))
+						.map(renderFolder)}
+				</ul>
+				<AddFolder />
+				<ul
+					onDragOver={(event) => handleDragOver(event, null)}
+					onDragLeave={(event) => handleDragLeave(event, null)}
+					onDrop={(event) => handleDrop(event, null)}
+					className={`min-h-14 flex-1 rounded-md transition-colors ${dropFolderId === ROOT_DROP_ID ? "bg-background/60 ring-1 ring-border" : ""}`}
+				>
+					{activeTool === "flashcards"
+						? rootUploads.map((upload) =>
+								renderUpload(upload, false, "uploads"),
+							)
+						: rootTables.map((table) =>
+								renderUpload(table, false, "table_uploads"),
+							)}
 				</ul>
 			</div>
 		</>
