@@ -57,7 +57,7 @@ export default async function ReviewPage({
 		<div className="min-h-dvh bg-background p-8">
 			<div className="mx-auto max-w-4xl space-y-10">
 				<div className="space-y-2">
-					<div className="flex min-w-0 items-center gap-4">
+					<div className="flex min-w-0 justify-between items-center gap-4">
 						<EditTitle title={title} reviewId={reviewId} />
 						<div className="flex shrink-0 gap-4">
 							<Link
@@ -74,15 +74,13 @@ export default async function ReviewPage({
 							</Link>
 						</div>
 					</div>
-					<div className="flex min-w-0">
-						<div className="flex min-w-0 flex-1 gap-2">
-							<EditField
-								textField={description}
-								id={reviewId}
-								table={"uploads"}
-								col={"description"}
-							/>
-						</div>
+					<div className="flex w-fit gap-2">
+						<EditField
+							textField={description}
+							id={reviewId}
+							table={"uploads"}
+							col={"description"}
+						/>
 					</div>
 				</div>
 				<FlashcardView
