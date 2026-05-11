@@ -40,11 +40,11 @@ export async function uploadAndGenerateAction(formData: FormData) {
 	if (!(file instanceof File) || file.size === 0)
 		throw new Error("No PDF provided");
 	if (file.type !== "application/pdf") throw new Error("Only PDFs supported");
-	const questions = await generateQuestions(file);
-	if (questions.length === 0) {
-		throw new Error("No questions generated from this PDF");
-	}
-	const upload = await uploadRecordAction(file, questions);
+	const upload = await createUpload(file);
+	await generateQuestions(file, upload.id);
+	// if (questions.length === 0) {
+	// 	throw new Error("No questions generated from this PDF");
+	// }
 	revalidatePath("/");
 	return { uploadId: upload.id };
 }
@@ -83,13 +83,32 @@ export async function uploadTableAction(formData: FormData) {
 }
 
 export async function uploadRecordAction(
-	source: File | string,
+	upload_id: string,
 	questions: StudyQuestion[],
 ) {
-	if (questions.length === 0) {
-		throw new Error("No questions to save");
-	}
+	const supabase = await createClient();
+	// Insert questions
+	const questionRows = questions.map((q, idx) => ({
+		upload_id: upload_id,
+		question_text: q.question,
+		original_question_text: q.originalQuestion ?? q.question,
+		answer_text: q.answer,
+		original_answer_text: q.originalAnswer ?? q.answer,
+		page_number: q.pageNumber ?? null,
+		ocr_text: q.ocrText ?? null,
+		display_order: (idx + 1) * DISPLAY_ORDER_STEP,
+		options: q.options ?? [],
+	}));
 
+	const { error } = await supabase
+		.from("questions")
+		.insert(questionRows as never);
+
+	if (error) {
+		console.error("Error inserting questions:", error);
+	}
+}
+export async function createUpload(source: File | string) {
 	const supabase = await createClient();
 	const isFileUpload = source instanceof File;
 	const filename = isFileUpload ? source.name : source;
@@ -124,32 +143,6 @@ export async function uploadRecordAction(
 	}
 
 	// Insert questions
-	if (questions.length > 0) {
-		const questionRows = questions.map((q, idx) => ({
-			upload_id: upload.id,
-			question_text: q.question,
-			original_question_text: q.originalQuestion ?? q.question,
-			answer_text: q.answer,
-			original_answer_text: q.originalAnswer ?? q.answer,
-			page_number: q.pageNumber ?? null,
-			ocr_text: q.ocrText ?? null,
-			display_order: (idx + 1) * DISPLAY_ORDER_STEP,
-			options: q.options ?? [],
-		}));
-
-		const { error: questionsError } = await supabase
-			.from("questions")
-			.insert(questionRows as never);
-
-		if (questionsError) {
-			console.error("Error inserting questions:", questionsError);
-			await supabase.from("uploads").delete().eq("id", upload.id);
-			if (storagePath) {
-				await removePdfOrThrow(storagePath);
-			}
-			throw new Error("Failed to save questions to database");
-		}
-	}
 	return upload;
 }
 

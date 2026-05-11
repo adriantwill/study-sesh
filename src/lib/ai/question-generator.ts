@@ -1,10 +1,11 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Poppler } from "node-poppler";
+import { uploadRecordAction } from "@/src/app/actions";
 import type { StudyQuestion } from "@/src/types";
 
 //TODO optimize the pdf cario thing
-export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
+export async function generateQuestions(file: File, uploadId: string) {
 	if (!process.env.GEMINI_API_KEY) {
 		throw new Error("GEMINI_API_KEY not configured");
 	}
@@ -174,7 +175,7 @@ Return JSON array only:
 							options: string[];
 						}>;
 
-						return pageQuestions.map((q) => ({
+						const questions = pageQuestions.map((q) => ({
 							id: "id", // Placeholder
 							upload_id: "",
 							question: q.question,
@@ -185,6 +186,7 @@ Return JSON array only:
 							ocrText: null,
 							originalQuestion: q.question,
 						}));
+						await uploadRecordAction(uploadId, questions);
 					} catch (err) {
 						console.error("Error processing slide", {
 							fileName,
@@ -194,10 +196,10 @@ Return JSON array only:
 					}
 				}),
 			);
-			allQuestions.push(...batchResults.flat());
+			// allQuestions.push(...batchResults.flat());
 		}
 
-		return allQuestions;
+		// return allQuestions;
 	} catch (error) {
 		console.error("Error in generateQuestions:", error);
 		throw error;
