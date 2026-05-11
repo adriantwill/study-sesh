@@ -3,10 +3,11 @@ import { FileUp } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
+	createUpload,
 	uploadAndGenerateAction,
-	uploadRecordAction,
 	uploadTableAction,
 } from "../app/actions";
+import { uploadRecordAction } from "../lib/ai/question-generator";
 import type { StudyQuestion } from "../types";
 
 type UploadMode = "pdf" | "text" | "xlsx";
@@ -164,7 +165,8 @@ export default function UploadSwitcher() {
 				} => pair !== null,
 			);
 		try {
-			const upload = await uploadRecordAction("Untitled", questionList);
+			const upload = await createUpload("Untitled");
+			await uploadRecordAction(upload.id, questionList, 0);
 			router.push(`/uploads/${upload.id}`);
 		} catch (err) {
 			console.error("Upload error:", err);
