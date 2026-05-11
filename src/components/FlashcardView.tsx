@@ -170,7 +170,7 @@ export default function FlashcardView({
 					cardsLeft={filteredQuestions.length - currentIndex}
 				/>
 			)}
-			<div className="flex gap-4 transition-transform duration-300 ease-out peer-hover/prev:-translate-x-2 peer-hover/next:translate-x-2">
+			<div className="flex gap-4">
 				{!isStudyMode && (
 					<NavigationButton
 						direction="prev"
@@ -186,7 +186,7 @@ export default function FlashcardView({
 					}}
 				>
 					<div
-						className={`group-has-[.header:hover]:translate-x-2 group-has-[.footer:hover]:-translate-x-2 relative h-full w-full transition-all duration-500 transform-3d ${isFlipped ? "-rotate-y-180" : "hover:-rotate-y-6"} `}
+						className={`relative h-full w-full transform-3d transition-all duration-500 ${isFlipped ? "-rotate-y-180" : "hover:-rotate-y-6"}`}
 					>
 						<Flashcard text={filteredQuestions[currentIndex].answer} isBack />
 						<Flashcard
@@ -230,7 +230,7 @@ export default function FlashcardView({
 							);
 						})}
 					</div>
-					<div className="mt flex justify-center gap-6 text-sm text-muted-foreground underline hover:text-foreground">
+					<div className="mt-4 flex justify-center gap-6 text-sm text-muted-foreground underline hover:text-foreground">
 						{completedIds.length > 0 || actionHistory.length > 0 ? (
 							<button
 								type="button"

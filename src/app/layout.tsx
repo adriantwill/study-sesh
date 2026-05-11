@@ -19,7 +19,7 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="en" className="snap-y snap-mandatory">
-			<body className="bg-background text-foreground font-sans antialiased">
+			<body className="bg-background font-sans text-foreground antialiased">
 				<ChunkErrorHandler />
 				{children}
 			</body>

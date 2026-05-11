@@ -27,7 +27,7 @@ export default async function TablePage({
 	}
 
 	return (
-		<div className="mx-auto min-h-dvh max-w-6xl space-y-8 bg-background p-8">
+		<div className="mx-auto min-h-dvh max-w-6xl space-y-8 p-8">
 			<div className="flex min-w-0">
 				<EditTitle title={tableUpload.filename} reviewId={tableId} />
 			</div>

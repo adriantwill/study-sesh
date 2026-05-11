@@ -1,5 +1,3 @@
-import Link from "next/link";
-import BrandMark from "@/src/components/BrandMark";
 import EditTitle from "@/src/components/EditTitle";
 import FlashcardView from "@/src/components/FlashcardView";
 import { createClient } from "@/src/lib/supabase/server";

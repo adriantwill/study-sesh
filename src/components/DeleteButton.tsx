@@ -36,7 +36,7 @@ export default function DeleteButton({
 			type="button"
 			onClick={handleDelete}
 			aria-label={`Delete ${table}`}
-			className="flex items-center justify-center hover:cursor-pointer hover:text-primary"
+			className="flex cursor-pointer items-center justify-center hover:text-primary"
 		>
 			<Trash2 size={16} />
 		</button>

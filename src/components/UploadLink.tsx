@@ -17,8 +17,7 @@ interface UploadLinkProps {
 	isDragging?: boolean;
 	onDragStart?: (uploadId: string) => void;
 	onDragEnd?: () => void;
-	onDelete?: (uploadId: string) => Promise<void> | void;
-	variant: UploadLinkTable; //just 		variant: "uploads" | "table_uploads",
+	variant: UploadLinkTable;
 }
 
 export default function UploadLink({
@@ -43,7 +42,7 @@ export default function UploadLink({
 			onDragEnd={onDragEnd}
 			className={`${isDeleting === upload.id ? "hidden" : ""} ${tree ? "py-1 pl-4" : "mt-2"} ${draggable ? "cursor-grab" : ""} ${isDragging ? "opacity-40" : ""}`}
 		>
-			<div className="flex min-h-12 items-center justify-between rounded-md px-2 text-lg hover:bg-muted-hover duration-200 py-1">
+			<div className="flex min-h-12 items-center justify-between rounded-md px-2 py-1 text-lg transition-colors duration-200 hover:bg-muted-hover">
 				<Link
 					href={`${variant}/${upload.id}`}
 					className="overflow-x-hidden text-foreground/85 transition-colors hover:text-foreground"

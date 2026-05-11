@@ -38,7 +38,7 @@ function ResizableImage({ src }: { src: string }) {
 	return (
 		<div
 			ref={wrapperRef}
-			className="mt-3 w-[500px] max-w-full overflow-auto resize rounded-md border border-muted-foreground/20 object-contain"
+			className="mt-3 w-[500px] max-w-full resize overflow-auto rounded-md border border-muted-foreground/20"
 			style={maxHeight ? { maxHeight } : undefined}
 		>
 			<Image
@@ -144,88 +144,80 @@ export default function Test({
 
 	return (
 		<div className="space-y-4">
-			<ul className="space-y-4">
-				{previewQuestions.map((q, idx) => {
-					const prevDisplayOrder = q.displayOrder ?? null;
-					const nextDisplayOrder =
-						previewQuestions[idx + 1]?.displayOrder ?? null;
+			{previewQuestions.map((q, idx) => {
+				const prevDisplayOrder = q.displayOrder ?? null;
+				const nextDisplayOrder =
+					previewQuestions[idx + 1]?.displayOrder ?? null;
 
-					return (
-						<div
-							className={`space-y-2  ${isDeleting === q.id ? "hidden" : ""}`}
-							key={q.id}
+				return (
+					<div
+						className={`space-y-2 ${isDeleting === q.id ? "hidden" : ""}`}
+						key={q.id}
+					>
+						<article
+							draggable={!isAnyEditing}
+							onDragStart={() => handleDragStart(q.id)}
+							onDragEnd={handleDragEnd}
+							onDragOver={(e) => handleDragOver(e, q.id)}
+							onDrop={() => void handleDrop()}
+							className={`transition-[opacity,transform,box-shadow] duration-150 ${
+								activeId === q.id ? "cursor-grabbing opacity-0" : ""
+							} ${
+								dragOverId === q.id ? "scale-[1.01] shadow-lg" : ""
+							} ${isAnyEditing ? "cursor-default" : "cursor-grab"}`}
 						>
-							<li
-								draggable={!isAnyEditing}
-								onDragStart={() => handleDragStart(q.id)}
-								onDragEnd={handleDragEnd}
-								onDragOver={(e) => handleDragOver(e, q.id)}
-								onDrop={() => void handleDrop()}
-								className={`transition-[opacity,transform,box-shadow] duration-150 ${
-									activeId === q.id ? "cursor-grabbing opacity-0" : ""
-								} ${
-									dragOverId === q.id ? "scale-[1.01] shadow-lg" : ""
-								} ${isAnyEditing ? "cursor-default" : "cursor-grab"}`}
-							>
-								<div className="bg-muted rounded-lg shadow p-6 flex items-start gap-4">
-									<div className="shrink-0 w-8 h-8 bg-muted-hover rounded-full flex items-center justify-center text-sm font-medium">
-										{idx + 1}
+							<div className="flex items-start gap-4 rounded-lg bg-muted p-6 shadow">
+								<div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted-hover text-sm font-medium">
+									{idx + 1}
+								</div>
+								<div className="w-1 flex-1">
+									<div className="flex items-center gap-2">
+										<EditField
+											textField={q.question}
+											id={q.id}
+											onEditingChange={(isEditing) =>
+												handleEditingChange(`${q.id}:question_text`, isEditing)
+											}
+											table="questions"
+											col="question_text"
+										/>
+										<ImageUploadButton id={q.id} />
+										<DeleteButton
+											id={q.id}
+											table="questions"
+											name={q.question}
+											displayElement={() => displayElement(q.id)}
+										/>
 									</div>
-									<div className="flex-1 w-1">
-										<div className="flex items-center gap-2">
+									{q.imageUrl && <ResizableImage src={q.imageUrl} />}
+									<details className="mt-4 text-sm">
+										<summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+											Show answer
+										</summary>
+										<div className="mt-2 flex items-center justify-between gap-2 rounded-lg bg-muted-hover p-4">
 											<EditField
-												textField={q.question}
+												textField={q.answer}
 												id={q.id}
 												onEditingChange={(isEditing) =>
-													handleEditingChange(
-														`${q.id}:question_text`,
-														isEditing,
-													)
+													handleEditingChange(`${q.id}:answer_text`, isEditing)
 												}
-												table={"questions"}
-												col={"question_text"}
-											/>
-											<ImageUploadButton id={q.id} />
-											<DeleteButton
-												id={q.id}
 												table="questions"
-												name={q.question}
-												displayElement={() => displayElement(q.id)}
+												col="answer_text"
 											/>
 										</div>
-										{q.imageUrl && <ResizableImage src={q.imageUrl} />}
-										<details className="text-sm mt-4">
-											<summary className="cursor-pointer text-muted-foreground hover:text-foreground">
-												Show answer
-											</summary>
-											<div className="gap-2 flex items-center justify-between mt-2 p-4 rounded-lg bg-muted-hover">
-												<EditField
-													textField={q.answer}
-													id={q.id}
-													onEditingChange={(isEditing) =>
-														handleEditingChange(
-															`${q.id}:answer_text`,
-															isEditing,
-														)
-													}
-													table={"questions"}
-													col={"answer_text"}
-												/>
-											</div>
-										</details>
-									</div>
+									</details>
 								</div>
-							</li>
-							<AddQuestionButton
-								uploadId={reviewId}
-								insertAtPosition={q.displayOrder ?? 0}
-								prevDisplayOrder={prevDisplayOrder}
-								nextDisplayOrder={nextDisplayOrder}
-							/>
-						</div>
-					);
-				})}
-			</ul>
+							</div>
+						</article>
+						<AddQuestionButton
+							uploadId={reviewId}
+							insertAtPosition={q.displayOrder ?? 0}
+							prevDisplayOrder={prevDisplayOrder}
+							nextDisplayOrder={nextDisplayOrder}
+						/>
+					</div>
+				);
+			})}
 		</div>
 	);
 }

@@ -11,8 +11,8 @@ interface TableViewerProps {
 const MERGED_WITH_ABOVE = "&^";
 
 export default function TableViewer({ table }: TableViewerProps) {
-	const allCellKeys = table.rows.flatMap((row, rowIndex) =>
-		table.headers.map((header, headerIndex) => cellKey(rowIndex, headerIndex)),
+	const allCellKeys = table.rows.flatMap((_, rowIndex) =>
+		table.headers.map((_header, headerIndex) => cellKey(rowIndex, headerIndex)),
 	);
 	const [blurredCells, setBlurredCells] = useState(() => new Set(allCellKeys));
 
@@ -33,28 +33,26 @@ export default function TableViewer({ table }: TableViewerProps) {
 	}
 	return (
 		<div className="space-y-4">
-			<div className="flex gap-2">
-				<FlashcardsToolButton
-					options={[
-						{
-							label: "Blur All",
-							onClick: () => setBlurredCells(new Set(allCellKeys)),
-						},
-						{
-							label: "Unblur All",
-							onClick: () => setBlurredCells(new Set()),
-						},
-					]}
-				/>
-			</div>
+			<FlashcardsToolButton
+				options={[
+					{
+						label: "Blur All",
+						onClick: () => setBlurredCells(new Set(allCellKeys)),
+					},
+					{
+						label: "Unblur All",
+						onClick: () => setBlurredCells(new Set()),
+					},
+				]}
+			/>
 
 			<div className="overflow-x-auto rounded-sm border border-border bg-muted shadow-sm">
 				<table className="min-w-full border-collapse">
 					<thead>
 						<tr className="bg-muted-hover">
-							{table.headers.map((header, headerIndex) => (
+							{table.headers.map((header) => (
 								<th
-									key={`${header}-${headerIndex}`}
+									key={header}
 									className="border-b border-border px-4 py-3 text-left font-semibold text-foreground"
 								>
 									{header}
@@ -65,7 +63,7 @@ export default function TableViewer({ table }: TableViewerProps) {
 					<tbody>
 						{table.rows.map((row, rowIndex) => (
 							<tr
-								key={rowIndex}
+								key={JSON.stringify(row)}
 								className="border-b border-border/70 last:border-b-0"
 							>
 								{table.headers.map((header, headerIndex) => {
@@ -73,26 +71,22 @@ export default function TableViewer({ table }: TableViewerProps) {
 									const isBlurred = blurredCells.has(key);
 									const rawValue = row[header] ?? "";
 									if (rawValue.startsWith(MERGED_WITH_ABOVE)) return null;
-									const value = rawValue.startsWith(MERGED_WITH_ABOVE)
-										? rawValue.slice(MERGED_WITH_ABOVE.length)
-										: rawValue;
 
 									return (
 										<td
 											key={key}
 											rowSpan={getRowSpan(table, rowIndex, header)}
-											className={`h-20 cursor-pointer px-4 py-3 align-middle text-foreground transition-all duration-200 ${isBlurred ? "blur-sm" : ""}`}
-											onClick={() => {
-												toggleCell(key);
-											}}
-											onKeyDown={(event) => {
-												if (event.key === "Enter" || event.key === " ") {
-													event.preventDefault();
-													toggleCell(key);
-												}
-											}}
+											className="p-0 align-middle"
 										>
-											{value}
+											<button
+												type="button"
+												className={`min-h-20 w-full cursor-pointer px-4 py-3 text-left text-foreground transition-all duration-200 ${isBlurred ? "blur-sm" : ""}`}
+												onClick={() => {
+													toggleCell(key);
+												}}
+											>
+												{rawValue}
+											</button>
 										</td>
 									);
 								})}

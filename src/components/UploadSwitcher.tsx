@@ -12,6 +12,7 @@ import type { StudyQuestion } from "../types";
 type UploadMode = "pdf" | "text" | "xlsx";
 
 const uploadModeOrder: UploadMode[] = ["pdf", "text", "xlsx"];
+const switchTransition = "transition-all duration-300 ease-out";
 
 const uploadModeConfig: Record<
 	UploadMode,
@@ -177,7 +178,7 @@ export default function UploadSwitcher() {
 		}
 	}
 	return (
-		<div className="bg-muted rounded-lg shadow p-8 w-200 flex flex-col gap-8 min-h-0 ">
+		<div className="flex min-h-0 w-200 flex-col gap-8 rounded-lg bg-muted p-8 shadow">
 			<div className="relative grid grid-cols-3 overflow-hidden rounded-2xl border border-muted">
 				<span
 					aria-hidden="true"
@@ -187,7 +188,7 @@ export default function UploadSwitcher() {
 				{uploadModeOrder.map((modeOption) => (
 					<button
 						key={modeOption}
-						className={`relative z-10 text-foreground py-2 w-full cursor-pointer rounded-2xl transition-colors duration-200 ${
+						className={`relative z-10 w-full cursor-pointer rounded-2xl py-2 transition-colors duration-200 ${
 							mode === modeOption ? "text-foreground" : "text-foreground/70"
 						}`}
 						onClick={() => selectMode(modeOption)}
@@ -198,9 +199,9 @@ export default function UploadSwitcher() {
 				))}
 			</div>
 
-			{error && ( //upload butotn below
+			{error && (
 				<div
-					className="mb-4 h-28 overflow-y-auto rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-foreground shadow-sm"
+					className="h-28 overflow-y-auto rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-foreground shadow-sm"
 					role="alert"
 				>
 					<p className="font-medium">Error</p>
@@ -209,9 +210,11 @@ export default function UploadSwitcher() {
 					</p>
 				</div>
 			)}
-			<div className="relative h-56 overflow-hidden rounded-lg border-2 border-dashed border-border transition-all duration-300 ease-out">
+			<div
+				className={`relative h-56 overflow-hidden rounded-lg border-2 border-dashed border-border ${switchTransition}`}
+			>
 				<div
-					className={`absolute inset-0 transition-all duration-300 ease-out ${
+					className={`absolute inset-0 ${switchTransition} ${
 						isTextMode
 							? "translate-y-0 opacity-100"
 							: "pointer-events-none translate-y-2 opacity-0"
@@ -227,7 +230,7 @@ Question 2:Answer 2`}
 				</div>
 
 				<div
-					className={`absolute inset-0 p-12 text-center transition-all duration-300 ease-out ${
+					className={`absolute inset-0 p-12 text-center ${switchTransition} ${
 						!isTextMode
 							? "translate-y-0 opacity-100"
 							: "pointer-events-none -translate-y-2 opacity-0"
@@ -235,7 +238,7 @@ Question 2:Answer 2`}
 				>
 					{file ? (
 						<div className="flex h-full flex-col items-center justify-center">
-							<p className="text-sm text-muted-foreground mb-4">{file.name}</p>
+							<p className="mb-4 text-sm text-muted-foreground">{file.name}</p>
 							<button
 								type="button"
 								onClick={() => {
@@ -259,7 +262,7 @@ Question 2:Answer 2`}
 							/>
 							<label
 								htmlFor={activeMode.inputId}
-								className="cursor-pointer text-muted-foreground hover:text-foreground flex flex-col items-center"
+								className="flex cursor-pointer flex-col items-center text-muted-foreground hover:text-foreground"
 							>
 								<FileUp size={16} className="mb-4" />
 								<div className="font-medium">{activeMode.fileLabel}</div>
@@ -269,15 +272,15 @@ Question 2:Answer 2`}
 				</div>
 			</div>
 			<div
-				className={`origin-center overflow-hidden transition-all duration-300 ease-out ${
-					canSubmit ? " h-12" : "h-0 pointer-events-none -mt-4 -mb-4"
+				className={`origin-center overflow-hidden ${switchTransition} ${
+					canSubmit ? "h-12" : "pointer-events-none -mt-4 -mb-4 h-0"
 				}`}
 			>
 				<button
 					type="button"
 					onClick={handleSubmit}
 					disabled={loading}
-					className="w-full rounded-[0.12rem] bg-primary py-3 font-medium text-primary-foreground hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-50"
+					className="w-full rounded-sm bg-primary py-3 font-medium text-primary-foreground hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-50"
 					aria-label="Generate study questions from uploaded file"
 				>
 					{loading ? activeMode.loadingLabel : activeMode.submitLabel}
@@ -289,7 +292,7 @@ Question 2:Answer 2`}
 						<span>Processing slides...</span>
 						<span>{Math.round(progress)}%</span>
 					</div>
-					<div className="w-full bg-muted rounded-full h-2">
+					<div className="h-2 w-full rounded-full bg-muted">
 						<div
 							className="h-2 rounded-full bg-primary transition-all duration-300"
 							style={{ width: `${progress}%` }}

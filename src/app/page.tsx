@@ -36,7 +36,7 @@ export default async function Home() {
 
 	return (
 		<main>
-			<section className="relative flex min-h-dvh flex-col items-center  p-8">
+			<section className="flex min-h-dvh flex-col items-center p-8">
 				<h1 className="flex justify-center gap-3 text-[clamp(2.25rem,8vw,3rem)] font-bold text-foreground">
 					<span>Study Sesh</span>
 					<BrandMark size={54} className="translate-y-0.5" />
@@ -47,7 +47,7 @@ export default async function Home() {
 				<ArrowDown />
 			</section>
 			<hr className="border-border" />
-			<section className="flex min-h-dvh flex-col items-center p-8">
+			<section className="flex h-dvh flex-col items-center p-8">
 				<FoldersList folders={folders ?? []} uploads={data} tables={tables} />
 			</section>
 		</main>

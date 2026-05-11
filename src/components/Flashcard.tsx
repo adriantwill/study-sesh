@@ -12,7 +12,7 @@ export default function Flashcard({
 }) {
 	return (
 		<div
-			className={`text-4xl font-medium text-center text-foreground whitespace-pre-wrap absolute inset-0 w-full h-full bg-muted rounded-xl shadow-lg flex flex-col items-center justify-center p-8 backface-hidden rotate-x-0 ${isBack ? "rotate-y-180 " : ""}`}
+			className={`absolute inset-0 flex size-full flex-col items-center justify-center rounded-xl bg-muted p-8 text-center text-4xl font-medium whitespace-pre-wrap text-foreground shadow-lg backface-hidden rotate-x-0 ${isBack ? "rotate-y-180" : ""}`}
 		>
 			<span className="text-justify">{parseMarkdown(text)}</span>
 			{imageUrl && (

@@ -9,7 +9,7 @@ interface EditTitleProps {
 
 export default function EditTitle({ title, reviewId }: EditTitleProps) {
 	return (
-		<h1 className="flex min-w-0 justify-center flex-nowrap items-center gap-2 text-3xl font-bold text-foreground">
+		<h1 className="flex min-w-0 items-center justify-center gap-2 text-3xl font-bold text-foreground">
 			<Link href="/" aria-label="Go to home page">
 				<BrandMark size={32} />
 			</Link>
@@ -20,8 +20,8 @@ export default function EditTitle({ title, reviewId }: EditTitleProps) {
 				<EditField
 					textField={title}
 					id={reviewId}
-					table={"uploads"}
-					col={"filename"}
+					table="uploads"
+					col="filename"
 				/>
 			</Link>
 		</h1>

@@ -8,11 +8,11 @@ interface ImageUploadButtonProps {
 
 export default function ImageUploadButton({ id }: ImageUploadButtonProps) {
 	return (
-		<form className="flex items-center">
+		<>
 			<label
 				htmlFor={`file-upload-${id}`}
 				aria-label="Upload image"
-				className={`flex items-center justify-center cursor-pointer hover:text-primary`}
+				className="flex cursor-pointer items-center justify-center hover:text-primary"
 			>
 				<ImageIcon size={16} />
 			</label>
@@ -21,7 +21,7 @@ export default function ImageUploadButton({ id }: ImageUploadButtonProps) {
 				name="file"
 				type="file"
 				accept="image/*"
-				className="hidden "
+				className="hidden"
 				onChange={async (e) => {
 					const file = e.target.files?.[0];
 					if (!file) return;
@@ -38,6 +38,6 @@ export default function ImageUploadButton({ id }: ImageUploadButtonProps) {
 					}
 				}}
 			/>
-		</form>
+		</>
 	);
 }
