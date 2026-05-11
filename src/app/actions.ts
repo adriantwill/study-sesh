@@ -48,8 +48,16 @@ export async function uploadAndGenerateAction(formData: FormData) {
 	if (!(file instanceof File) || file.size === 0)
 		throw new Error("No PDF provided");
 	if (file.type !== "application/pdf") throw new Error("Only PDFs supported");
+	const pdfBuffer = Buffer.from(await file.arrayBuffer());
 	const upload = await createUpload(file);
-	await generateQuestions(file, upload.id);
+	after(async () => {
+		try {
+			await generateQuestions(pdfBuffer, upload.id);
+			revalidatePath(`/uploads/${upload.id}`);
+		} catch (error) {
+			console.error("Background question generation error:", error);
+		}
+	});
 	// if (questions.length === 0) {
 	// 	throw new Error("No questions generated from this PDF");
 	// }

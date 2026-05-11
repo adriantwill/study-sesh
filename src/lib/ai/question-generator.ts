@@ -5,7 +5,7 @@ import type { StudyQuestion } from "@/src/types";
 import { uploadRecordAction } from "../questions";
 
 //TODO optimize the pdf cario thing
-export async function generateQuestions(file: File, uploadId: string) {
+export async function generateQuestions(pdfBuffer: Buffer, uploadId: string) {
 	if (!process.env.GEMINI_API_KEY) {
 		throw new Error("GEMINI_API_KEY not configured");
 	}
@@ -20,9 +20,7 @@ export async function generateQuestions(file: File, uploadId: string) {
 
 	try {
 		// Write buffer to temp file
-		const arrayBuffer = await file.arrayBuffer();
-		const buffer = Buffer.from(arrayBuffer);
-		await fs.writeFile(pdfPath, buffer);
+		await fs.writeFile(pdfPath, pdfBuffer);
 
 		const poppler = new Poppler();
 
