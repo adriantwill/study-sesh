@@ -1,9 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import router from "next/router";
 import { after } from "next/server";
 import { generateQuestions } from "../lib/ai/question-generator";
+import { uploadRecordAction } from "../lib/questions";
 import {
 	getQuestionImagePublicUrl,
 	removePdf,
@@ -35,6 +35,13 @@ export async function normalizeQuestionDisplayOrder(uploadId: string) {
 	});
 	if (error) throw new Error("Failed to normalize question order");
 }
+export async function uploadRecordActionTEMP(
+	uploadId: string,
+	questionList: StudyQuestion[],
+	displayOrder: number,
+) {
+	await uploadRecordAction(uploadId, questionList, displayOrder);
+}
 
 export async function uploadAndGenerateAction(formData: FormData) {
 	const file = formData.get("pdf") as File;
@@ -42,7 +49,6 @@ export async function uploadAndGenerateAction(formData: FormData) {
 		throw new Error("No PDF provided");
 	if (file.type !== "application/pdf") throw new Error("Only PDFs supported");
 	const upload = await createUpload(file);
-	router.push(`/uploads/${upload.id}`);
 	await generateQuestions(file, upload.id);
 	// if (questions.length === 0) {
 	// 	throw new Error("No questions generated from this PDF");

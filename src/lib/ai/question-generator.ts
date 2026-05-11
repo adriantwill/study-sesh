@@ -2,36 +2,8 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { Poppler } from "node-poppler";
 import type { StudyQuestion } from "@/src/types";
-import { createClient } from "../supabase/server";
+import { uploadRecordAction } from "../questions";
 
-const DISPLAY_ORDER_STEP = 100;
-export async function uploadRecordAction(
-	upload_id: string,
-	questions: StudyQuestion[],
-	pos: number,
-) {
-	const supabase = await createClient();
-	// Insert questions
-	const questionRows = questions.map((q, idx) => ({
-		upload_id: upload_id,
-		question_text: q.question,
-		original_question_text: q.originalQuestion ?? q.question,
-		answer_text: q.answer,
-		original_answer_text: q.originalAnswer ?? q.answer,
-		page_number: q.pageNumber ?? null,
-		ocr_text: q.ocrText ?? null,
-		display_order: (pos + idx + 1) * DISPLAY_ORDER_STEP,
-		options: q.options ?? [],
-	}));
-
-	const { error } = await supabase
-		.from("questions")
-		.insert(questionRows as never);
-
-	if (error) {
-		console.error("Error inserting questions:", error);
-	}
-}
 //TODO optimize the pdf cario thing
 export async function generateQuestions(file: File, uploadId: string) {
 	if (!process.env.GEMINI_API_KEY) {
@@ -58,8 +30,9 @@ export async function generateQuestions(file: File, uploadId: string) {
 		// We want to skip the first 2 pages, so we start converting from page 3.
 		// pdftocairo options: -f (first page), -l (last page), -png
 
+		const firstPageToConvert = 3;
 		const options = {
-			firstPageToConvert: 3,
+			firstPageToConvert,
 			pngFile: true,
 			scalePageTo: 1024,
 		};
@@ -78,12 +51,13 @@ export async function generateQuestions(file: File, uploadId: string) {
 		for (let i = 0; i < imageFiles.length; i += 2) {
 			const batch = imageFiles.slice(i, i + 2);
 			const batchResults = await Promise.all(
-				batch.map(async (fileName) => {
+				batch.map(async (fileName, batchIndex) => {
 					const imagePath = path.join(tempDir, fileName);
 					const pageMatch = fileName.match(/-(\d+)\.png$/);
+					const fallbackPageNumber = firstPageToConvert + i + batchIndex;
 					const pageNumber = pageMatch
 						? Number.parseInt(pageMatch[1], 10)
-						: null;
+						: fallbackPageNumber;
 
 					try {
 						const imageBuffer = await fs.readFile(imagePath);

@@ -5,9 +5,9 @@ import { useState } from "react";
 import {
 	createUpload,
 	uploadAndGenerateAction,
+	uploadRecordActionTEMP,
 	uploadTableAction,
 } from "../app/actions";
-import { uploadRecordAction } from "../lib/ai/question-generator";
 import type { StudyQuestion } from "../types";
 
 type UploadMode = "pdf" | "text" | "xlsx";
@@ -96,7 +96,8 @@ export default function UploadSwitcher() {
 
 		try {
 			if (fileMode === "pdf") {
-				await uploadAndGenerateAction(formData);
+				const result = await uploadAndGenerateAction(formData);
+				router.push(`/uploads/${result.uploadId}`);
 			} else {
 				const result = await uploadTableAction(formData);
 				router.push(`/table_uploads/${result.tableUploadId}`);
@@ -166,7 +167,7 @@ export default function UploadSwitcher() {
 			);
 		try {
 			const upload = await createUpload("Untitled");
-			await uploadRecordAction(upload.id, questionList, 0);
+			await uploadRecordActionTEMP(upload.id, questionList, 0);
 			router.push(`/uploads/${upload.id}`);
 		} catch (err) {
 			console.error("Upload error:", err);
