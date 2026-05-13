@@ -1,7 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Poppler } from "node-poppler";
-import type { StudyQuestion } from "@/src/types";
 import { uploadRecordAction } from "../questions";
 
 //TODO optimize the pdf cario thing
@@ -42,20 +41,17 @@ export async function generateQuestions(pdfBuffer: Buffer, uploadId: string) {
 		const imageFiles = allFiles
 			.filter((f) => f.startsWith(`slides-${fileId}`) && f.endsWith(".png"))
 			.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-
-		const allQuestions: StudyQuestion[] = [];
+		const slideImages = imageFiles.map((fileName, index) => ({
+			fileName,
+			pageNumber: firstPageToConvert + index,
+		}));
 
 		// Process in batches of 2 to avoid rate limiting
-		for (let i = 0; i < imageFiles.length; i += 2) {
-			const batch = imageFiles.slice(i, i + 2);
-			const batchResults = await Promise.all(
-				batch.map(async (fileName, batchIndex) => {
+		for (let i = 0; i < slideImages.length; i += 2) {
+			const batch = slideImages.slice(i, i + 2);
+			await Promise.all(
+				batch.map(async ({ fileName, pageNumber }) => {
 					const imagePath = path.join(tempDir, fileName);
-					const pageMatch = fileName.match(/-(\d+)\.png$/);
-					const fallbackPageNumber = firstPageToConvert + i + batchIndex;
-					const pageNumber = pageMatch
-						? Number.parseInt(pageMatch[1], 10)
-						: fallbackPageNumber;
 
 					try {
 						const imageBuffer = await fs.readFile(imagePath);

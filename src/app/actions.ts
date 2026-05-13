@@ -19,12 +19,25 @@ const DISPLAY_ORDER_STEP = 100;
 type PublicTables = Database["public"]["Tables"];
 type ActionTableName = keyof PublicTables;
 type ActionColumnName<T extends ActionTableName> = keyof PublicTables[T]["Row"];
+type UploadStatus = "processing" | "completed" | "failed";
 
 async function removePdfOrThrow(storagePath: string) {
 	const { error } = await removePdf(storagePath);
 	if (error) {
 		console.error("Error deleting PDF from storage:", error);
 		throw new Error("Failed to delete PDF from storage");
+	}
+}
+
+async function updateUploadStatus(uploadId: string, status: UploadStatus) {
+	const supabase = await createClient();
+	const { error } = await supabase
+		.from("uploads")
+		.update({ status })
+		.eq("id", uploadId);
+	if (error) {
+		console.error("Error updating upload status:", error);
+		throw new Error("Failed to update upload status");
 	}
 }
 
@@ -53,9 +66,11 @@ export async function uploadAndGenerateAction(formData: FormData) {
 	after(async () => {
 		try {
 			await generateQuestions(pdfBuffer, upload.id);
+			await updateUploadStatus(upload.id, "completed");
 			revalidatePath(`/uploads/${upload.id}`);
 		} catch (error) {
 			console.error("Background question generation error:", error);
+			await updateUploadStatus(upload.id, "failed");
 		}
 	});
 	// if (questions.length === 0) {
@@ -120,6 +135,7 @@ export async function createUpload(source: File | string) {
 		.from("uploads")
 		.insert({
 			filename,
+			status: isFileUpload ? "processing" : "completed",
 			storage_path: storagePath,
 		})
 		.select()
