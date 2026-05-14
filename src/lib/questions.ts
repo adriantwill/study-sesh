@@ -7,6 +7,8 @@ export async function uploadRecordAction(
 	questions: StudyQuestion[],
 	pos: number,
 ) {
+	if (questions.length === 0) return 0;
+
 	const supabase = await createClient();
 	// Insert questions
 	const questionRows = questions.map((q, idx) => ({
@@ -28,5 +30,8 @@ export async function uploadRecordAction(
 
 	if (error) {
 		console.error("Error inserting questions:", error);
+		throw error;
 	}
+
+	return questionRows.length;
 }

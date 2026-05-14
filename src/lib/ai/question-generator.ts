@@ -34,7 +34,12 @@ export async function generateQuestions(pdfBuffer: Buffer, uploadId: string) {
 			scalePageTo: 1024,
 		};
 
-		await poppler.pdfToCairo(pdfPath, outputPrefix, options);
+		try {
+			await poppler.pdfToCairo(pdfPath, outputPrefix, options);
+		} catch (error) {
+			console.error("PDF conversion failed:", error);
+			throw new Error("Failed to convert PDF to slide images");
+		}
 
 		// Process each generated image by reading the directory
 		const allFiles = await fs.readdir(tempDir);
@@ -45,6 +50,8 @@ export async function generateQuestions(pdfBuffer: Buffer, uploadId: string) {
 			fileName,
 			pageNumber: firstPageToConvert + index,
 		}));
+		let insertedCount = 0;
+		let failedSlideCount = 0;
 
 		// Process in batches of 2 to avoid rate limiting
 		for (let i = 0; i < slideImages.length; i += 2) {
@@ -162,7 +169,7 @@ Return JSON array only:
 								fileName,
 								parts: response.candidates?.[0]?.content?.parts,
 							});
-							return [];
+							return;
 						}
 
 						const pageQuestions = JSON.parse(content) as Array<{
@@ -182,20 +189,27 @@ Return JSON array only:
 							ocrText: null,
 							originalQuestion: q.question,
 						}));
-						await uploadRecordAction(uploadId, questions, i);
+						const inserted = await uploadRecordAction(uploadId, questions, i);
+						insertedCount += inserted;
 					} catch (err) {
+						failedSlideCount += 1;
 						console.error("Error processing slide", {
 							fileName,
 							error: err,
 						});
-						return [];
 					}
 				}),
 			);
 			// allQuestions.push(...batchResults.flat());
 		}
 
-		// return allQuestions;
+		if (insertedCount === 0) {
+			throw new Error(
+				failedSlideCount > 0
+					? "All slides failed to generate questions"
+					: "No questions generated from this PDF",
+			);
+		}
 	} catch (error) {
 		console.error("Error in generateQuestions:", error);
 		throw error;

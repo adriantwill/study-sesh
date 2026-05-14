@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Flashcard from "@/src/components/Flashcard";
 import type { StudyQuestion } from "@/src/types";
 import { shuffleArray } from "../utils/cards";
@@ -20,6 +20,9 @@ export default function FlashcardView({
 }) {
 	const isStudyMode = mode === "study";
 	const [questions, setQuestions] = useState(initialQuestions);
+	useEffect(() => {
+		setQuestions(initialQuestions);
+	}, [initialQuestions]);
 	const [actionHistory, setActionHistory] = useState<
 		Array<{
 			type: "complete" | "skip";
