@@ -3,8 +3,9 @@ import { FileUp } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
+	createUpload,
 	uploadAndGenerateAction,
-	uploadRecordAction,
+	uploadRecordActionTEMP,
 	uploadTableAction,
 } from "../app/actions";
 import type { StudyQuestion } from "../types";
@@ -96,7 +97,6 @@ export default function UploadSwitcher() {
 		try {
 			if (fileMode === "pdf") {
 				const result = await uploadAndGenerateAction(formData);
-				setProgress(100);
 				router.push(`/uploads/${result.uploadId}`);
 			} else {
 				const result = await uploadTableAction(formData);
@@ -166,7 +166,8 @@ export default function UploadSwitcher() {
 				} => pair !== null,
 			);
 		try {
-			const upload = await uploadRecordAction("Untitled", questionList);
+			const upload = await createUpload("Untitled");
+			await uploadRecordActionTEMP(upload.id, questionList, 0);
 			router.push(`/uploads/${upload.id}`);
 		} catch (err) {
 			console.error("Upload error:", err);

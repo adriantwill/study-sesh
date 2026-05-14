@@ -1,10 +1,10 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Poppler } from "node-poppler";
-import type { StudyQuestion } from "@/src/types";
+import { uploadRecordAction } from "../questions";
 
 //TODO optimize the pdf cario thing
-export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
+export async function generateQuestions(pdfBuffer: Buffer, uploadId: string) {
 	if (!process.env.GEMINI_API_KEY) {
 		throw new Error("GEMINI_API_KEY not configured");
 	}
@@ -19,9 +19,7 @@ export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
 
 	try {
 		// Write buffer to temp file
-		const arrayBuffer = await file.arrayBuffer();
-		const buffer = Buffer.from(arrayBuffer);
-		await fs.writeFile(pdfPath, buffer);
+		await fs.writeFile(pdfPath, pdfBuffer);
 
 		const poppler = new Poppler();
 
@@ -29,32 +27,38 @@ export async function generateQuestions(file: File): Promise<StudyQuestion[]> {
 		// We want to skip the first 2 pages, so we start converting from page 3.
 		// pdftocairo options: -f (first page), -l (last page), -png
 
+		const firstPageToConvert = 3;
 		const options = {
-			firstPageToConvert: 3,
+			firstPageToConvert,
 			pngFile: true,
 			scalePageTo: 1024,
 		};
 
-		await poppler.pdfToCairo(pdfPath, outputPrefix, options);
+		try {
+			await poppler.pdfToCairo(pdfPath, outputPrefix, options);
+		} catch (error) {
+			console.error("PDF conversion failed:", error);
+			throw new Error("Failed to convert PDF to slide images");
+		}
 
 		// Process each generated image by reading the directory
 		const allFiles = await fs.readdir(tempDir);
 		const imageFiles = allFiles
 			.filter((f) => f.startsWith(`slides-${fileId}`) && f.endsWith(".png"))
 			.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-
-		const allQuestions: StudyQuestion[] = [];
+		const slideImages = imageFiles.map((fileName, index) => ({
+			fileName,
+			pageNumber: firstPageToConvert + index,
+		}));
+		let insertedCount = 0;
+		let failedSlideCount = 0;
 
 		// Process in batches of 2 to avoid rate limiting
-		for (let i = 0; i < imageFiles.length; i += 2) {
-			const batch = imageFiles.slice(i, i + 2);
-			const batchResults = await Promise.all(
-				batch.map(async (fileName) => {
+		for (let i = 0; i < slideImages.length; i += 2) {
+			const batch = slideImages.slice(i, i + 2);
+			await Promise.all(
+				batch.map(async ({ fileName, pageNumber }) => {
 					const imagePath = path.join(tempDir, fileName);
-					const pageMatch = fileName.match(/-(\d+)\.png$/);
-					const pageNumber = pageMatch
-						? Number.parseInt(pageMatch[1], 10)
-						: null;
 
 					try {
 						const imageBuffer = await fs.readFile(imagePath);
@@ -165,7 +169,7 @@ Return JSON array only:
 								fileName,
 								parts: response.candidates?.[0]?.content?.parts,
 							});
-							return [];
+							return;
 						}
 
 						const pageQuestions = JSON.parse(content) as Array<{
@@ -174,7 +178,7 @@ Return JSON array only:
 							options: string[];
 						}>;
 
-						return pageQuestions.map((q) => ({
+						const questions = pageQuestions.map((q) => ({
 							id: "id", // Placeholder
 							upload_id: "",
 							question: q.question,
@@ -185,19 +189,27 @@ Return JSON array only:
 							ocrText: null,
 							originalQuestion: q.question,
 						}));
+						const inserted = await uploadRecordAction(uploadId, questions, i);
+						insertedCount += inserted;
 					} catch (err) {
+						failedSlideCount += 1;
 						console.error("Error processing slide", {
 							fileName,
 							error: err,
 						});
-						return [];
 					}
 				}),
 			);
-			allQuestions.push(...batchResults.flat());
+			// allQuestions.push(...batchResults.flat());
 		}
 
-		return allQuestions;
+		if (insertedCount === 0) {
+			throw new Error(
+				failedSlideCount > 0
+					? "All slides failed to generate questions"
+					: "No questions generated from this PDF",
+			);
+		}
 	} catch (error) {
 		console.error("Error in generateQuestions:", error);
 		throw error;

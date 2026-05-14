@@ -1,5 +1,6 @@
 import Link from "next/link";
 import EditTitle from "@/src/components/EditTitle";
+import GenerationPoller from "@/src/components/GenerationPoller";
 import ScrollToTopButton from "@/src/components/ScrollToTopButton";
 import { questionRowToStudyQuestion } from "@/src/utils/cards";
 import EditField from "../../../components/EditField";
@@ -27,7 +28,7 @@ export default async function ReviewPage({
 				.order("display_order", { ascending: true }),
 			supabase
 				.from("uploads")
-				.select("filename, description")
+				.select("filename, description, status")
 				.eq("id", reviewId)
 				.single(),
 		]);
@@ -47,12 +48,14 @@ export default async function ReviewPage({
 	}
 
 	const questions = data.map((q) => questionRowToStudyQuestion(q));
+	const isGenerating = upload.status === "processing";
 
 	const title = upload.filename;
 	const description = upload.description ?? "No description provided";
 
 	return (
 		<div className="min-h-dvh p-8">
+			<GenerationPoller enabled={isGenerating} />
 			<div className="mx-auto max-w-4xl space-y-10">
 				<div className="space-y-2">
 					<div className="flex min-w-0 items-center justify-between gap-4">
@@ -81,10 +84,18 @@ export default async function ReviewPage({
 						/>
 					</div>
 				</div>
-				<FlashcardView
-					questions={questions}
-					height="h-[min(26rem,calc(100dvh-14rem))] min-h-80"
-				/>
+				{questions.length > 0 ? (
+					<FlashcardView
+						questions={questions}
+						height="h-[min(26rem,calc(100dvh-14rem))] min-h-80"
+					/>
+				) : (
+					<div className="py-20 text-center text-muted-foreground">
+						{isGenerating
+							? "Questions are processing..."
+							: "No questions found."}
+					</div>
+				)}
 				<div className="h-px bg-foreground/40" />
 				<div className="space-y-4">
 					<h2 className="text-2xl font-medium text-foreground">

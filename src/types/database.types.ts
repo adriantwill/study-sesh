@@ -141,6 +141,7 @@ export type Database = {
           filename: string
           folder_id: string | null
           id: string
+          status: string
           storage_path: string | null
           user_id: string | null
         }
@@ -150,6 +151,7 @@ export type Database = {
           filename: string
           folder_id?: string | null
           id?: string
+          status?: string
           storage_path?: string | null
           user_id?: string | null
         }
@@ -159,6 +161,7 @@ export type Database = {
           filename?: string
           folder_id?: string | null
           id?: string
+          status?: string
           storage_path?: string | null
           user_id?: string | null
         }
