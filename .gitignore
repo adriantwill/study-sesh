@@ -36,6 +36,9 @@ yarn-error.log*
 # gemini
 .gemini-clipboard
 
+# generated during deploy builds
+/public/version.json
+
 # local planning docs
 FINETUNE_PLAN.md
 OPTIMISTIC_UPDATES.md

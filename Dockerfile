@@ -1,5 +1,9 @@
 FROM node:20-slim AS base
 
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
+
 # Install dependencies
 FROM base AS deps
 # python3 and make/g++ might still be needed for other native modules, 
@@ -9,9 +13,8 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY package*.json ./
-RUN npm install
-RUN npm cache clean --force
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 
 # Build
 FROM base AS builder
@@ -24,10 +27,11 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Build arguments for Next.js static generation
 ARG NEXT_PUBLIC_SUPABASE_URL
 ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
+ARG APP_VERSION=development
 ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
 ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-RUN npm run build
+RUN printf '{"version":"%s"}\n' "$APP_VERSION" > public/version.json && pnpm run build
 
 # Production
 FROM base AS runner

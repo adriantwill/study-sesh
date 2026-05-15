@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import ChunkErrorHandler from "@/src/components/ChunkErrorHandler";
+import NewVersionBanner from "@/src/components/NewVersionBanner";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -21,6 +22,7 @@ export default function RootLayout({
 		<html lang="en" className="snap-y snap-mandatory">
 			<body className="bg-background font-sans text-foreground antialiased">
 				<ChunkErrorHandler />
+				<NewVersionBanner />
 				{children}
 			</body>
 		</html>
