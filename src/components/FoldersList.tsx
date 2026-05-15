@@ -291,18 +291,13 @@ export default function FoldersList({
 							className="hover:scale-110"
 						/>
 					</button>
-					<button
-						type="button"
-						onClick={() => toggleFolder(folder.id)}
-						className="cursor-pointer text-foreground/80 transition-colors hover:text-foreground"
-					>
-						<EditField
-							textField={folder.name}
-							id={folder.id}
-							table="folders"
-							col="name"
-						/>
-					</button>
+					<EditField
+						textField={folder.name}
+						id={folder.id}
+						table="folders"
+						col="name"
+						openFolder={() => toggleFolder(folder.id)}
+					/>
 					<DeleteButton
 						table="folders"
 						id={folder.id}

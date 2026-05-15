@@ -17,6 +17,7 @@ interface EditFieldProps<T extends EditFieldTable> {
 	textField: string;
 	id: string;
 	onEditingChange?: (isEditing: boolean) => void;
+	openFolder?: () => void;
 }
 
 export default function EditField<T extends EditFieldTable>({
@@ -25,6 +26,7 @@ export default function EditField<T extends EditFieldTable>({
 	onEditingChange,
 	table,
 	col,
+	openFolder,
 }: EditFieldProps<T>) {
 	const [isEditing, setIsEditing] = useState(false);
 	const [text, setText] = useState(textField);
@@ -135,9 +137,16 @@ export default function EditField<T extends EditFieldTable>({
 					className="box-border h-full w-full resize-none rounded border border-border bg-transparent px-0 py-0 font-medium text-foreground focus:outline-none"
 				/>
 			) : (
-				<span className="box-border w-full whitespace-pre-wrap rounded border border-transparent">
+				<button
+					type="button"
+					onClick={(event) => {
+						event.stopPropagation();
+						openFolder?.();
+					}}
+					className="box-border w-full text-left whitespace-pre-wrap rounded border border-transparent"
+				>
 					{isFolderName ? text : parseMarkdown(text)}
-				</span>
+				</button>
 			)}
 			<div className="flex items-center gap-2">
 				{isEditing && isAnswerText ? (
