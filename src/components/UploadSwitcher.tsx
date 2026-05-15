@@ -58,7 +58,6 @@ export default function UploadSwitcher() {
 	const [file, setFile] = useState<File | null>(null);
 	const router = useRouter();
 	const [loading, setLoading] = useState(false);
-	const [progress, setProgress] = useState(0);
 	const [error, setError] = useState<string | null>(null);
 	const [textInput, setTextInput] = useState("");
 	const activeMode = uploadModeConfig[mode];
@@ -74,25 +73,10 @@ export default function UploadSwitcher() {
 
 	async function handleFileUpload(fileMode: "pdf" | "xlsx") {
 		if (!file) return;
-		setLoading(true);
 		setError(null);
 
 		const formData = new FormData();
 		formData.append(fileMode, file);
-
-		let intervalId: ReturnType<typeof setInterval> | null = null;
-
-		if (fileMode === "pdf") {
-			setProgress(0);
-			const fileSizeMB = file.size / (1024 * 1024);
-			const estimatedSeconds = Math.max(5, fileSizeMB * 10);
-			const totalTicks = (estimatedSeconds * 1000) / 100;
-			const incrementPerTick = 95 / totalTicks;
-
-			intervalId = setInterval(() => {
-				setProgress((prev) => Math.min(prev + incrementPerTick, 95));
-			}, 100);
-		}
 
 		try {
 			if (fileMode === "pdf") {
@@ -104,16 +88,7 @@ export default function UploadSwitcher() {
 			}
 		} catch (err) {
 			console.error(`${fileMode.toUpperCase()} upload error:`, err);
-			setError(
-				err instanceof Error
-					? err.message
-					: fileMode === "pdf"
-						? "Failed to generate questions"
-						: "Failed to upload table",
-			);
-		} finally {
-			if (intervalId) clearInterval(intervalId);
-			setLoading(false);
+			setError("Failed to upload table");
 		}
 	}
 
@@ -272,39 +247,17 @@ Question 2:Answer 2`}
 					)}
 				</div>
 			</div>
-			<div
+			<button
+				type="button"
+				onClick={handleSubmit}
+				disabled={loading}
 				className={`origin-center overflow-hidden ${switchTransition} ${
 					canSubmit ? "h-12" : "pointer-events-none -mt-4 -mb-4 h-0"
-				}`}
+				} "w-full rounded-sm bg-primary  font-medium text-primary-foreground hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-50"`}
+				aria-label="Generate study questions from uploaded file"
 			>
-				<button
-					type="button"
-					onClick={handleSubmit}
-					disabled={loading}
-					className="w-full rounded-sm bg-primary py-3 font-medium text-primary-foreground hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-50"
-					aria-label="Generate study questions from uploaded file"
-				>
-					{loading ? activeMode.loadingLabel : activeMode.submitLabel}
-				</button>
-			</div>
-			{loading && mode === "pdf" && (
-				<div className="space-y-2">
-					<div className="flex justify-between text-sm text-muted-foreground">
-						<span>Processing slides...</span>
-						<span>{Math.round(progress)}%</span>
-					</div>
-					<div className="h-2 w-full rounded-full bg-muted">
-						<div
-							className="h-2 rounded-full bg-primary transition-all duration-300"
-							style={{ width: `${progress}%` }}
-							role="progressbar"
-							aria-valuenow={Math.round(progress)}
-							aria-valuemin={0}
-							aria-valuemax={100}
-						/>
-					</div>
-				</div>
-			)}
+				{loading ? activeMode.loadingLabel : activeMode.submitLabel}
+			</button>
 		</div>
 	);
 }

@@ -143,7 +143,7 @@ export default function EditField<T extends EditFieldTable>({
 						event.stopPropagation();
 						openFolder?.();
 					}}
-					className="box-border w-full text-left whitespace-pre-wrap rounded border border-transparent"
+					className={`box-border w-full text-left whitespace-pre-wrap rounded border border-transparent ${openFolder ? "cursor-pointer" : ""}`}
 				>
 					{isFolderName ? text : parseMarkdown(text)}
 				</button>
