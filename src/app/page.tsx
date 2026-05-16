@@ -1,12 +1,14 @@
 import { ArrowDown } from "lucide-react";
-
+import { headers } from "next/headers";
 import BrandMark from "../components/BrandMark";
 import FoldersList from "../components/FoldersList";
 import UploadSwitcher from "../components/UploadSwitcher";
+import { auth } from "../lib/auth";
 import { createClient } from "../lib/supabase/server";
 
 export default async function Home() {
 	const supabase = await createClient();
+	const session = await auth.api.getSession({ headers: await headers() });
 	const { data, error } = await supabase
 		.from("uploads")
 		.select()
