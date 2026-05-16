@@ -1,6 +1,6 @@
 "use client";
 
-import { List } from "lucide-react";
+import { Brain } from "lucide-react";
 import Image from "next/image";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
@@ -69,6 +69,12 @@ export default function QuestionList({
 	const [dragOverId, setDragOverId] = useState<string | null>(null);
 	const [editingFields, setEditingFields] = useState<Set<string>>(new Set());
 	const [previewQuestions, setPreviewQuestions] = useState(initialQuestions);
+	const [optionsAddedAlert, setOptionsAddedAlert] = useState<string[] | null>(
+		null,
+	);
+	const optionsAddedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+		null,
+	);
 	const isAnyEditing = editingFields.size > 0;
 
 	const [isDeleting, setIsDeleting] = useState<string | null>(null);
@@ -146,8 +152,25 @@ export default function QuestionList({
 		}
 	}
 
+	async function handleGenerateWrongOptions(question: StudyQuestion) {
+		const generatedOptions = await generateWrongOptionsAction(
+			question.question,
+			question.answer,
+			question.id,
+		);
+
+		setOptionsAddedAlert(generatedOptions);
+		if (optionsAddedTimeoutRef.current) {
+			clearTimeout(optionsAddedTimeoutRef.current);
+		}
+		optionsAddedTimeoutRef.current = setTimeout(() => {
+			setOptionsAddedAlert(null);
+			optionsAddedTimeoutRef.current = null;
+		}, 3000);
+	}
+
 	return (
-		<div className="space-y-4">
+		<div className="relative space-y-4">
 			{previewQuestions.map((q, idx) => {
 				const prevDisplayOrder = q.displayOrder ?? null;
 				const nextDisplayOrder =
@@ -192,15 +215,14 @@ export default function QuestionList({
 											name={q.question}
 											displayElement={() => displayElement(q.id)}
 										/>
+
 										{(q.options?.length ?? 0) === 0 && (
 											<button
 												type="button"
-												onClick={() =>
-													generateWrongOptionsAction(q.question, q.answer, q.id)
-												}
-												className="bg-transparent hover:bg-muted p-1 rounded-full"
+												onClick={() => void handleGenerateWrongOptions(q)}
+												className="bg-transparent rounded-full cursor-pointer hover:text-primary"
 											>
-												<List />
+												<Brain size={16} />
 											</button>
 										)}
 									</div>
@@ -233,6 +255,19 @@ export default function QuestionList({
 					</div>
 				);
 			})}
+			{optionsAddedAlert && (
+				<span
+					aria-live="polite"
+					className="absolute right-0 bottom-0 flex max-w-sm flex-col gap-1 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground shadow"
+				>
+					<span>Multiple choice questions added</span>
+					{optionsAddedAlert.map((option, index) => (
+						<span key={`${index}-${option}`} className="font-normal">
+							{index + 1}. {option}
+						</span>
+					))}
+				</span>
+			)}
 		</div>
 	);
 }
