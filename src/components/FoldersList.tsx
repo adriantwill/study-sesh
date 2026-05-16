@@ -1,6 +1,6 @@
 "use client";
 import * as lucideReact from "lucide-react";
-import { LogOut, LogOutIcon } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { useState } from "react";
 import { updateParentAction } from "../app/actions";
 import { signOutAction } from "../app/actions/auth";

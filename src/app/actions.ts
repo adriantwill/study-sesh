@@ -1,11 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { after } from "next/server";
 import {
 	generateQuestions,
 	generateWrongOptions,
 } from "../lib/ai/question-generator";
+import { auth } from "../lib/auth";
 import { uploadRecordAction } from "../lib/questions";
 import {
 	getQuestionImagePublicUrl,
@@ -23,6 +25,15 @@ type PublicTables = Database["public"]["Tables"];
 type ActionTableName = keyof PublicTables;
 type ActionColumnName<T extends ActionTableName> = keyof PublicTables[T]["Row"];
 type UploadStatus = "processing" | "completed" | "failed";
+
+async function getSessionUserId(): Promise<string> {
+	const session = await auth.api.getSession({ headers: await headers() });
+	const userId = session?.user.id;
+	if (!userId) {
+		throw new Error("Not authenticated");
+	}
+	return userId;
+}
 
 async function removePdfOrThrow(storagePath: string) {
 	const { error } = await removePdf(storagePath);
@@ -104,6 +115,7 @@ export async function uploadTableAction(formData: FormData) {
 
 	if (!isXlsx) throw new Error("Only XLSX files supported");
 
+	const userId = await getSessionUserId();
 	const supabase = await createClient();
 	const parsedTable = parseXlsxTable(await file.arrayBuffer());
 
@@ -112,6 +124,7 @@ export async function uploadTableAction(formData: FormData) {
 		.insert({
 			filename: file.name,
 			parsed_data: parsedTable as unknown as Json,
+			user_id: userId,
 		})
 		.select()
 		.single();
@@ -126,6 +139,7 @@ export async function uploadTableAction(formData: FormData) {
 }
 
 export async function createUpload(source: File | string) {
+	const userId = await getSessionUserId();
 	const supabase = await createClient();
 	const isFileUpload = source instanceof File;
 	const filename = isFileUpload ? source.name : source;
@@ -133,7 +147,7 @@ export async function createUpload(source: File | string) {
 
 	if (isFileUpload) {
 		const safeName = source.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-		storagePath = `${crypto.randomUUID()}-${safeName}`;
+		storagePath = `${userId}/${crypto.randomUUID()}-${safeName}`;
 
 		const { error: storageError } = await uploadPdf(storagePath, source);
 
@@ -149,6 +163,7 @@ export async function createUpload(source: File | string) {
 			filename,
 			status: isFileUpload ? "processing" : "completed",
 			storage_path: storagePath,
+			user_id: userId,
 		})
 		.select()
 		.single();
@@ -399,12 +414,14 @@ export async function addQuestionAction(
 }
 
 export async function addFolderAction() {
+	const userId = await getSessionUserId();
 	const supabase = await createClient();
 
 	const { data, error } = await supabase
 		.from("folders")
 		.insert({
 			name: "Untitled Folder",
+			user_id: userId,
 		})
 		.select()
 		.single();

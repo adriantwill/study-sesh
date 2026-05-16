@@ -1,4 +1,4 @@
-import { ArrowDown, LogOutIcon } from "lucide-react";
+import { ArrowDown } from "lucide-react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import BrandMark from "../components/BrandMark";
@@ -6,7 +6,6 @@ import FoldersList from "../components/FoldersList";
 import UploadSwitcher from "../components/UploadSwitcher";
 import { auth } from "../lib/auth";
 import { createClient } from "../lib/supabase/server";
-import { signOutAction } from "./actions/auth";
 
 export default async function Home() {
 	const session = await auth.api.getSession({ headers: await headers() });
