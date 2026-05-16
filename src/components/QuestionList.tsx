@@ -10,7 +10,7 @@ import DeleteButton from "./DeleteButton";
 import EditField from "./EditField";
 import ImageUploadButton from "./ImageUploadButton";
 
-interface TestProps {
+interface QuestionListProps {
 	questions: StudyQuestion[];
 	reviewId: string;
 }
@@ -57,10 +57,10 @@ function ResizableImage({ src }: { src: string }) {
 	);
 }
 
-export default function Test({
+export default function QuestionList({
 	questions: initialQuestions,
 	reviewId,
-}: TestProps) {
+}: QuestionListProps) {
 	const [activeId, setActiveId] = useState<string | null>(null);
 	const [dragOverId, setDragOverId] = useState<string | null>(null);
 	const [editingFields, setEditingFields] = useState<Set<string>>(new Set());
