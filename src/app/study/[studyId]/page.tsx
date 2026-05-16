@@ -1,5 +1,8 @@
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import EditTitle from "@/src/components/EditTitle";
 import FlashcardView from "@/src/components/FlashcardView";
+import { auth } from "@/src/lib/auth";
 import { createClient } from "@/src/lib/supabase/server";
 import { questionRowToStudyQuestion } from "@/src/utils/cards";
 
@@ -11,6 +14,23 @@ export default async function StudyPage({
 	const { studyId } = await params;
 
 	const supabase = await createClient();
+	const { data: quizData, error: quizError } = await supabase
+		.from("uploads")
+		.select("user_id")
+		.eq("id", studyId)
+		.single();
+	if (quizError) {
+		console.error("Error fetching quiz:", quizError);
+		throw new Error("Failed to load quiz");
+	}
+	const session = await auth.api.getSession({ headers: await headers() });
+	if (!session) {
+		redirect("/signup");
+	} else if (!quizData || quizData.user_id !== session.user.id) {
+		//TODO make quizdata not optional in database after adding andreas id
+		redirect("/");
+	}
+
 	const [{ data, error }, { data: upload, error: uploadError }] =
 		await Promise.all([
 			supabase

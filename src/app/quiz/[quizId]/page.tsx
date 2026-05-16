@@ -1,5 +1,8 @@
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import QuizCard from "@/src/components/QuizCard";
 import QuizChoices from "@/src/components/QuizChoices";
+import { auth } from "@/src/lib/auth";
 import { parseMarkdown } from "@/src/lib/markdown";
 import { createClient } from "@/src/lib/supabase/server";
 import { questionRowToStudyQuestion } from "@/src/utils/cards";
@@ -12,6 +15,23 @@ export default async function QuizPage({
 	const { quizId } = await params;
 
 	const supabase = await createClient();
+	const { data: quizData, error: quizError } = await supabase
+		.from("uploads")
+		.select("user_id")
+		.eq("id", quizId)
+		.single();
+	if (quizError) {
+		console.error("Error fetching quiz:", quizError);
+		throw new Error("Failed to load quiz");
+	}
+	const session = await auth.api.getSession({ headers: await headers() });
+	if (!session) {
+		redirect("/signup");
+	} else if (!quizData || quizData.user_id !== session.user.id) {
+		//TODO make quizdata not optional in database after adding andreas id
+		redirect("/");
+	}
+
 	const { data, error } = await supabase
 		.from("questions")
 		.select(
