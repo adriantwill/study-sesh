@@ -58,5 +58,8 @@ jobs:
             docker rm study-sesh || true
             docker run -d --name study-sesh -p 3000:3000 --restart unless-stopped \
               -e GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }} \
+              -e DATABASE_URL=${{ secrets.DATABASE_URL }} \
+              -e BETTER_AUTH_SECRET=${{ secrets.BETTER_AUTH_SECRET }} \
+              -e BETTER_AUTH_URL=${{ secrets.BETTER_AUTH_URL }} \
               ghcr.io/adriantwill/study-sesh@${{ needs.build-push.outputs.digest }}
             docker image prune -af
