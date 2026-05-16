@@ -37,7 +37,6 @@ pnpm run start    # prod server
 - `GEMINI_API_KEY` - AI API key
 - `NEXT_PUBLIC_SUPABASE_URL` - Supabase URL
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase key
-- `MOCK_AI=true` - skip real AI, use dummy data
 
 ## Deployment
 

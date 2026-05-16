@@ -1,7 +1,9 @@
 "use client";
 import * as lucideReact from "lucide-react";
+import { LogOut } from "lucide-react";
 import { useState } from "react";
 import { updateParentAction } from "../app/actions";
+import { signOutAction } from "../app/actions/auth";
 import type * as types from "../types";
 import type { Database, Tables } from "../types/database.types";
 import AddFolder from "./AddFolder";
@@ -355,6 +357,13 @@ export default function FoldersList({
 								renderUpload(table, false, "table_uploads"),
 							)}
 				</ul>
+				<button
+					onClick={() => signOutAction()}
+					className="absolute cursor-pointer bottom-8 right-8"
+					type="button"
+				>
+					<LogOut size={30} />
+				</button>
 			</div>
 		</>
 	);
