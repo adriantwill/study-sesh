@@ -14,7 +14,7 @@ export default async function TablePage({
 	const { tableId } = await params;
 	const supabase = await createClient();
 	const { data: quizData, error: quizError } = await supabase
-		.from("uploads")
+		.from("table_uploads")
 		.select("user_id")
 		.eq("id", tableId)
 		.single();

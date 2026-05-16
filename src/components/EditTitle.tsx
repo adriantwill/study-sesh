@@ -8,6 +8,7 @@ interface EditTitleProps {
 }
 
 export default function EditTitle({ title, reviewId }: EditTitleProps) {
+	//TODO edit the current pdfs inside supabase to start with andareas user id
 	return (
 		<h1 className="flex min-w-0 items-center justify-center gap-2 text-3xl font-bold text-foreground cursor-pointer">
 			<Link href="/" aria-label="Go to home page">
