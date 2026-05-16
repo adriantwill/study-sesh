@@ -2,7 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
-import { generateQuestions } from "../lib/ai/question-generator";
+import {
+	generateQuestions,
+	generateWrongOptions,
+} from "../lib/ai/question-generator";
 import { uploadRecordAction } from "../lib/questions";
 import {
 	getQuestionImagePublicUrl,
@@ -48,6 +51,15 @@ export async function normalizeQuestionDisplayOrder(uploadId: string) {
 	});
 	if (error) throw new Error("Failed to normalize question order");
 }
+
+export async function generateWrongOptionsAction(
+	question: string,
+	answer: string,
+	questionId: string,
+) {
+	return generateWrongOptions(question, answer, questionId);
+}
+
 export async function uploadRecordActionTEMP(
 	uploadId: string,
 	questionList: StudyQuestion[],

@@ -1,16 +1,18 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { revalidatePath } from "next/cache";
 import { Poppler } from "node-poppler";
 import { uploadRecordAction } from "../questions";
+import { createClient } from "../supabase/server";
 
 export async function generateWrongOptions(
 	question: string,
 	answer: string,
+	questionId: string,
 ): Promise<string[]> {
 	if (!process.env.GEMINI_API_KEY) {
 		throw new Error("GEMINI_API_KEY not configured");
 	}
-
 	const model = process.env.GEMINI_MODEL ?? "gemini-2.5-flash-lite";
 	const apiResponse = await fetch(
 		`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GEMINI_API_KEY}`,
@@ -95,6 +97,23 @@ Rules:
 	if (options.length !== 3) {
 		throw new Error("Wrong options response did not include exactly 3 options");
 	}
+
+	const supabase = await createClient();
+	const { data: updatedQuestion, error: updateError } = await supabase
+		.from("questions")
+		.update({ options })
+		.eq("id", questionId)
+		.select("upload_id")
+		.single();
+
+	if (updateError || !updatedQuestion) {
+		console.error("Wrong options update error:", updateError);
+		throw new Error("Failed to save wrong options");
+	}
+
+	revalidatePath(`/uploads/${updatedQuestion.upload_id}`);
+	revalidatePath(`/quiz/${updatedQuestion.upload_id}`);
+	revalidatePath(`/study/${updatedQuestion.upload_id}`);
 
 	return options;
 }

@@ -1,9 +1,13 @@
 "use client";
 
+import { List } from "lucide-react";
 import Image from "next/image";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
-import { reorderQuestionsAction } from "../app/actions";
+import {
+	generateWrongOptionsAction,
+	reorderQuestionsAction,
+} from "../app/actions";
 import type { StudyQuestion } from "../types";
 import AddQuestionButton from "./AddQuestionButton";
 import DeleteButton from "./DeleteButton";
@@ -188,6 +192,17 @@ export default function QuestionList({
 											name={q.question}
 											displayElement={() => displayElement(q.id)}
 										/>
+										{(q.options?.length ?? 0) === 0 && (
+											<button
+												type="button"
+												onClick={() =>
+													generateWrongOptionsAction(q.question, q.answer, q.id)
+												}
+												className="bg-transparent hover:bg-muted p-1 rounded-full"
+											>
+												<List />
+											</button>
+										)}
 									</div>
 									{q.imageUrl && <ResizableImage src={q.imageUrl} />}
 									<details className="mt-4 text-sm">
