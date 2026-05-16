@@ -58,7 +58,6 @@ export default function UploadSwitcher() {
 	const [file, setFile] = useState<File | null>(null);
 	const router = useRouter();
 	const [loading, setLoading] = useState(false);
-	const [error, setError] = useState<string | null>(null);
 	const [textInput, setTextInput] = useState("");
 	const activeMode = uploadModeConfig[mode];
 	const modeIndex = uploadModeOrder.indexOf(mode);
@@ -68,12 +67,10 @@ export default function UploadSwitcher() {
 	function selectMode(nextMode: UploadMode) {
 		setMode(nextMode);
 		setFile(null);
-		setError(null);
 	}
-
+	//TODO clean up all unused code
 	async function handleFileUpload(fileMode: "pdf" | "xlsx") {
 		if (!file) return;
-		setError(null);
 
 		const formData = new FormData();
 		formData.append(fileMode, file);
@@ -88,7 +85,7 @@ export default function UploadSwitcher() {
 			}
 		} catch (err) {
 			console.error(`${fileMode.toUpperCase()} upload error:`, err);
-			setError("Failed to upload table");
+			alert("Error");
 		}
 	}
 
@@ -110,7 +107,6 @@ export default function UploadSwitcher() {
 
 	async function handleGenerate() {
 		setLoading(true);
-		setError(null);
 		const questionList: StudyQuestion[] = textInput
 			.split(/\r?\n/)
 			.map((line) => line.trim())
@@ -146,9 +142,7 @@ export default function UploadSwitcher() {
 			router.push(`/uploads/${upload.id}`);
 		} catch (err) {
 			console.error("Upload error:", err);
-			setError(
-				err instanceof Error ? err.message : "Failed to generate questions",
-			);
+			alert("Error");
 		} finally {
 			setLoading(false);
 		}
@@ -175,17 +169,6 @@ export default function UploadSwitcher() {
 				))}
 			</div>
 
-			{error && (
-				<div
-					className="h-28 overflow-y-auto rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-foreground shadow-sm"
-					role="alert"
-				>
-					<p className="font-medium">Error</p>
-					<p className="mt-1 text-sm whitespace-pre-wrap break-words">
-						{error}
-					</p>
-				</div>
-			)}
 			<div
 				className={`relative h-56 overflow-hidden rounded-lg border-2 border-dashed border-border ${switchTransition}`}
 			>
@@ -219,7 +202,6 @@ Question 2:Answer 2`}
 								type="button"
 								onClick={() => {
 									setFile(null);
-									setError(null);
 								}}
 								className="text-sm text-primary hover:underline"
 							>

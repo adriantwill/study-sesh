@@ -243,7 +243,7 @@ export default function FoldersList({
 	function renderUpload(
 		upload: Tables<"uploads"> | Tables<"table_uploads">,
 		tree = false,
-		variant: UploadTable, //just 		variant: "uploads" | "table_uploads",
+		variant: UploadTable,
 	) {
 		return (
 			<UploadLink

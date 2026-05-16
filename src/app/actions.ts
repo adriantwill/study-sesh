@@ -169,7 +169,7 @@ export async function deleteItemAction(id: string, variant: ActionTableName) {
 					.update({ deleted: true })
 					.eq("id", id);
 				if (error) throw error;
-				revalidatePath("/uploads/[reviewId]", "page");
+				revalidatePath(`/uploads/${id}`, "page");
 				break;
 			}
 			case "folders": {
@@ -241,7 +241,7 @@ export async function updateQuestionTextAction<T extends ActionTableName>(
 		throw new Error("Failed to update text");
 	}
 
-	revalidatePath("/uploads/[reviewId]", "page");
+	revalidatePath(`/uploads/${id}`, "page");
 }
 
 export async function updateTableCellAction(
@@ -326,7 +326,7 @@ export async function uploadImageAction(
 		throw new Error("Failed to link image to question");
 	}
 
-	revalidatePath("/uploads/[reviewId]", "page");
+	revalidatePath(`/uploads/${questionId}`, "page");
 }
 
 export async function addQuestionAction(
