@@ -243,7 +243,7 @@ export default function FoldersList({
 	function renderUpload(
 		upload: Tables<"uploads"> | Tables<"table_uploads">,
 		tree = false,
-		variant: UploadTable, //just 		variant: "uploads" | "table_uploads",
+		variant: UploadTable,
 	) {
 		return (
 			<UploadLink
@@ -280,29 +280,14 @@ export default function FoldersList({
 					onDrop={(event) => handleDrop(event, folder.id)}
 					className={`flex min-h-14 items-center gap-3 rounded-md px-2 text-lg transition-colors ${activeFolderId === folder.id ? "opacity-40" : ""} ${dropFolderId === folder.id ? "bg-background ring-1 ring-border" : "hover:bg-muted-hover"} cursor-grab`}
 				>
-					<button
-						type="button"
-						onClick={() => toggleFolder(folder.id)}
-						className="cursor-pointer text-foreground/80 transition-colors hover:text-foreground"
-					>
-						<FolderIcon
-							size={24}
-							strokeWidth={1.5}
-							className="hover:scale-110"
-						/>
-					</button>
-					<button
-						type="button"
-						onClick={() => toggleFolder(folder.id)}
-						className="cursor-pointer text-foreground/80 transition-colors hover:text-foreground"
-					>
-						<EditField
-							textField={folder.name}
-							id={folder.id}
-							table="folders"
-							col="name"
-						/>
-					</button>
+					<FolderIcon size={28} strokeWidth={1.5} className="hover:scale-110" />
+					<EditField
+						textField={folder.name}
+						id={folder.id}
+						table="folders"
+						col="name"
+						openFolder={() => toggleFolder(folder.id)}
+					/>
 					<DeleteButton
 						table="folders"
 						id={folder.id}
