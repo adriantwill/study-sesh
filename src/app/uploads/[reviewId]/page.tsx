@@ -5,7 +5,7 @@ import ScrollToTopButton from "@/src/components/ScrollToTopButton";
 import { questionRowToStudyQuestion } from "@/src/utils/cards";
 import EditField from "../../../components/EditField";
 import FlashcardView from "../../../components/FlashcardView";
-import Test from "../../../components/Test";
+import QuestionList from "../../../components/QuestionList";
 import { createClient } from "../../../lib/supabase/server";
 
 export default async function ReviewPage({
@@ -101,7 +101,7 @@ export default async function ReviewPage({
 					<h2 className="text-2xl font-medium text-foreground">
 						Question Bank
 					</h2>
-					<Test questions={questions} reviewId={reviewId} />
+					<QuestionList questions={questions} reviewId={reviewId} />
 				</div>
 			</div>
 			<ScrollToTopButton />

@@ -1,7 +1,122 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { revalidatePath } from "next/cache";
 import { Poppler } from "node-poppler";
 import { uploadRecordAction } from "../questions";
+import { createClient } from "../supabase/server";
+
+export async function generateWrongOptions(
+	question: string,
+	answer: string,
+	questionId: string,
+): Promise<string[]> {
+	if (!process.env.GEMINI_API_KEY) {
+		throw new Error("GEMINI_API_KEY not configured");
+	}
+	const model = process.env.GEMINI_MODEL ?? "gemini-2.5-flash-lite";
+	const apiResponse = await fetch(
+		`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GEMINI_API_KEY}`,
+		{
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				contents: [
+					{
+						parts: [
+							{
+								text: `Generate exactly 3 wrong but plausible multiple-choice options for this flashcard.
+
+Question:
+${question}
+
+Correct answer:
+${answer}
+
+Rules:
+- Each option must be incorrect
+- Do not paraphrase or restate the correct answer
+- Do not use "all/none of the above"
+- Keep length similar to the correct answer
+- Return JSON array only`,
+							},
+						],
+					},
+				],
+				generationConfig: {
+					temperature: 0.2,
+					topP: 0.1,
+					maxOutputTokens: 256,
+					responseMimeType: "application/json",
+					responseSchema: {
+						type: "ARRAY",
+						minItems: 3,
+						maxItems: 3,
+						items: {
+							type: "STRING",
+						},
+					},
+				},
+			}),
+		},
+	);
+
+	if (!apiResponse.ok) {
+		const errorText = await apiResponse.text();
+		console.error("Gemini wrong options HTTP error", {
+			status: apiResponse.status,
+			statusText: apiResponse.statusText,
+			errorText,
+		});
+		throw new Error(
+			`API error: ${apiResponse.status} ${apiResponse.statusText}`,
+		);
+	}
+
+	const response = await apiResponse.json();
+	const content = response.candidates?.[0]?.content?.parts?.[0]?.text;
+	if (!content) {
+		console.warn("Empty Gemini wrong options content", {
+			parts: response.candidates?.[0]?.content?.parts,
+		});
+		throw new Error("No wrong options generated");
+	}
+
+	const parsedOptions = JSON.parse(content);
+	if (!Array.isArray(parsedOptions)) {
+		throw new Error("Wrong options response was not an array");
+	}
+
+	const options = parsedOptions
+		.filter((option): option is string => typeof option === "string")
+		.map((option) => option.trim())
+		.filter(Boolean)
+		.slice(0, 3);
+
+	if (options.length !== 3) {
+		throw new Error("Wrong options response did not include exactly 3 options");
+	}
+
+	const supabase = await createClient();
+	const { data: updatedQuestion, error: updateError } = await supabase
+		.from("questions")
+		.update({ options })
+		.eq("id", questionId)
+		.select("upload_id")
+		.single();
+
+	if (updateError || !updatedQuestion) {
+		console.error("Wrong options update error:", updateError);
+		throw new Error("Failed to save wrong options");
+	}
+
+	revalidatePath(`/uploads/${updatedQuestion.upload_id}`);
+	revalidatePath(`/quiz/${updatedQuestion.upload_id}`);
+	revalidatePath(`/study/${updatedQuestion.upload_id}`);
+
+	return options;
+}
 
 //TODO optimize the pdf cario thing
 export async function generateQuestions(pdfBuffer: Buffer, uploadId: string) {
