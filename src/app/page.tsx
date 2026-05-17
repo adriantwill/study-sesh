@@ -44,7 +44,7 @@ export default async function Home() {
 		<main>
 			<section className="flex min-h-dvh flex-col items-center p-8">
 				<h1 className="flex justify-center gap-3 text-[clamp(2.25rem,8vw,3rem)] font-bold text-foreground">
-					<span>{session.user.name}'s Study Sesh</span>
+					<span>{session.user.name}'s' Study Sesh</span>
 					<BrandMark size={54} className="translate-y-0.5" />
 				</h1>
 				<div className="flex flex-1 items-center">
@@ -53,8 +53,8 @@ export default async function Home() {
 				<ArrowDown />
 			</section>
 			<hr className="border-border" />
-			<section className="relative grid min-h-dvh w-full grid-cols-1 gap-6 p-6 lg:h-dvh lg:grid-cols-[minmax(13rem,1fr)_minmax(0,40rem)_minmax(13rem,1fr)] lg:items-center lg:p-8">
-				<div className="order-2 lg:order-1">
+			<section className="relative grid min-h-dvh w-full grid-cols-1 gap-6 p-6 lg:h-dvh lg:grid-cols-[minmax(13rem,1fr)_minmax(0,40rem)_minmax(13rem,1fr)] lg:items-stretch lg:p-8">
+				<div className="order-2 min-h-0 lg:order-1 lg:flex lg:h-[calc(100dvh-4rem)] lg:flex-col">
 					<DueDatesPanel side="left" />
 				</div>
 				<div className="order-1 flex min-h-0 w-full flex-col items-center lg:order-2 lg:h-[calc(100dvh-4rem)]">

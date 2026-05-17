@@ -266,7 +266,7 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
-         
+          {
             foreignKeyName: "uploads_folder_id_fkey"
             columns: ["folder_id"]
             isOneToOne: false

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { ParsedTableData } from "../lib/xlsx-table";
-import FlashcardsToolButton from "./MediumToolButton";
+import MediumToolButton from "./MediumToolButton";
 
 interface TableViewerProps {
 	table: ParsedTableData;
@@ -11,6 +11,17 @@ interface TableViewerProps {
 const MERGED_WITH_ABOVE = "&^";
 
 export default function TableViewer({ table }: TableViewerProps) {
+	const toolOptions = [
+		{
+			label: "Blur All",
+			onClick: () => setBlurredCells(new Set(allCellKeys)),
+		},
+		{
+			label: "Unblur All",
+			onClick: () => setBlurredCells(new Set()),
+		},
+	];
+
 	const allCellKeys = table.rows.flatMap((_, rowIndex) =>
 		table.headers.map((_header, headerIndex) => cellKey(rowIndex, headerIndex)),
 	);
@@ -33,19 +44,11 @@ export default function TableViewer({ table }: TableViewerProps) {
 	}
 	return (
 		<div className="space-y-4">
-			<FlashcardsToolButton
-				options={[
-					{
-						label: "Blur All",
-						onClick: () => setBlurredCells(new Set(allCellKeys)),
-					},
-					{
-						label: "Unblur All",
-						onClick: () => setBlurredCells(new Set()),
-					},
-				]}
-			/>
-
+			<div className="mb-4 flex gap-3">
+				{toolOptions.map((option) => (
+					<MediumToolButton key={option.label} options={option} />
+				))}
+			</div>
 			<div className="overflow-x-auto rounded-sm border border-border bg-muted shadow-sm">
 				<table className="min-w-full border-collapse">
 					<thead>

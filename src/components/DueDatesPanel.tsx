@@ -98,7 +98,7 @@ export default function DueDatesPanel({ side }: { side: DueDatePanelSide }) {
 	return (
 		<aside
 			aria-label={`${panel.title} due dates`}
-			className="w-full rounded-lg border border-border/70 bg-muted px-4 py-5 text-foreground shadow"
+			className="flex min-h-0 w-full flex-1 flex-col rounded-lg border border-border/70 bg-muted px-4 py-5 text-foreground shadow"
 		>
 			<div className="mb-5 flex items-start justify-between gap-3">
 				<div>
@@ -112,7 +112,7 @@ export default function DueDatesPanel({ side }: { side: DueDatePanelSide }) {
 				</span>
 			</div>
 
-			<ul className="divide-y divide-border/70">
+			<ul className="min-h-0 flex-1 divide-y divide-border/70">
 				{panel.items.map((item) => (
 					<li key={item.title} className="py-4 first:pt-0 last:pb-0">
 						<div className="flex items-start gap-3">
