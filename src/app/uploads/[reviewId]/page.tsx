@@ -32,7 +32,6 @@ export default async function ReviewPage({
 	if (!session) {
 		redirect("/signup");
 	} else if (!quizData || quizData.user_id !== session.user.id) {
-		//TODO make quizdata not optional in database after adding andreas id
 		redirect("/");
 	}
 

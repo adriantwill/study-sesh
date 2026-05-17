@@ -9,7 +9,7 @@ import type { Database, Tables } from "../types/database.types";
 import AddFolder from "./AddFolder";
 import DeleteButton from "./DeleteButton";
 import EditField from "./EditField";
-import FlashcardsToolButton from "./MediumToolButton";
+import MediumToolButton from "./MediumToolButton";
 import UploadLink from "./UploadLink";
 
 type UploadTable = keyof Pick<
@@ -83,6 +83,18 @@ export default function FoldersList({
 	const rootUploads = uploads.filter((upload) => upload.folder_id === null);
 	const rootTables = tables.filter((table) => table.folder_id === null);
 	const rootFolders = foldersByParentId.get(null) ?? [];
+	const toolOptions = [
+		{
+			label: "Flashcards",
+			onClick: () => setActiveTool("flashcards"),
+			active: activeTool === "flashcards",
+		},
+		{
+			label: "Tables",
+			onClick: () => setActiveTool("tables"),
+			active: activeTool === "tables",
+		},
+	];
 	const visibleFolderIds = new Set<string>();
 	const visibilityMemo = new Map<string, boolean>();
 
@@ -322,48 +334,45 @@ export default function FoldersList({
 
 	return (
 		<>
-			<FlashcardsToolButton
-				options={[
-					{
-						label: "Flashcards",
-						onClick: () => setActiveTool("flashcards"),
-						active: activeTool === "flashcards",
-					},
-					{
-						label: "Tables",
-						onClick: () => setActiveTool("tables"),
-						active: activeTool === "tables",
-					},
-				]}
-			/>
-			<div className=" flex min-h-0 w-200 flex-1 flex-col rounded-sm overflow-y-auto px-6 py-4 bg-muted shadow">
-				<ul className="space-y-2 transition-transform duration-300">
-					{rootFolders
-						.filter((folder) => visibleFolderIds.has(folder.id))
-						.map(renderFolder)}
-				</ul>
-				<AddFolder />
-				<ul
-					onDragOver={(event) => handleDragOver(event, null)}
-					onDragLeave={(event) => handleDragLeave(event, null)}
-					onDrop={(event) => handleDrop(event, null)}
-					className={`min-h-14 flex-1 rounded-md transition-colors ${dropFolderId === ROOT_DROP_ID ? "bg-background/60 ring-1 ring-border" : ""}`}
-				>
-					{activeTool === "flashcards"
-						? rootUploads.map((upload) =>
-								renderUpload(upload, false, "uploads"),
-							)
-						: rootTables.map((table) =>
-								renderUpload(table, false, "table_uploads"),
-							)}
-				</ul>
-				<button
-					onClick={() => signOutAction()}
-					className="absolute cursor-pointer bottom-8 right-8"
-					type="button"
-				>
-					<LogOut size={30} />
-				</button>
+			<div className="mb-4 flex gap-3">
+				{toolOptions.map((option) => (
+					<MediumToolButton key={option.label} options={option} />
+				))}
+			</div>
+
+			<div className="flex min-h-0 w-full flex-1 flex-col  rounded-sm bg-muted px-4 py-4 shadow">
+				<div className="px-2 text-3xl mb-4 font-medium ">Andrea's Files</div>
+				<hr className="border-border" />
+
+				<div className="overflow-y-auto">
+					<ul className="space-y-2 transition-transform duration-300">
+						{rootFolders
+							.filter((folder) => visibleFolderIds.has(folder.id))
+							.map(renderFolder)}
+					</ul>
+					<AddFolder />
+					<ul
+						onDragOver={(event) => handleDragOver(event, null)}
+						onDragLeave={(event) => handleDragLeave(event, null)}
+						onDrop={(event) => handleDrop(event, null)}
+						className={`min-h-14 flex-1 rounded-md transition-colors ${dropFolderId === ROOT_DROP_ID ? "bg-background/60 ring-1 ring-border" : ""}`}
+					>
+						{activeTool === "flashcards"
+							? rootUploads.map((upload) =>
+									renderUpload(upload, false, "uploads"),
+								)
+							: rootTables.map((table) =>
+									renderUpload(table, false, "table_uploads"),
+								)}
+					</ul>
+					<button
+						onClick={() => signOutAction()}
+						className="absolute cursor-pointer bottom-8 right-8"
+						type="button"
+					>
+						<LogOut size={30} />
+					</button>
+				</div>
 			</div>
 		</>
 	);

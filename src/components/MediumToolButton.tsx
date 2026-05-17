@@ -1,27 +1,21 @@
-interface FlashcardsToolButtonProps {
+interface MediumToolButtonProps {
 	options: {
 		label: string;
 		onClick: () => void;
 		active?: boolean;
-	}[];
+	};
 }
 
-export default function FlashcardsToolButton({
-	options,
-}: FlashcardsToolButtonProps) {
+export default function MediumToolButton({ options }: MediumToolButtonProps) {
 	return (
-		<div className="mb-4 flex gap-3">
-			{options.map((option) => (
-				<button
-					key={option.label}
-					type="button"
-					aria-pressed={option.active}
-					onClick={option.onClick}
-					className="rounded-sm border border-border bg-muted px-4 py-2 text-lg font-semibold text-foreground transition-colors hover:bg-muted-hover"
-				>
-					{option.label}
-				</button>
-			))}
-		</div>
+		<button
+			key={options.label}
+			type="button"
+			aria-pressed={options.active}
+			onClick={options.onClick}
+			className="rounded-sm border border-border bg-muted px-4 py-2 text-lg font-semibold text-foreground transition-colors hover:bg-muted-hover"
+		>
+			{options.label}
+		</button>
 	);
 }

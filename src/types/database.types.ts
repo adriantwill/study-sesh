@@ -76,21 +76,21 @@ export type Database = {
           id: string
           name: string
           parent_id: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string | null
           id?: string
           name: string
           parent_id?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           created_at?: string | null
           id?: string
           name?: string
           parent_id?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {
@@ -206,7 +206,7 @@ export type Database = {
           folder_id: string | null
           id: string
           parsed_data: Json | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string | null
@@ -214,7 +214,7 @@ export type Database = {
           folder_id?: string | null
           id?: string
           parsed_data?: Json | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           created_at?: string | null
@@ -222,7 +222,7 @@ export type Database = {
           folder_id?: string | null
           id?: string
           parsed_data?: Json | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {
@@ -243,7 +243,7 @@ export type Database = {
           id: string
           status: string
           storage_path: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string | null
@@ -253,7 +253,7 @@ export type Database = {
           id?: string
           status?: string
           storage_path?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Update: {
           created_at?: string | null
@@ -263,10 +263,10 @@ export type Database = {
           id?: string
           status?: string
           storage_path?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
-          {
+         
             foreignKeyName: "uploads_folder_id_fkey"
             columns: ["folder_id"]
             isOneToOne: false
