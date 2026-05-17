@@ -1,10 +1,6 @@
-import {
-	CalendarClock,
-	CheckCircle2,
-	CircleAlert,
-	Clock3,
-	type LucideIcon,
-} from "lucide-react";
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 
 type DueDatePanelSide = "left" | "right";
 
@@ -14,11 +10,9 @@ type DueDateItem = {
 	due: string;
 	detail: string;
 	toneClassName: string;
-	Icon: LucideIcon;
 };
 
 type DueDatePanel = {
-	kicker: string;
 	title: string;
 	summary: string;
 	items: DueDateItem[];
@@ -27,7 +21,6 @@ type DueDatePanel = {
 
 const dueDatePanels: Record<DueDatePanelSide, DueDatePanel> = {
 	left: {
-		kicker: "Priority",
 		title: "Due Soon",
 		summary: "3 active deadlines",
 		items: [
@@ -37,7 +30,6 @@ const dueDatePanels: Record<DueDatePanelSide, DueDatePanel> = {
 				due: "Today",
 				detail: "32 cards left",
 				toneClassName: "bg-rose-500",
-				Icon: CircleAlert,
 			},
 			{
 				title: "Civil War review",
@@ -45,7 +37,6 @@ const dueDatePanels: Record<DueDatePanelSide, DueDatePanel> = {
 				due: "Tomorrow",
 				detail: "12 min refresh",
 				toneClassName: "bg-amber-500",
-				Icon: CalendarClock,
 			},
 			{
 				title: "Organic reactions",
@@ -53,13 +44,11 @@ const dueDatePanels: Record<DueDatePanelSide, DueDatePanel> = {
 				due: "Friday",
 				detail: "4 weak topics",
 				toneClassName: "bg-sky-500",
-				Icon: Clock3,
 			},
 		],
 		footer: "Next study block: 25 min",
 	},
 	right: {
-		kicker: "Momentum",
 		title: "This Week",
 		summary: "5 sessions planned",
 		items: [
@@ -69,7 +58,6 @@ const dueDatePanels: Record<DueDatePanelSide, DueDatePanel> = {
 				due: "Mon",
 				detail: "Ready",
 				toneClassName: "bg-emerald-500",
-				Icon: CheckCircle2,
 			},
 			{
 				title: "Anatomy diagrams",
@@ -77,7 +65,6 @@ const dueDatePanels: Record<DueDatePanelSide, DueDatePanel> = {
 				due: "Wed",
 				detail: "21 slides",
 				toneClassName: "bg-violet-500",
-				Icon: CalendarClock,
 			},
 			{
 				title: "Essay terms",
@@ -85,15 +72,28 @@ const dueDatePanels: Record<DueDatePanelSide, DueDatePanel> = {
 				due: "Sun",
 				detail: "Draft deck",
 				toneClassName: "bg-cyan-500",
-				Icon: Clock3,
 			},
 		],
 		footer: "Streak target: 4 days",
 	},
 };
 
+function getTodayInputValue() {
+	const today = new Date();
+	today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+	return today.toISOString().slice(0, 10);
+}
+
 export default function DueDatesPanel({ side }: { side: DueDatePanelSide }) {
 	const panel = dueDatePanels[side];
+	const dateInputRef = useRef<HTMLInputElement>(null);
+	const [editingDateTitle, setEditingDateTitle] = useState<string | null>(null);
+	const [selectedDate, setSelectedDate] = useState("");
+
+	function openDatePicker(item: DueDateItem) {
+		setSelectedDate((currentDate) => currentDate || getTodayInputValue());
+		setEditingDateTitle(item.title);
+	}
 
 	return (
 		<aside
@@ -102,9 +102,6 @@ export default function DueDatesPanel({ side }: { side: DueDatePanelSide }) {
 		>
 			<div className="mb-5 flex items-start justify-between gap-3">
 				<div>
-					<p className="text-sm font-semibold text-muted-foreground">
-						{panel.kicker}
-					</p>
 					<h2 className="text-2xl font-bold">{panel.title}</h2>
 				</div>
 				<span className="rounded-md border border-border bg-background/70 px-2.5 py-1 text-sm font-semibold">
@@ -116,19 +113,30 @@ export default function DueDatesPanel({ side }: { side: DueDatePanelSide }) {
 				{panel.items.map((item) => (
 					<li key={item.title} className="py-4 first:pt-0 last:pb-0">
 						<div className="flex items-start gap-3">
-							<span
-								className={`mt-1 flex size-9 shrink-0 items-center justify-center rounded-md text-white ${item.toneClassName}`}
-							>
-								<item.Icon size={18} strokeWidth={2} />
-							</span>
 							<div className="min-w-0 flex-1">
 								<div className="flex items-start justify-between gap-3">
 									<p className="text-base font-semibold leading-tight">
 										{item.title}
 									</p>
-									<p className="shrink-0 text-sm font-bold text-foreground">
-										{item.due}
-									</p>
+									{editingDateTitle === item.title ? (
+										<input
+											ref={dateInputRef}
+											type="date"
+											aria-label={`Due date for ${item.title}`}
+											value={selectedDate}
+											onChange={(event) => setSelectedDate(event.target.value)}
+											onBlur={() => setEditingDateTitle(null)}
+											className="h-8 shrink-0 rounded-md border border-border bg-background px-2 text-sm font-bold text-foreground outline-none transition-shadow focus:ring-2 focus:ring-border"
+										/>
+									) : (
+										<button
+											type="button"
+											onClick={() => openDatePicker(item)}
+											className="shrink-0 cursor-pointer rounded-md border border-border bg-background/70 px-2.5 py-1 text-sm font-bold text-foreground transition-colors hover:bg-muted-hover"
+										>
+											{selectedDate || item.due}
+										</button>
+									)}
 								</div>
 								<p className="mt-1 text-sm text-muted-foreground">
 									{item.context} - {item.detail}
