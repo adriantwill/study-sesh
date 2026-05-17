@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { CalendarDays } from "lucide-react";
+import { useRef, useState } from "react";
 
 type DueDatePanelSide = "left" | "right";
 
 type DueDateItem = {
 	title: string;
 	context: string;
-	due: string;
+	daysUntil: number;
 	detail: string;
 	toneClassName: string;
 };
@@ -27,21 +28,21 @@ const dueDatePanels: Record<DueDatePanelSide, DueDatePanel> = {
 			{
 				title: "Neuro pathways quiz",
 				context: "Bio 204",
-				due: "Today",
+				daysUntil: 0,
 				detail: "32 cards left",
 				toneClassName: "bg-rose-500",
 			},
 			{
 				title: "Civil War review",
 				context: "History",
-				due: "Tomorrow",
+				daysUntil: 1,
 				detail: "12 min refresh",
 				toneClassName: "bg-amber-500",
 			},
 			{
 				title: "Organic reactions",
 				context: "Chemistry",
-				due: "Friday",
+				daysUntil: 5,
 				detail: "4 weak topics",
 				toneClassName: "bg-sky-500",
 			},
@@ -55,21 +56,21 @@ const dueDatePanels: Record<DueDatePanelSide, DueDatePanel> = {
 			{
 				title: "Calc practice set",
 				context: "Math",
-				due: "Mon",
+				daysUntil: 1,
 				detail: "Ready",
 				toneClassName: "bg-emerald-500",
 			},
 			{
 				title: "Anatomy diagrams",
 				context: "Lab",
-				due: "Wed",
+				daysUntil: 3,
 				detail: "21 slides",
 				toneClassName: "bg-violet-500",
 			},
 			{
 				title: "Essay terms",
 				context: "English",
-				due: "Sun",
+				daysUntil: 7,
 				detail: "Draft deck",
 				toneClassName: "bg-cyan-500",
 			},
@@ -78,21 +79,55 @@ const dueDatePanels: Record<DueDatePanelSide, DueDatePanel> = {
 	},
 };
 
-function getTodayInputValue() {
+const millisecondsPerDay = 24 * 60 * 60 * 1000;
+
+function getStartOfToday() {
 	const today = new Date();
-	today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
-	return today.toISOString().slice(0, 10);
+	return new Date(today.getFullYear(), today.getMonth(), today.getDate());
+}
+
+function getInputValueForDaysUntil(daysUntil: number) {
+	const date = getStartOfToday();
+	date.setDate(date.getDate() + daysUntil);
+	const localDate = new Date(date);
+	localDate.setMinutes(localDate.getMinutes() - localDate.getTimezoneOffset());
+	return localDate.toISOString().slice(0, 10);
+}
+
+function getDaysUntilDate(dateInputValue: string) {
+	const [year, month, day] = dateInputValue.split("-").map(Number);
+	const dueDate = new Date(year, month - 1, day);
+	return Math.ceil(
+		(dueDate.getTime() - getStartOfToday().getTime()) / millisecondsPerDay,
+	);
+}
+
+function getDaysUntilLabel(daysUntil: number) {
+	if (daysUntil < 0) {
+		const overdueDays = Math.abs(daysUntil);
+		return `${overdueDays} ${overdueDays === 1 ? "day" : "days"} overdue`;
+	}
+
+	return `${daysUntil} ${daysUntil === 1 ? "day" : "days"} until`;
 }
 
 export default function DueDatesPanel({ side }: { side: DueDatePanelSide }) {
 	const panel = dueDatePanels[side];
-	const dateInputRef = useRef<HTMLInputElement>(null);
-	const [editingDateTitle, setEditingDateTitle] = useState<string | null>(null);
-	const [selectedDate, setSelectedDate] = useState("");
+	const dateInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+	const [selectedDates, setSelectedDates] = useState<Record<string, string>>(
+		{},
+	);
 
 	function openDatePicker(item: DueDateItem) {
-		setSelectedDate((currentDate) => currentDate || getTodayInputValue());
-		setEditingDateTitle(item.title);
+		const dateInput = dateInputRefs.current[item.title];
+		dateInput?.focus();
+
+		if (typeof dateInput?.showPicker === "function") {
+			dateInput.showPicker();
+			return;
+		}
+
+		dateInput?.click();
 	}
 
 	return (
@@ -110,41 +145,50 @@ export default function DueDatesPanel({ side }: { side: DueDatePanelSide }) {
 			</div>
 
 			<ul className="min-h-0 flex-1 divide-y divide-border/70">
-				{panel.items.map((item) => (
-					<li key={item.title} className="py-4 first:pt-0 last:pb-0">
-						<div className="flex items-start gap-3">
-							<div className="min-w-0 flex-1">
-								<div className="flex items-start justify-between gap-3">
-									<p className="text-base font-semibold leading-tight">
-										{item.title}
-									</p>
-									{editingDateTitle === item.title ? (
-										<input
-											ref={dateInputRef}
-											type="date"
-											aria-label={`Due date for ${item.title}`}
-											value={selectedDate}
-											onChange={(event) => setSelectedDate(event.target.value)}
-											onBlur={() => setEditingDateTitle(null)}
-											className="h-8 shrink-0 rounded-md border border-border bg-background px-2 text-sm font-bold text-foreground outline-none transition-shadow focus:ring-2 focus:ring-border"
-										/>
-									) : (
-										<button
-											type="button"
-											onClick={() => openDatePicker(item)}
-											className="shrink-0 cursor-pointer rounded-md border border-border bg-background/70 px-2.5 py-1 text-sm font-bold text-foreground transition-colors hover:bg-muted-hover"
-										>
-											{selectedDate || item.due}
-										</button>
-									)}
-								</div>
-								<p className="mt-1 text-sm text-muted-foreground">
-									{item.context} - {item.detail}
+				{panel.items.map((item) => {
+					const selectedDate = selectedDates[item.title];
+					const dateInputValue =
+						selectedDate ?? getInputValueForDaysUntil(item.daysUntil);
+					const daysUntil = selectedDate
+						? getDaysUntilDate(selectedDate)
+						: item.daysUntil;
+
+					return (
+						<li key={item.title} className="py-4 first:pt-0 last:pb-0">
+							<div className="min-w-0 flex items-center justify-between gap-3 ">
+								<p className="text-base font-semibold leading-tight">
+									{item.title}
 								</p>
+								<div className="flex shrink-0 items-center text-sm text-foreground">
+									<span>{getDaysUntilLabel(daysUntil)}</span>
+									<input
+										ref={(element) => {
+											dateInputRefs.current[item.title] = element;
+										}}
+										type="date"
+										aria-label={`Due date for ${item.title}`}
+										value={dateInputValue}
+										onChange={(event) =>
+											setSelectedDates((currentDates) => ({
+												...currentDates,
+												[item.title]: event.target.value,
+											}))
+										}
+										className="sr-only"
+									/>
+									<button
+										type="button"
+										aria-label={`Choose due date for ${item.title}`}
+										onClick={() => openDatePicker(item)}
+										className="flex size-8 cursor-pointer items-center justify-center hover:text-primary"
+									>
+										<CalendarDays className="size-4" aria-hidden="true" />
+									</button>
+								</div>
 							</div>
-						</div>
-					</li>
-				))}
+						</li>
+					);
+				})}
 			</ul>
 
 			<div className="mt-5 rounded-md border border-border/70 bg-background/60 px-3 py-2 text-sm font-semibold text-foreground/80">

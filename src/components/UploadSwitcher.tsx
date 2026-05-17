@@ -1,5 +1,5 @@
 "use client";
-import { FileUp } from "lucide-react";
+import { FileUp, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
@@ -8,6 +8,7 @@ import {
 	uploadRecordActionTEMP,
 	uploadTableAction,
 } from "../app/actions";
+import { signOutAction } from "../app/actions/auth";
 import type { StudyQuestion } from "../types";
 
 type UploadMode = "pdf" | "text" | "xlsx";
@@ -149,6 +150,13 @@ export default function UploadSwitcher() {
 	}
 	return (
 		<div className="flex min-h-0 w-200 flex-col gap-8 rounded-lg bg-muted p-8 shadow">
+			<button
+				onClick={() => signOutAction()}
+				className="absolute cursor-pointer top-8 right-8"
+				type="button"
+			>
+				<LogOut size={35} />
+			</button>
 			<div className="relative grid grid-cols-3 overflow-hidden rounded-2xl border border-muted">
 				<span
 					aria-hidden="true"

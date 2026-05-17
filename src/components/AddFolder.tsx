@@ -25,7 +25,7 @@ export default function AddFolder() {
 			onClick={handleCreateFolder}
 			disabled={isCreating}
 			type="button"
-			className="flex min-h-14 cursor-pointer items-center gap-3 rounded-md px-2 text-lg transition-colors hover:text-primary disabled:cursor-default disabled:opacity-60"
+			className="flex pt-4 cursor-pointer items-center gap-3 rounded-md text-xl transition-colors hover:text-primary disabled:cursor-default disabled:opacity-60"
 		>
 			<FolderPlus size={24} strokeWidth={1.5} />
 			<span>New Folder</span>

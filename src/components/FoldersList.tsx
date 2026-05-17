@@ -333,8 +333,8 @@ export default function FoldersList({
 	}
 
 	return (
-		<div className="flex min-h-0 w-full flex-1 flex-col  rounded-sm bg-muted px-4 py-4 shadow">
-			<div className="mb-4 flex justify-between items-center px-2 font-medium text-3xl">
+		<div className="flex min-h-0 w-full flex-1 flex-col  rounded-sm bg-muted p-4 shadow">
+			<div className="flex justify-between items-center pb-4 font-medium text-3xl">
 				Andrea's Files
 				<div className="relative w-56 grid grid-cols-2 overflow-hidden  border border-muted">
 					<span
@@ -365,7 +365,6 @@ export default function FoldersList({
 						.filter((folder) => visibleFolderIds.has(folder.id))
 						.map(renderFolder)}
 				</ul>
-				<AddFolder />
 				{(activeTool === "flashcards"
 					? rootUploads.length > 0
 					: rootTables.length > 0) && (
@@ -384,14 +383,10 @@ export default function FoldersList({
 								)}
 					</ul>
 				)}
-				<button
-					onClick={() => signOutAction()}
-					className="absolute cursor-pointer bottom-8 right-8"
-					type="button"
-				>
-					<LogOut size={30} />
-				</button>
 			</div>
+			<hr className="border-border" />
+
+			<AddFolder />
 		</div>
 	);
 }

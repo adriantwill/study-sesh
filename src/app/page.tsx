@@ -1,4 +1,4 @@
-import { ArrowDown } from "lucide-react";
+import { ArrowDown, LogOut } from "lucide-react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import BrandMark from "../components/BrandMark";
@@ -7,6 +7,7 @@ import FoldersList from "../components/FoldersList";
 import UploadSwitcher from "../components/UploadSwitcher";
 import { auth } from "../lib/auth";
 import { createClient } from "../lib/supabase/server";
+import { signOutAction } from "./actions/auth";
 
 export default async function Home() {
 	const session = await auth.api.getSession({ headers: await headers() });
@@ -42,7 +43,7 @@ export default async function Home() {
 
 	return (
 		<main>
-			<section className="flex min-h-dvh flex-col items-center p-8">
+			<section className="flex min-h-dvh flex-col items-center p-6">
 				<h1 className="flex justify-center gap-3 text-[clamp(2.25rem,8vw,3rem)] font-bold text-foreground">
 					<span>{session.user.name}'s' Study Sesh</span>
 					<BrandMark size={54} className="translate-y-0.5" />
