@@ -9,6 +9,7 @@ import type { Database, Tables } from "../types/database.types";
 import AddFolder from "./AddFolder";
 import DeleteButton from "./DeleteButton";
 import EditField from "./EditField";
+import SegmentedControl from "./SegmentedControl";
 import UploadLink from "./UploadLink";
 
 type UploadTable = keyof Pick<
@@ -23,6 +24,17 @@ interface FoldersListProps {
 }
 
 const ROOT_DROP_ID = "__root__";
+
+const fileToolOptions = [
+	{
+		label: "Cards",
+		value: "flashcards",
+	},
+	{
+		label: "Tables",
+		value: "tables",
+	},
+] as const satisfies { label: string; value: types.ToolView }[];
 
 type FolderRow = Tables<"folders"> & {
 	parent_id?: string | null;
@@ -82,19 +94,6 @@ export default function FoldersList({
 	const rootUploads = uploads.filter((upload) => upload.folder_id === null);
 	const rootTables = tables.filter((table) => table.folder_id === null);
 	const rootFolders = foldersByParentId.get(null) ?? [];
-	const activeToolIndex = activeTool === "flashcards" ? 0 : 1;
-	const toolOptions = [
-		{
-			label: "Flashcards",
-			onClick: () => setActiveTool("flashcards"),
-			active: activeTool === "flashcards",
-		},
-		{
-			label: "Tables",
-			onClick: () => setActiveTool("tables"),
-			active: activeTool === "tables",
-		},
-	];
 	const visibleFolderIds = new Set<string>();
 	const visibilityMemo = new Map<string, boolean>();
 
@@ -333,33 +332,18 @@ export default function FoldersList({
 	}
 
 	return (
-		<div className="flex min-h-0 w-full flex-1 flex-col  rounded-sm bg-muted p-4 shadow">
+		<>
 			<div className="flex justify-between items-center pb-4 font-medium text-3xl">
-				Andrea's Files
-				<div className="relative w-56 grid grid-cols-2 overflow-hidden  border border-muted">
-					<span
-						aria-hidden="true"
-						className="pointer-events-none font-normal absolute inset-y-0 left-0 w-1/2 rounded-sm bg-muted-hover transition-transform duration-300 ease-out"
-						style={{ transform: `translateX(${activeToolIndex * 100}%)` }}
-					/>
-					{toolOptions.map((option) => (
-						<button
-							key={option.label}
-							type="button"
-							aria-pressed={option.active}
-							onClick={option.onClick}
-							className={`text-lg relative z-10 w-full cursor-pointer  py-2 transition-colors duration-200 ${
-								option.active ? "text-foreground" : "text-foreground/70"
-							}`}
-						>
-							{option.label}
-						</button>
-					))}
-				</div>
+				<div className="w-200 min-w-0">Files</div>
+				<SegmentedControl
+					ariaLabel="Choose file type"
+					options={fileToolOptions}
+					value={activeTool}
+					onChange={setActiveTool}
+				/>
 			</div>
 			<hr className="border-border" />
-
-			<div className="overflow-y-auto">
+			<div className="min-h-0 flex-1 overflow-y-auto">
 				<ul className="space-y-2 transition-transform duration-300">
 					{rootFolders
 						.filter((folder) => visibleFolderIds.has(folder.id))
@@ -384,9 +368,6 @@ export default function FoldersList({
 					</ul>
 				)}
 			</div>
-			<hr className="border-border" />
-
-			<AddFolder />
-		</div>
+		</>
 	);
 }

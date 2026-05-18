@@ -1,6 +1,7 @@
 import { ArrowDown, LogOut } from "lucide-react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import AddFolder from "../components/AddFolder";
 import BrandMark from "../components/BrandMark";
 import DueDatesPanel from "../components/DueDatesPanel";
 import FoldersList from "../components/FoldersList";
@@ -58,8 +59,16 @@ export default async function Home() {
 				<div className="order-2 min-h-0 lg:order-1 lg:flex lg:h-[calc(100dvh-4rem)] lg:flex-col">
 					<DueDatesPanel side="left" />
 				</div>
-				<div className="order-1 flex min-h-0 w-full flex-col items-center lg:order-2 lg:h-[calc(100dvh-4rem)]">
-					<FoldersList folders={folders ?? []} uploads={data} tables={tables} />
+				<div className="rounded-sm bg-muted p-4 shadow order-1 flex min-h-0 w-full flex-col items-center lg:order-2 lg:h-[calc(100dvh-4rem)]">
+					<div className=" flex min-h-0 w-full flex-1 flex-col">
+						<FoldersList
+							folders={folders ?? []}
+							uploads={data}
+							tables={tables}
+						/>
+						<hr className="border-border" />
+						<AddFolder />
+					</div>
 				</div>
 			</section>
 		</main>

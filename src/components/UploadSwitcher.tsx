@@ -10,6 +10,7 @@ import {
 } from "../app/actions";
 import { signOutAction } from "../app/actions/auth";
 import type { StudyQuestion } from "../types";
+import SegmentedControl from "./SegmentedControl";
 
 type UploadMode = "pdf" | "text" | "xlsx";
 
@@ -54,6 +55,11 @@ const uploadModeConfig: Record<
 	},
 };
 
+const uploadModeOptions = uploadModeOrder.map((modeOption) => ({
+	label: uploadModeConfig[modeOption].label,
+	value: modeOption,
+}));
+
 export default function UploadSwitcher() {
 	const [mode, setMode] = useState<UploadMode>("pdf");
 	const [file, setFile] = useState<File | null>(null);
@@ -61,7 +67,6 @@ export default function UploadSwitcher() {
 	const [loading, setLoading] = useState(false);
 	const [textInput, setTextInput] = useState("");
 	const activeMode = uploadModeConfig[mode];
-	const modeIndex = uploadModeOrder.indexOf(mode);
 	const isTextMode = mode === "text";
 	const canSubmit = isTextMode ? textInput.trim().length > 0 : Boolean(file);
 
@@ -157,25 +162,12 @@ export default function UploadSwitcher() {
 			>
 				<LogOut size={35} />
 			</button>
-			<div className="relative grid grid-cols-3 overflow-hidden rounded-2xl border border-muted">
-				<span
-					aria-hidden="true"
-					className="pointer-events-none absolute inset-y-0 left-0 w-1/3 rounded-2xl bg-muted-hover transition-transform duration-300 ease-out"
-					style={{ transform: `translateX(${modeIndex * 100}%)` }}
+				<SegmentedControl
+					ariaLabel="Choose upload type"
+					options={uploadModeOptions}
+					value={mode}
+					onChange={selectMode}
 				/>
-				{uploadModeOrder.map((modeOption) => (
-					<button
-						key={modeOption}
-						className={`relative z-10 w-full cursor-pointer rounded-2xl py-2 transition-colors duration-200 ${
-							mode === modeOption ? "text-foreground" : "text-foreground/70"
-						}`}
-						onClick={() => selectMode(modeOption)}
-						type="button"
-					>
-						{uploadModeConfig[modeOption].label}
-					</button>
-				))}
-			</div>
 
 			<div
 				className={`relative h-56 overflow-hidden rounded-lg border-2 border-dashed border-border ${switchTransition}`}
