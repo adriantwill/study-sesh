@@ -12,7 +12,7 @@ export default function Error({
 }) {
 	return (
 		<ErrorState
-			title="Something went wrong"
+			title="Failed to load questions"
 			message={error.message}
 			onReset={reset}
 		/>

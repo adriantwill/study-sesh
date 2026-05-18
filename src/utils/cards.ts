@@ -1,5 +1,5 @@
-import type { StudyQuestion } from "../types";
-import type { Tables } from "../types/database.types";
+import type { StudyQuestion } from "@/src/types";
+import type { Tables } from "@/src/types/database.types";
 
 export function shuffleArray<T>(items: T[]): T[] {
 	const shuffled = [...items];

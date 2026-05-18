@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import ChunkErrorHandler from "@/src/components/ChunkErrorHandler";
-import NewVersionBanner from "@/src/components/NewVersionBanner";
+import ChunkErrorHandler from "@/src/components/ui/ChunkErrorHandler";
+import NewVersionBanner from "@/src/components/ui/NewVersionBanner";
 import "./globals.css";
 
 export const metadata: Metadata = {
