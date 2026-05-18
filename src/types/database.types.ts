@@ -70,6 +70,30 @@ export type Database = {
           },
         ]
       }
+      deadlines: {
+        Row: {
+          created_at: string
+          due_date: string | null
+          id: number
+          title: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          due_date?: string | null
+          id?: number
+          title?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          due_date?: string | null
+          id?: number
+          title?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       folders: {
         Row: {
           created_at: string | null

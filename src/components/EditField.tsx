@@ -1,7 +1,10 @@
 "use client";
 import { Bold, Check, Highlighter, List, Pencil } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { updateQuestionTextAction } from "../app/actions";
+import {
+	updateDeadlineTitleAction,
+	updateQuestionTextAction,
+} from "../app/actions";
 import { parseMarkdown } from "../lib/markdown";
 import type { Database } from "../types/database.types";
 
@@ -33,6 +36,7 @@ export default function EditField<T extends EditFieldTable>({
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 	const isFolderName = table === "folders" && col === "name";
 	const isAnswerText = table === "questions" && col === "answer_text";
+	const isDeadlineTitle = table === "deadlines" && col === "title";
 
 	useEffect(() => {
 		setText(textField);
@@ -67,7 +71,11 @@ export default function EditField<T extends EditFieldTable>({
 
 		if (nextText !== textField) {
 			try {
-				await updateQuestionTextAction(id, nextText, table, col);
+				if (isDeadlineTitle) {
+					await updateDeadlineTitleAction(Number(id), nextText);
+				} else {
+					await updateQuestionTextAction(id, nextText, table, col);
+				}
 			} catch (error) {
 				console.error("Failed to save text:", error);
 				setText(textField);

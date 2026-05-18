@@ -436,6 +436,97 @@ export async function addFolderAction() {
 	return data;
 }
 
+function normalizeDeadlineDate(dueDate: string | null) {
+	if (!dueDate) return null;
+	if (!/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) {
+		throw new Error("Invalid due date");
+	}
+	return dueDate;
+}
+
+export async function addDeadlineAction(dueDate: string | null) {
+	const userId = await getSessionUserId();
+	const supabase = await createClient();
+
+	const { data, error } = await supabase
+		.from("deadlines")
+		.insert({
+			title: "Untitled",
+			due_date: normalizeDeadlineDate(dueDate),
+			user_id: userId,
+		})
+		.select()
+		.single();
+
+	if (error || !data) {
+		console.error("Add deadline error:", error);
+		throw new Error("Failed to add deadline");
+	}
+
+	revalidatePath("/");
+	return data;
+}
+
+export async function updateDeadlineDueDateAction(
+	deadlineId: number,
+	dueDate: string | null,
+) {
+	const userId = await getSessionUserId();
+	const supabase = await createClient();
+
+	const { error } = await supabase
+		.from("deadlines")
+		.update({ due_date: normalizeDeadlineDate(dueDate) })
+		.eq("id", deadlineId)
+		.eq("user_id", userId);
+
+	if (error) {
+		console.error("Update deadline due date error:", error);
+		throw new Error("Failed to update deadline");
+	}
+
+	revalidatePath("/");
+}
+
+export async function updateDeadlineTitleAction(
+	deadlineId: number,
+	title: string,
+) {
+	const userId = await getSessionUserId();
+	const supabase = await createClient();
+
+	const { error } = await supabase
+		.from("deadlines")
+		.update({ title })
+		.eq("id", deadlineId)
+		.eq("user_id", userId);
+
+	if (error) {
+		console.error("Update deadline title error:", error);
+		throw new Error("Failed to update deadline");
+	}
+
+	revalidatePath("/");
+}
+
+export async function deleteDeadlineAction(deadlineId: number) {
+	const userId = await getSessionUserId();
+	const supabase = await createClient();
+
+	const { error } = await supabase
+		.from("deadlines")
+		.delete()
+		.eq("id", deadlineId)
+		.eq("user_id", userId);
+
+	if (error) {
+		console.error("Delete deadline error:", error);
+		throw new Error("Failed to delete deadline");
+	}
+
+	revalidatePath("/");
+}
+
 export async function updateParentAction<
 	T extends keyof typeof parentColumnByTable,
 >(

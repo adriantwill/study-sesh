@@ -1,86 +1,21 @@
 "use client";
 
-import { CalendarDays, Plus } from "lucide-react";
-import { useRef, useState } from "react";
+import { CalendarDays, Plus, Trash2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import {
+	addDeadlineAction,
+	deleteDeadlineAction,
+	updateDeadlineDueDateAction,
+} from "../app/actions";
+import type { Tables } from "../types/database.types";
+import EditField from "./EditField";
 
 type DueDatePanelSide = "left" | "right";
+type Deadline = Tables<"deadlines">;
 
-type DueDateItem = {
-	id: string;
-	title: string;
-	context: string;
-	daysUntil: number;
-	detail: string;
-	toneClassName: string;
-};
-
-type DueDatePanel = {
-	title: string;
-	summary: string;
-	items: DueDateItem[];
-};
-
-const dueDatePanels: Record<DueDatePanelSide, DueDatePanel> = {
-	left: {
-		title: "Due Soon",
-		summary: "3 active deadlines",
-		items: [
-			{
-				id: "neuro-pathways-quiz",
-				title: "Neuro pathways quiz",
-				context: "Bio 204",
-				daysUntil: 0,
-				detail: "32 cards left",
-				toneClassName: "bg-rose-500",
-			},
-			{
-				id: "civil-war-review",
-				title: "Civil War review",
-				context: "History",
-				daysUntil: 1,
-				detail: "12 min refresh",
-				toneClassName: "bg-amber-500",
-			},
-			{
-				id: "organic-reactions",
-				title: "Organic reactions",
-				context: "Chemistry",
-				daysUntil: 5,
-				detail: "4 weak topics",
-				toneClassName: "bg-sky-500",
-			},
-		],
-	},
-	right: {
-		title: "This Week",
-		summary: "5 sessions planned",
-		items: [
-			{
-				id: "calc-practice-set",
-				title: "Calc practice set",
-				context: "Math",
-				daysUntil: 1,
-				detail: "Ready",
-				toneClassName: "bg-emerald-500",
-			},
-			{
-				id: "anatomy-diagrams",
-				title: "Anatomy diagrams",
-				context: "Lab",
-				daysUntil: 3,
-				detail: "21 slides",
-				toneClassName: "bg-violet-500",
-			},
-			{
-				id: "essay-terms",
-				title: "Essay terms",
-				context: "English",
-				daysUntil: 7,
-				detail: "Draft deck",
-				toneClassName: "bg-cyan-500",
-			},
-		],
-	},
+const dueDatePanelTitles: Record<DueDatePanelSide, string> = {
+	left: "Due Dates",
+	right: "This Week",
 };
 
 const millisecondsPerDay = 24 * 60 * 60 * 1000;
@@ -106,25 +41,62 @@ function getDaysUntilDate(dateInputValue: string) {
 	);
 }
 
-function getDaysUntilLabel(daysUntil: number) {
+function getDaysUntilLabel(daysUntil: number | null) {
+	if (daysUntil === null) {
+		return "No date";
+	}
+
 	if (daysUntil < 0) {
 		const overdueDays = Math.abs(daysUntil);
 		return `${overdueDays} ${overdueDays === 1 ? "day" : "days"} overdue`;
 	}
 
+	if (daysUntil === 0) {
+		return "Due today";
+	}
+
 	return `${daysUntil} ${daysUntil === 1 ? "day" : "days"} until`;
 }
 
-export default function DueDatesPanel({ side }: { side: DueDatePanelSide }) {
-	const panel = dueDatePanels[side];
-	const dateInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
-	const newItemIdRef = useRef(0);
-	const [items, setItems] = useState<DueDateItem[]>(panel.items);
-	const [selectedDates, setSelectedDates] = useState<Record<string, string>>(
-		{},
-	);
+function getDateInputValue(dueDate: string | null) {
+	return dueDate?.slice(0, 10) ?? "";
+}
 
-	function openDatePicker(item: DueDateItem) {
+function sortDeadlines(deadlines: Deadline[]) {
+	return [...deadlines].sort((a, b) => {
+		const dueDateCompare = (a.due_date ?? "9999-12-31").localeCompare(
+			b.due_date ?? "9999-12-31",
+		);
+
+		if (dueDateCompare !== 0) return dueDateCompare;
+
+		return a.created_at.localeCompare(b.created_at);
+	});
+}
+
+function getDeadlineSummary(count: number) {
+	return `${count} active ${count === 1 ? "deadline" : "deadlines"}`;
+}
+
+export default function DueDatesPanel({
+	side,
+	deadlines,
+}: {
+	side: DueDatePanelSide;
+	deadlines: Deadline[];
+}) {
+	const title = dueDatePanelTitles[side];
+	const dateInputRefs = useRef<Record<number, HTMLInputElement | null>>({});
+	const [items, setItems] = useState<Deadline[]>(() =>
+		sortDeadlines(deadlines),
+	);
+	const [isAdding, setIsAdding] = useState(false);
+
+	useEffect(() => {
+		setItems(sortDeadlines(deadlines));
+	}, [deadlines]);
+
+	function openDatePicker(item: Deadline) {
 		const dateInput = dateInputRefs.current[item.id];
 		dateInput?.focus();
 
@@ -136,88 +108,160 @@ export default function DueDatesPanel({ side }: { side: DueDatePanelSide }) {
 		dateInput?.click();
 	}
 
-	function addNewItem() {
-		const newItemId = newItemIdRef.current;
-		newItemIdRef.current += 1;
+	async function handleDueDateChange(item: Deadline, dueDate: string) {
+		const nextDueDate = dueDate || null;
+		const previousDueDate = item.due_date;
 
-		setItems((currentItems) => [
-			...currentItems,
-			{
-				id: `new-item-${newItemId}`,
-				title: "Untitled",
-				context: "",
-				daysUntil: 0,
-				detail: "",
-				toneClassName: "bg-sky-500",
-			},
-		]);
+		setItems((currentItems) =>
+			sortDeadlines(
+				currentItems.map((currentItem) =>
+					currentItem.id === item.id
+						? { ...currentItem, due_date: nextDueDate }
+						: currentItem,
+				),
+			),
+		);
+
+		try {
+			await updateDeadlineDueDateAction(item.id, nextDueDate);
+		} catch (error) {
+			console.error("Failed to update deadline:", error);
+			setItems((currentItems) =>
+				sortDeadlines(
+					currentItems.map((currentItem) =>
+						currentItem.id === item.id
+							? { ...currentItem, due_date: previousDueDate }
+							: currentItem,
+					),
+				),
+			);
+		}
+	}
+
+	async function addNewItem() {
+		if (isAdding) return;
+
+		setIsAdding(true);
+
+		try {
+			const deadline = await addDeadlineAction(getInputValueForDaysUntil(0));
+			setItems((currentItems) =>
+				currentItems.some((item) => item.id === deadline.id)
+					? sortDeadlines(currentItems)
+					: sortDeadlines([...currentItems, deadline]),
+			);
+		} catch (error) {
+			console.error("Failed to add deadline:", error);
+		} finally {
+			setIsAdding(false);
+		}
+	}
+
+	async function deleteItem(item: Deadline) {
+		const confirmed = confirm(
+			`Delete this deadline "${item.title ?? "Untitled"}"?`,
+		);
+		if (!confirmed) return;
+
+		const previousItems = items;
+		setItems((currentItems) =>
+			currentItems.filter((currentItem) => currentItem.id !== item.id),
+		);
+
+		try {
+			await deleteDeadlineAction(item.id);
+		} catch (error) {
+			console.error("Failed to delete deadline:", error);
+			setItems(previousItems);
+		}
 	}
 
 	return (
 		<aside
-			aria-label={`${panel.title} due dates`}
-			className="flex min-h-0 w-full flex-1 flex-col rounded-lg border border-border/70 bg-muted px-4 py-5 text-foreground shadow"
+			aria-label={`${title} due dates`}
+			className="flex min-h-0 w-full  flex-1 flex-col rounded-lg border border-border/70 bg-muted px-4 py-5 text-foreground shadow"
 		>
 			<div className="mb-5 flex items-start justify-between gap-3">
 				<div>
-					<h2 className="text-2xl font-bold">{panel.title}</h2>
+					<h2 className="text-3xl font-medium">{title}</h2>
 				</div>
-				<span className="rounded-md border border-border bg-background/70 px-2.5 py-1 text-sm font-semibold">
-					{panel.summary}
-				</span>
+				{/*<span className="rounded-md border border-border bg-background/70 px-2.5 py-1 text-sm font-semibold">
+					{getDeadlineSummary(items.length)}
+				</span>*/}
 			</div>
+			<hr className="border-border" />
 
 			<ul className="min-h-0 flex-1 divide-y divide-border/70 overflow-y-auto">
-				{items.map((item) => {
-					const selectedDate = selectedDates[item.id];
-					const dateInputValue =
-						selectedDate ?? getInputValueForDaysUntil(item.daysUntil);
-					const daysUntil = selectedDate
-						? getDaysUntilDate(selectedDate)
-						: item.daysUntil;
+				{items.length === 0 ? (
+					<li className="py-8 text-center text-sm text-muted-foreground">
+						No deadlines yet.
+					</li>
+				) : (
+					items.map((item) => {
+						const dateInputValue = getDateInputValue(item.due_date);
+						const daysUntil = dateInputValue
+							? getDaysUntilDate(dateInputValue)
+							: null;
 
-					return (
-						<li key={item.id} className="py-4 first:pt-0 last:pb-0">
-							<div className="min-w-0 flex items-center justify-between gap-3 ">
-								<p className="text-base font-semibold leading-tight">
-									{item.title}
-								</p>
-								<div className="flex shrink-0 items-center text-sm text-foreground">
-									<span>{getDaysUntilLabel(daysUntil)}</span>
-									<input
-										ref={(element) => {
-											dateInputRefs.current[item.id] = element;
-										}}
-										type="date"
-										aria-label={`Due date for ${item.title}`}
-										value={dateInputValue}
-										onChange={(event) =>
-											setSelectedDates((currentDates) => ({
-												...currentDates,
-												[item.id]: event.target.value,
-											}))
-										}
-										className="sr-only"
-									/>
-									<button
-										type="button"
-										aria-label={`Choose due date for ${item.title}`}
-										onClick={() => openDatePicker(item)}
-										className="flex size-8 cursor-pointer items-center justify-center hover:text-primary"
-									>
-										<CalendarDays className="size-4" aria-hidden="true" />
-									</button>
+						return (
+							<li key={item.id} className="py-4">
+								<div className="flex min-w-0 items-center gap-2 text-base  justify-between leading-tight">
+									<div className="flex w-fit gap-2 text-xl ">
+										<EditField
+											textField={item.title ?? "Untitled"}
+											id={String(item.id)}
+											table="deadlines"
+											col="title"
+										/>
+									</div>
+									<div className="flex items-center gap-2">
+										<span className="min-w-0 truncate font-light text-sm">
+											{getDaysUntilLabel(daysUntil)}
+										</span>
+										<div className="flex shrink-0 items-center">
+											<input
+												ref={(element) => {
+													dateInputRefs.current[item.id] = element;
+												}}
+												type="date"
+												aria-label={`Due date for ${item.title ?? "Untitled"}`}
+												value={dateInputValue}
+												onChange={(event) =>
+													void handleDueDateChange(item, event.target.value)
+												}
+												className="sr-only"
+											/>
+											<button
+												type="button"
+												aria-label={`Choose due date for ${item.title ?? "Untitled"}`}
+												onClick={() => openDatePicker(item)}
+												className="flex size-8 cursor-pointer items-center justify-center hover:text-primary"
+											>
+												<CalendarDays className="size-4" aria-hidden="true" />
+											</button>
+											<button
+												type="button"
+												aria-label={`Delete deadline ${item.title ?? "Untitled"}`}
+												onClick={() => void deleteItem(item)}
+												className="flex size-8 cursor-pointer items-center justify-center hover:text-primary"
+											>
+												<Trash2 className="size-4" aria-hidden="true" />
+											</button>
+										</div>
+										<div className="flex items-center justify-between gap-2 text-sm text-foreground"></div>
+									</div>
 								</div>
-							</div>
-						</li>
-					);
-				})}
+							</li>
+						);
+					})
+				)}
 			</ul>
 
 			<button
 				type="button"
 				onClick={addNewItem}
-				className="mt-3 flex w-full cursor-pointer items-center justify-center gap-2 rounded-md border border-border bg-background/70 px-3 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted-hover"
+				disabled={isAdding}
+				className="mt-3 flex w-full cursor-pointer items-center justify-center gap-2 rounded-md border border-border bg-background/70 px-3 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted-hover disabled:cursor-default disabled:opacity-60"
 			>
 				<Plus className="size-4" aria-hidden="true" />
 				New item

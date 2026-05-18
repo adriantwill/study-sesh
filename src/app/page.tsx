@@ -1,4 +1,4 @@
-import { ArrowDown, LogOut } from "lucide-react";
+import { ArrowDown } from "lucide-react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import AddFolder from "../components/AddFolder";
@@ -8,7 +8,6 @@ import FoldersList from "../components/FoldersList";
 import UploadSwitcher from "../components/UploadSwitcher";
 import { auth } from "../lib/auth";
 import { createClient } from "../lib/supabase/server";
-import { signOutAction } from "./actions/auth";
 
 export default async function Home() {
 	const session = await auth.api.getSession({ headers: await headers() });
@@ -31,6 +30,12 @@ export default async function Home() {
 		.select()
 		.eq("user_id", session.user.id)
 		.order("created_at");
+	const { data: deadlines, error: deadlinesError } = await supabase
+		.from("deadlines")
+		.select()
+		.eq("user_id", session.user.id)
+		.order("due_date", { ascending: true, nullsFirst: false })
+		.order("created_at");
 
 	if (error) {
 		console.error("Error fetching uploads:", error);
@@ -40,6 +45,11 @@ export default async function Home() {
 	if (tablesError) {
 		console.error("Error fetching tables:", tablesError);
 		throw new Error("Failed to load tables");
+	}
+
+	if (deadlinesError) {
+		console.error("Error fetching deadlines:", deadlinesError);
+		throw new Error("Failed to load deadlines");
 	}
 
 	return (
@@ -57,7 +67,7 @@ export default async function Home() {
 			<hr className="border-border" />
 			<section className="relative grid min-h-dvh w-full grid-cols-1 gap-6 p-6 lg:h-dvh lg:grid-cols-[minmax(13rem,1fr)_minmax(0,40rem)_minmax(13rem,1fr)] lg:items-stretch lg:p-8">
 				<div className="order-2 min-h-0 lg:order-1 lg:flex lg:h-[calc(100dvh-4rem)] lg:flex-col">
-					<DueDatesPanel side="left" />
+					<DueDatesPanel side="left" deadlines={deadlines ?? []} />
 				</div>
 				<div className="rounded-sm bg-muted p-4 shadow order-1 flex min-h-0 w-full flex-col items-center lg:order-2 lg:h-[calc(100dvh-4rem)]">
 					<div className=" flex min-h-0 w-full flex-1 flex-col">
