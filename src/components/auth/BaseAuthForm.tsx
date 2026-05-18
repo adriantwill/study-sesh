@@ -13,7 +13,8 @@ type AuthField = Pick<
 type BaseAuthFormProps = {
 	title: string;
 	action: (formData: FormData) => Promise<void>;
-	fields: AuthField[];
+	fields?: AuthField[];
+	passwordAutoComplete?: AuthField["autoComplete"];
 	submitLabel: string;
 	footerText: string;
 	footerHref: string;
@@ -23,12 +24,29 @@ type BaseAuthFormProps = {
 export default function BaseAuthForm({
 	title,
 	action,
-	fields,
+	fields = [],
+	passwordAutoComplete = "current-password",
 	submitLabel,
 	footerText,
 	footerHref,
 	footerLinkText,
 }: BaseAuthFormProps) {
+	const authFields: AuthField[] = [
+		...fields,
+		{
+			type: "email",
+			name: "email",
+			placeholder: "Email",
+			autoComplete: "email",
+		},
+		{
+			type: "password",
+			name: "password",
+			placeholder: "Password",
+			autoComplete: passwordAutoComplete,
+		},
+	];
+
 	return (
 		<div className="w-full max-w-sm space-y-6 rounded-lg bg-muted p-8 shadow">
 			<div className="flex flex-col items-center gap-3 text-center">
@@ -36,7 +54,7 @@ export default function BaseAuthForm({
 				<h1 className="text-3xl font-bold text-foreground">{title}</h1>
 			</div>
 			<form action={action} className="space-y-4">
-				{fields.map((field) => (
+				{authFields.map((field) => (
 					<input
 						key={field.name}
 						type={field.type}

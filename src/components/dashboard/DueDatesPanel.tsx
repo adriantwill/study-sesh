@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarDays, Plus, Trash2 } from "lucide-react";
+import { CalendarDays, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import {
 	addDeadlineAction,
@@ -8,6 +8,7 @@ import {
 	updateDeadlineDueDateAction,
 } from "@/src/app/actions";
 import EditField from "@/src/components/questions/EditField";
+import NewItemButton from "@/src/components/ui/NewItemButton";
 import type { Tables } from "@/src/types/database.types";
 
 type DueDatePanelSide = "left" | "right";
@@ -86,7 +87,6 @@ export default function DueDatesPanel({
 	const [items, setItems] = useState<Deadline[]>(() =>
 		sortDeadlines(deadlines),
 	);
-	const [isAdding, setIsAdding] = useState(false);
 
 	useEffect(() => {
 		setItems(sortDeadlines(deadlines));
@@ -135,10 +135,6 @@ export default function DueDatesPanel({
 	}
 
 	async function addNewItem() {
-		if (isAdding) return;
-
-		setIsAdding(true);
-
 		try {
 			const deadline = await addDeadlineAction(getInputValueForDaysUntil(0));
 			setItems((currentItems) =>
@@ -148,8 +144,6 @@ export default function DueDatesPanel({
 			);
 		} catch (error) {
 			console.error("Failed to add deadline:", error);
-		} finally {
-			setIsAdding(false);
 		}
 	}
 
@@ -175,7 +169,7 @@ export default function DueDatesPanel({
 	return (
 		<aside
 			aria-label={`${title} due dates`}
-			className="flex min-h-0 w-full flex-1 flex-col overflow-hidden rounded-lg border border-border/70 bg-muted px-4 py-5 text-foreground shadow lg:h-full"
+			className="flex min-h-0 w-full flex-1 flex-col overflow-hidden rounded-lg border border-border/70 bg-muted p-4 text-foreground shadow lg:h-full"
 		>
 			<div className="mb-5 flex items-start justify-between gap-3">
 				<div>
@@ -253,15 +247,7 @@ export default function DueDatesPanel({
 				)}
 			</ul>
 
-			<button
-				type="button"
-				onClick={addNewItem}
-				disabled={isAdding}
-				className="mt-3 flex w-full cursor-pointer items-center justify-center gap-2 rounded-md border border-border bg-background/70 px-3 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted-hover disabled:cursor-default disabled:opacity-60"
-			>
-				<Plus className="size-4" aria-hidden="true" />
-				New item
-			</button>
+			<NewItemButton action={addNewItem} />
 		</aside>
 	);
 }

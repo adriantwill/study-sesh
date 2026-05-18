@@ -1,13 +1,14 @@
 import { ArrowDown } from "lucide-react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import AddFolder from "@/src/components/dashboard/AddFolder";
 import DueDatesPanel from "@/src/components/dashboard/DueDatesPanel";
 import FoldersList from "@/src/components/dashboard/FoldersList";
 import UploadSwitcher from "@/src/components/dashboard/UploadSwitcher";
 import BrandMark from "@/src/components/ui/BrandMark";
+import NewItemButton from "@/src/components/ui/NewItemButton";
 import { auth } from "@/src/lib/auth";
 import { createClient } from "@/src/lib/supabase/server";
+import { addFolderAction } from "../actions";
 
 export default async function Home() {
 	const session = await auth.api.getSession({ headers: await headers() });
@@ -76,8 +77,7 @@ export default async function Home() {
 							uploads={data}
 							tables={tables}
 						/>
-						<hr className="border-border" />
-						<AddFolder />
+						<NewItemButton action={addFolderAction} label="New folder" />
 					</div>
 				</div>
 			</section>

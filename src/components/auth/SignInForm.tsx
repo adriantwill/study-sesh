@@ -6,20 +6,6 @@ export default function SignInForm() {
 		<BaseAuthForm
 			title="Sign In"
 			action={signInAction}
-			fields={[
-				{
-					type: "email",
-					name: "email",
-					placeholder: "Email",
-					autoComplete: "email",
-				},
-				{
-					type: "password",
-					name: "password",
-					placeholder: "Password",
-					autoComplete: "current-password",
-				},
-			]}
 			submitLabel="Sign In"
 			footerText="Need an account?"
 			footerHref="/signup"

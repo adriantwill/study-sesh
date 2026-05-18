@@ -13,19 +13,8 @@ export default function SignUpForm() {
 					placeholder: "Name",
 					autoComplete: "name",
 				},
-				{
-					type: "email",
-					name: "email",
-					placeholder: "Email",
-					autoComplete: "email",
-				},
-				{
-					type: "password",
-					name: "password",
-					placeholder: "Password",
-					autoComplete: "new-password",
-				},
 			]}
+			passwordAutoComplete="new-password"
 			submitLabel="Sign Up"
 			footerText="Already have an account?"
 			footerHref="/signin"
