@@ -1,4 +1,4 @@
-import type { StudyQuestion } from "../types";
+import type { StudyQuestion } from "@/src/types";
 import { createClient } from "./supabase/server";
 
 const DISPLAY_ORDER_STEP = 100;
