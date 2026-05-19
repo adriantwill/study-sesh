@@ -1,18 +1,25 @@
 "use client";
 import * as lucideReact from "lucide-react";
 import { useState } from "react";
-import { updateParentAction } from "@/src/app/actions";
+import { updateParentAction } from "@/src/app/actions/index";
 import EditField from "@/src/components/questions/EditField";
 import DeleteButton from "@/src/components/ui/DeleteButton";
 import SegmentedControl from "@/src/components/ui/SegmentedControl";
 import type * as types from "@/src/types";
 import type { Database, Tables } from "@/src/types/database.types";
+import { addFolderAction } from "../../app/actions/index";
+import BigPanel from "./BigPanel";
 import UploadLink from "./UploadLink";
 
 type UploadTable = keyof Pick<
 	Database["public"]["Tables"],
 	"uploads" | "table_uploads"
 >;
+
+type DraggedUpload = {
+	id: string;
+	table: UploadTable;
+};
 
 interface FoldersListProps {
 	folders: Tables<"folders">[];
@@ -63,7 +70,7 @@ export default function FoldersList({
 	tables,
 }: FoldersListProps) {
 	const [openFolderIds, setOpenFolderIds] = useState<Set<string>>(new Set());
-	const [activeUploadId, setActiveUploadId] = useState<string | null>(null);
+	const [activeUpload, setActiveUpload] = useState<DraggedUpload | null>(null);
 	const [activeFolderId, setActiveFolderId] = useState<string | null>(null);
 	const [dropFolderId, setDropFolderId] = useState<string | null>(null);
 	const nestedFolders = folders as FolderRow[];
@@ -135,7 +142,7 @@ export default function FoldersList({
 	}
 
 	function resetDragState() {
-		setActiveUploadId(null);
+		setActiveUpload(null);
 		setActiveFolderId(null);
 		setDropFolderId(null);
 	}
@@ -150,10 +157,27 @@ export default function FoldersList({
 
 		return false;
 	}
+	const [isCreating, setIsCreating] = useState(false);
+
+	async function handleCreateFolder() {
+		if (isCreating) return;
+
+		try {
+			setIsCreating(true);
+			await addFolderAction();
+		} catch (error) {
+			console.error("Failed to add folder:", error);
+		} finally {
+			setIsCreating(false);
+		}
+	}
 
 	function canDropTo(parentId: string | null) {
-		if (activeUploadId) {
-			const upload = uploads.find((item) => item.id === activeUploadId);
+		if (activeUpload) {
+			const upload =
+				activeUpload.table === "uploads"
+					? uploads.find((item) => item.id === activeUpload.id)
+					: tables.find((item) => item.id === activeUpload.id);
 			return !!upload && upload.folder_id !== parentId;
 		}
 
@@ -170,14 +194,19 @@ export default function FoldersList({
 	}
 
 	async function moveDraggedItem(parentId: string | null) {
-		const uploadId = activeUploadId;
+		const draggedUpload = activeUpload;
 		const draggedFolderId = activeFolderId;
 
 		resetDragState();
 
-		if (uploadId) {
+		if (draggedUpload) {
 			try {
-				await updateParentAction(uploadId, parentId, "uploads", "folder_id");
+				await updateParentAction(
+					draggedUpload.id,
+					parentId,
+					draggedUpload.table,
+					"folder_id",
+				);
 				if (parentId) {
 					setOpenFolderIds((current) => new Set(current).add(parentId));
 				}
@@ -206,15 +235,15 @@ export default function FoldersList({
 	}
 
 	function handleFolderDragStart(folderId: string) {
-		setActiveUploadId(null);
+		setActiveUpload(null);
 		setDropFolderId(null);
 		setActiveFolderId(folderId);
 	}
 
-	function handleUploadDragStart(uploadId: string) {
+	function handleUploadDragStart(uploadId: string, table: UploadTable) {
 		setActiveFolderId(null);
 		setDropFolderId(null);
-		setActiveUploadId(uploadId);
+		setActiveUpload({ id: uploadId, table });
 	}
 
 	function handleDragOver(
@@ -261,8 +290,10 @@ export default function FoldersList({
 				upload={upload}
 				tree={tree}
 				draggable
-				isDragging={activeUploadId === upload.id}
-				onDragStart={handleUploadDragStart}
+				isDragging={
+					activeUpload?.id === upload.id && activeUpload.table === variant
+				}
+				onDragStart={(uploadId) => handleUploadDragStart(uploadId, variant)}
 				onDragEnd={resetDragState}
 				variant={variant}
 			/>
@@ -329,44 +360,26 @@ export default function FoldersList({
 	}
 
 	return (
-		<>
-			<div className="flex items-center gap-4 pb-4 font-medium text-3xl">
-				<div className="min-w-0 basis-2/3">Files</div>
-				<div className="min-w-0 basis-1/3">
-					<SegmentedControl
-						ariaLabel="Choose file type"
-						options={fileToolOptions}
-						value={activeTool}
-						onChange={setActiveTool}
-					/>
-				</div>
-			</div>
-			<hr className="border-border" />
-			<div className="min-h-0 flex-1 overflow-y-auto">
-				<ul className="space-y-2 transition-transform duration-300">
-					{rootFolders
-						.filter((folder) => visibleFolderIds.has(folder.id))
-						.map(renderFolder)}
-				</ul>
-				{(activeTool === "flashcards"
-					? rootUploads.length > 0
-					: rootTables.length > 0) && (
-					<ul
-						onDragOver={(event) => handleDragOver(event, null)}
-						onDragLeave={(event) => handleDragLeave(event, null)}
-						onDrop={(event) => handleDrop(event, null)}
-						className={`min-h-14 flex-1 rounded-md transition-colors ${dropFolderId === ROOT_DROP_ID ? "bg-background/60 ring-1 ring-border" : ""} `}
-					>
-						{activeTool === "flashcards"
-							? rootUploads.map((upload) =>
-									renderUpload(upload, false, "uploads"),
-								)
-							: rootTables.map((table) =>
-									renderUpload(table, false, "table_uploads"),
-								)}
-					</ul>
-				)}
-			</div>
-		</>
+		<BigPanel
+			title="Files"
+			control={
+				<SegmentedControl
+					ariaLabel="Choose file type"
+					options={fileToolOptions}
+					value={activeTool}
+					onChange={setActiveTool}
+				/>
+			}
+			addAction={handleCreateFolder}
+		>
+			{rootFolders
+				.filter((folder) => visibleFolderIds.has(folder.id))
+				.map(renderFolder)}
+			{activeTool === "flashcards"
+				? rootUploads.map((upload) => renderUpload(upload, false, "uploads"))
+				: rootTables.map((table) =>
+						renderUpload(table, false, "table_uploads"),
+					)}
+		</BigPanel>
 	);
 }
