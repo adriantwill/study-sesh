@@ -202,6 +202,11 @@ Focus on:
 - Key facts, dates, or formulas
 - Lists or steps to memorize
 
+Question rules:
+- Ask only direct, positive questions about content visible on the slide
+- No filler framing: avoid "according to the slide", "in the context of...", "based on...", etc.
+- Do not ask about absent content or exclusions: no "NOT", "except", "not mentioned", or "not a symptom/example"
+
 For each question, generate exactly 3 wrong but plausible options based on the slide.
 Rules for options:
 - Must be incorrect
