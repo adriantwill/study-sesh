@@ -47,6 +47,7 @@ pnpm run start    # prod server
 
 ## Notes
 
+- Generally avoid using bracket values in tailwind class names, but ok if need like in grid
 - PDF processing starts at page 3 (skips title/intro slides)
 - Uses server actions for all mutations + revalidatePath() for cache
 - Docker uses poppler-utils runtime dep

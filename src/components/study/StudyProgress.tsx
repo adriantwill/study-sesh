@@ -37,13 +37,11 @@ export default function StudyProgress({
 				))}
 			</div>
 
-			<div className="relative h-9 overflow-hidden rounded-[1.75rem] border border-primary/10 bg-white/20 shadow-inner sm:h-10">
+			<div className="h-2 overflow-hidden rounded-full bg-muted-hover">
 				<div
-					className="absolute inset-y-0 left-0 overflow-hidden rounded-full bg-gradient-to-r from-primary/70 via-primary to-primary shadow-sm transition-[width] duration-700 ease-out motion-reduce:transition-none"
+					className="h-full rounded-full bg-primary transition-[width] duration-500 ease-out motion-reduce:transition-none"
 					style={{ width: `${progress}%` }}
-				>
-					<div className="absolute inset-y-0 left-0 w-1/3 animate-progress-sheen bg-white/25 blur-sm motion-reduce:hidden" />
-				</div>
+				/>
 			</div>
 		</div>
 	);
