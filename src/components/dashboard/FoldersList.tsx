@@ -371,6 +371,15 @@ export default function FoldersList({
 				/>
 			}
 			addAction={handleCreateFolder}
+			scrollAreaProps={{
+				onDragOver: (event) => handleDragOver(event, null),
+				onDragLeave: (event) => handleDragLeave(event, null),
+				onDrop: (event) => handleDrop(event, null),
+				className:
+					dropFolderId === ROOT_DROP_ID
+						? "rounded-md bg-background/60 ring-1 ring-border"
+						: undefined,
+			}}
 		>
 			{rootFolders
 				.filter((folder) => visibleFolderIds.has(folder.id))

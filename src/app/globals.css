@@ -76,26 +76,34 @@
 		forwards;
 	--animate-fade-slide-in: fade-slide-in 0.3s ease-out forwards;
 	--animate-choice-border-sweep: choice-border-sweep 280ms ease-out forwards;
+	--animate-soft-pop: soft-pop 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+	--animate-answer-pop: answer-pop 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+	--animate-answer-shake: answer-shake 320ms ease-in-out both;
+	--animate-progress-sheen: progress-sheen 1.6s linear infinite;
+	--animate-card-known: card-known 180ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+	--animate-card-skip: card-skip 180ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+	--animate-action-burst: action-burst 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+	--animate-spark-pop: spark-pop 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
 
 	@keyframes slide-in-right {
 		0% {
 			opacity: 0;
-			transform: translateX(50px) scale(0.95);
+			transform: translate3d(50px, 8px, 0) rotate(1.5deg) scale(0.95);
 		}
 		100% {
 			opacity: 1;
-			transform: translateX(0) scale(1);
+			transform: translate3d(0, 0, 0) rotate(0) scale(1);
 		}
 	}
 
 	@keyframes slide-in-left {
 		0% {
 			opacity: 0;
-			transform: translateX(-50px) scale(0.95);
+			transform: translate3d(-50px, 8px, 0) rotate(-1.5deg) scale(0.95);
 		}
 		100% {
 			opacity: 1;
-			transform: translateX(0) scale(1);
+			transform: translate3d(0, 0, 0) rotate(0) scale(1);
 		}
 	}
 
@@ -116,6 +124,111 @@
 		}
 		to {
 			clip-path: inset(0 0 0 0);
+		}
+	}
+
+	@keyframes soft-pop {
+		0% {
+			opacity: 0;
+			transform: translateY(12px) scale(0.96);
+		}
+		70% {
+			opacity: 1;
+			transform: translateY(-2px) scale(1.02);
+		}
+		100% {
+			opacity: 1;
+			transform: translateY(0) scale(1);
+		}
+	}
+
+	@keyframes answer-pop {
+		0% {
+			transform: scale(0.98);
+		}
+		55% {
+			transform: scale(1.025);
+		}
+		100% {
+			transform: scale(1);
+		}
+	}
+
+	@keyframes answer-shake {
+		0%,
+		100% {
+			transform: translateX(0);
+		}
+		25% {
+			transform: translateX(-4px);
+		}
+		55% {
+			transform: translateX(4px);
+		}
+		75% {
+			transform: translateX(-2px);
+		}
+	}
+
+	@keyframes progress-sheen {
+		from {
+			transform: translateX(-140%);
+		}
+		to {
+			transform: translateX(320%);
+		}
+	}
+
+	@keyframes card-known {
+		0% {
+			opacity: 1;
+			transform: translate3d(0, 0, 0) rotate(0) scale(1);
+		}
+		45% {
+			opacity: 1;
+			transform: translate3d(0, -6px, 0) rotate(-0.6deg) scale(1.02);
+		}
+		100% {
+			opacity: 0;
+			transform: translate3d(0, -28px, 0) rotate(-1.2deg) scale(0.97);
+		}
+	}
+
+	@keyframes card-skip {
+		0% {
+			opacity: 1;
+			transform: translate3d(0, 0, 0) rotate(0) scale(1);
+		}
+		100% {
+			opacity: 0;
+			transform: translate3d(42px, 8px, 0) rotate(2.5deg) scale(0.96);
+		}
+	}
+
+	@keyframes action-burst {
+		0% {
+			transform: scale(1);
+		}
+		55% {
+			transform: scale(1.16);
+		}
+		100% {
+			transform: scale(1);
+		}
+	}
+
+	@keyframes spark-pop {
+		0% {
+			opacity: 0;
+			transform: scale(0.4);
+		}
+		40% {
+			opacity: 1;
+			transform: scale(1.35);
+		}
+		100% {
+			opacity: 0;
+			transform: scale(1.8);
 		}
 	}
 }

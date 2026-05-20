@@ -126,12 +126,14 @@ export default function FlashcardView({
 
 	if (filteredQuestions.length === 0) {
 		return (
-			<div className="py-20 text-center">
-				<p className="mb-4 text-muted-foreground">All questions completed!</p>
+			<div className="mx-auto max-w-md animate-soft-pop rounded-xl border border-primary/20 bg-muted/80 px-8 py-16 text-center shadow-lg motion-reduce:animate-none">
+				<p className="mb-4 text-2xl font-semibold text-foreground">
+					All questions completed!
+				</p>
 				<button
 					type="button"
 					onClick={handleReset}
-					className="text-sm text-muted-foreground underline hover:text-foreground"
+					className="rounded-full px-4 py-2 text-sm text-muted-foreground underline transition-[transform,background-color,color] duration-200 hover:-translate-y-0.5 hover:bg-muted-hover hover:text-foreground active:scale-95"
 				>
 					Reset progress
 				</button>
@@ -183,13 +185,13 @@ export default function FlashcardView({
 				<button
 					key={`${filteredQuestions[currentIndex].id}-${direction}`}
 					type="button"
-					className={`group w-full ${height} perspective-distant cursor-pointer ${animationClass}`}
+					className={`group w-full ${height} perspective-distant cursor-pointer rounded-xl transition-transform duration-200 ease-out active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary motion-reduce:animate-none motion-reduce:transition-none ${animationClass}`}
 					onClick={() => {
 						setIsFlipped(!isFlipped);
 					}}
 				>
 					<div
-						className={`relative h-full w-full transform-3d transition-all duration-500 ${isFlipped ? "-rotate-y-180" : "hover:-rotate-y-6"}`}
+						className={`relative h-full w-full transform-3d transition-[transform] duration-500 ease-out motion-reduce:transition-none ${isFlipped ? "-rotate-y-180" : "hover:-rotate-y-6 hover:scale-[1.01]"}`}
 					>
 						<Flashcard text={filteredQuestions[currentIndex].answer} isBack />
 						<Flashcard
@@ -222,10 +224,10 @@ export default function FlashcardView({
 									key={index}
 									type="button"
 									onClick={index === 0 ? handleComplete : handleSkip}
-									className={`rounded-full p-4 text-muted-foreground transition-all duration-200 ${
+									className={`rounded-full p-4 text-muted-foreground transition-[transform,background-color,color,box-shadow] duration-200 ease-out hover:-translate-y-1 hover:scale-110 active:scale-90 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary ${
 										index === 0
-											? "hover:bg-primary/10 hover:text-primary"
-											: "hover:bg-muted hover:text-foreground"
+											? "hover:bg-primary/10 hover:text-primary hover:shadow-lg"
+											: "hover:bg-muted hover:text-foreground hover:shadow-md"
 									}`}
 								>
 									<Icon size={40} strokeWidth={2.5} />
@@ -233,11 +235,12 @@ export default function FlashcardView({
 							);
 						})}
 					</div>
-					<div className="mt-4 flex justify-center gap-6 text-sm text-muted-foreground underline hover:text-foreground">
+					<div className="mt-4 flex justify-center gap-6 text-sm text-muted-foreground">
 						{completedIds.length > 0 || actionHistory.length > 0 ? (
 							<button
 								type="button"
 								onClick={actionHistory.length > 0 ? handleUndo : handleReset}
+								className="rounded-full px-3 py-1 underline transition-[transform,background-color,color] duration-200 hover:-translate-y-0.5 hover:bg-muted-hover hover:text-foreground active:scale-95"
 							>
 								{actionHistory.length > 0 ? "Undo" : "Reset progress"}
 							</button>
@@ -245,6 +248,7 @@ export default function FlashcardView({
 							<button
 								type="button"
 								onClick={() => setQuestions(shuffleArray(questions))}
+								className="rounded-full px-3 py-1 underline transition-[transform,background-color,color] duration-200 hover:-translate-y-0.5 hover:bg-muted-hover hover:text-foreground active:scale-95"
 							>
 								Shuffle Deck
 							</button>

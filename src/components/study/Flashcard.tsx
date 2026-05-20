@@ -12,7 +12,7 @@ export default function Flashcard({
 }) {
 	return (
 		<div
-			className={`absolute inset-0 flex size-full flex-col items-center justify-center rounded-xl bg-muted p-8 text-center text-4xl font-medium whitespace-pre-wrap text-foreground shadow-lg backface-hidden rotate-x-0 ${isBack ? "rotate-y-180" : ""}`}
+			className={`absolute inset-0 flex size-full flex-col items-center justify-center overflow-hidden rounded-xl border border-border/40 bg-muted p-8 text-center text-4xl font-medium whitespace-pre-wrap text-foreground shadow-lg backface-hidden rotate-x-0 transition-[box-shadow,transform,background-color] duration-300 ease-out before:absolute before:inset-x-8 before:top-0 before:h-px before:bg-white/70 group-hover:shadow-2xl group-active:shadow-md motion-reduce:transition-none ${isBack ? "rotate-y-180" : ""}`}
 		>
 			<span className="text-justify">{parseMarkdown(text)}</span>
 			{imageUrl && (
