@@ -5,10 +5,8 @@ import DueDatesPanel from "@/src/components/dashboard/DueDatesPanel";
 import FoldersList from "@/src/components/dashboard/FoldersList";
 import UploadSwitcher from "@/src/components/dashboard/UploadSwitcher";
 import BrandMark from "@/src/components/ui/BrandMark";
-import NewItemButton from "@/src/components/ui/NewItemButton";
 import { auth } from "@/src/lib/auth";
 import { createClient } from "@/src/lib/supabase/server";
-import { addFolderAction } from "../actions";
 
 export default async function Home() {
 	const session = await auth.api.getSession({ headers: await headers() });
@@ -67,17 +65,17 @@ export default async function Home() {
 			</section>
 			<hr className="border-border" />
 			<section className="relative grid min-h-dvh w-full grid-cols-1 gap-6 p-6 lg:h-dvh lg:min-h-0 lg:overflow-hidden lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_minmax(0,1fr)] lg:items-stretch lg:p-8">
-				<div className="order-2 min-h-0 lg:order-1 lg:flex lg:h-[calc(100dvh-4rem)] lg:flex-col lg:overflow-hidden">
+				<div className="order-2 min-h-0 shadow  lg:order-1 lg:flex lg:h-[calc(100dvh-4rem)] lg:flex-col lg:overflow-hidden">
 					<DueDatesPanel side="left" deadlines={deadlines ?? []} />
+					<hr className="mt-2 border-border/50" />
 				</div>
-				<div className="rounded-sm bg-muted p-4 shadow order-1 flex min-h-0 w-full flex-col items-center lg:order-2 lg:h-[calc(100dvh-4rem)] lg:overflow-hidden">
+				<div className=" order-1 shadow flex min-h-0 w-full flex-col items-center lg:order-2 lg:h-[calc(100dvh-4rem)] lg:overflow-hidden">
 					<div className=" flex min-h-0 w-full flex-1 flex-col">
 						<FoldersList
 							folders={folders ?? []}
 							uploads={data}
 							tables={tables}
 						/>
-						<NewItemButton action={addFolderAction} label="New folder" />
 					</div>
 				</div>
 			</section>
