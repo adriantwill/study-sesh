@@ -1,7 +1,7 @@
 "use client";
 
 import { CalendarDays, Trash2 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import EditField from "@/src/components/questions/EditField";
 import type { Tables } from "@/src/types/database.types";
 import {
@@ -169,58 +169,55 @@ export default function DueDatesPanel({
 					: null;
 
 				return (
-					<>
-						<li
-							key={item.id}
-							className="flex min-h-14 items-center justify-between rounded-md transition-colors duration-200 hover:bg-muted-hover"
-						>
-							<div className="flex w-fit gap-2 text-xl ">
-								<EditField
-									textField={item.title ?? "Untitled"}
-									id={String(item.id)}
-									table="deadlines"
-									col="title"
+					<li
+						key={item.id}
+						className="flex min-h-14 items-center justify-between rounded-md transition-colors duration-200 hover:bg-muted-hover"
+					>
+						<div className="flex w-fit gap-2 text-xl ">
+							<EditField
+								textField={item.title ?? "Untitled"}
+								id={String(item.id)}
+								table="deadlines"
+								col="title"
+							/>
+						</div>
+						<div className="flex items-center gap-2">
+							<span className="min-w-0 truncate font-light text-sm">
+								{getDaysUntilLabel(daysUntil)}
+							</span>
+							<div className="flex shrink-0 items-center">
+								<input
+									ref={(element) => {
+										dateInputRefs.current[item.id] = element;
+									}}
+									type="date"
+									aria-label={`Due date for ${item.title ?? "Untitled"}`}
+									value={dateInputValue}
+									onChange={(event) =>
+										void handleDueDateChange(item, event.target.value)
+									}
+									className="sr-only"
 								/>
+								<button
+									type="button"
+									aria-label={`Choose due date for ${item.title ?? "Untitled"}`}
+									onClick={() => openDatePicker(item)}
+									className="flex size-8 cursor-pointer items-center justify-center hover:text-primary"
+								>
+									<CalendarDays className="size-4" aria-hidden="true" />
+								</button>
+								<button
+									type="button"
+									aria-label={`Delete deadline ${item.title ?? "Untitled"}`}
+									onClick={() => void deleteItem(item)}
+									className="flex size-8 cursor-pointer items-center justify-center hover:text-primary"
+								>
+									<Trash2 className="size-4" aria-hidden="true" />
+								</button>
 							</div>
-							<div className="flex items-center gap-2">
-								<span className="min-w-0 truncate font-light text-sm">
-									{getDaysUntilLabel(daysUntil)}
-								</span>
-								<div className="flex shrink-0 items-center">
-									<input
-										ref={(element) => {
-											dateInputRefs.current[item.id] = element;
-										}}
-										type="date"
-										aria-label={`Due date for ${item.title ?? "Untitled"}`}
-										value={dateInputValue}
-										onChange={(event) =>
-											void handleDueDateChange(item, event.target.value)
-										}
-										className="sr-only"
-									/>
-									<button
-										type="button"
-										aria-label={`Choose due date for ${item.title ?? "Untitled"}`}
-										onClick={() => openDatePicker(item)}
-										className="flex size-8 cursor-pointer items-center justify-center hover:text-primary"
-									>
-										<CalendarDays className="size-4" aria-hidden="true" />
-									</button>
-									<button
-										type="button"
-										aria-label={`Delete deadline ${item.title ?? "Untitled"}`}
-										onClick={() => void deleteItem(item)}
-										className="flex size-8 cursor-pointer items-center justify-center hover:text-primary"
-									>
-										<Trash2 className="size-4" aria-hidden="true" />
-									</button>
-								</div>
-								<div className="flex items-center justify-between gap-2 text-sm text-foreground"></div>
-							</div>
-						</li>
-						<hr className="mt-2 border-border/50" />
-					</>
+							<div className="flex items-center justify-between gap-2 text-sm text-foreground"></div>
+						</div>
+					</li>
 				);
 			})}
 		</BigPanel>

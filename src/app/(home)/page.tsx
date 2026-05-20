@@ -67,6 +67,7 @@ export default async function Home() {
 			<section className="relative grid min-h-dvh w-full grid-cols-1 gap-6 p-6 lg:h-dvh lg:min-h-0 lg:overflow-hidden lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_minmax(0,1fr)] lg:items-stretch lg:p-8">
 				<div className="order-2 min-h-0 shadow  lg:order-1 lg:flex lg:h-[calc(100dvh-4rem)] lg:flex-col lg:overflow-hidden">
 					<DueDatesPanel side="left" deadlines={deadlines ?? []} />
+					<hr className="mt-2 border-border/50" />
 				</div>
 				<div className=" order-1 shadow flex min-h-0 w-full flex-col items-center lg:order-2 lg:h-[calc(100dvh-4rem)] lg:overflow-hidden">
 					<div className=" flex min-h-0 w-full flex-1 flex-col">
