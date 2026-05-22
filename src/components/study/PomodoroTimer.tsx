@@ -1,6 +1,6 @@
 "use client";
 
-import { Pause, Play, RotateCcw } from "lucide-react";
+import { Maximize2, Minimize2, Pause, Play, RotateCcw } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import runningDog from "@/src/app/Running.gif";
 import sittingDog from "@/src/app/Sitting.png";
@@ -20,12 +20,9 @@ export default function PomodoroTimer() {
 	const [remainingSeconds, setRemainingSeconds] =
 		useState(focusDurationSeconds);
 	const [isRunning, setIsRunning] = useState(false);
+	const [isFullscreen, setIsFullscreen] = useState(false);
 	const elapsedProgress =
 		(focusDurationSeconds - remainingSeconds) / focusDurationSeconds;
-	const progressOffset = useMemo(
-		() => circleCircumference * (1 - elapsedProgress),
-		[elapsedProgress],
-	);
 	const dogAngle = elapsedProgress * 2 * Math.PI - Math.PI / 2;
 	const dogPosition = useMemo(
 		() => ({
@@ -73,12 +70,27 @@ export default function PomodoroTimer() {
 	}, [remainingSeconds, isRunning]);
 
 	return (
-		<div className="">
+		<div
+			className={
+				isFullscreen
+					? "fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+					: ""
+			}
+		>
 			<section
 				aria-label="Pomodoro timer"
-				className="flex min-h-0 w-full p-4 space-y-4 flex-col justify-evenly rounded-sm bg-muted shadow lg:h-1/2"
+				className={
+					isFullscreen
+						? "flex aspect-square min-w-100dvw flex-col items-center justify-start space-y-4 rounded-sm bg-muted p-4 shadow"
+						: "flex min-h-0 w-full flex-col justify-evenly space-y-4 rounded-sm bg-muted p-4 shadow lg:h-1/2"
+				}
+				style={
+					isFullscreen
+						? { width: "min(calc(100dvw - 6rem), calc(100dvh - 6rem))" }
+						: undefined
+				}
 			>
-				<div className="flex items-center justify-center gap-3">
+				<div className="flex items-center justify-center gap-3 h-1/8">
 					<button
 						type="button"
 						onClick={toggleTimer}
@@ -102,8 +114,26 @@ export default function PomodoroTimer() {
 					>
 						<RotateCcw aria-hidden="true" size={25} />
 					</button>
+					<button
+						type="button"
+						onClick={() => setIsFullscreen((currentValue) => !currentValue)}
+						aria-label={isFullscreen ? "Exit fullscreen" : "Fullscreen timer"}
+						title={isFullscreen ? "Exit fullscreen" : "Fullscreen timer"}
+						className="flex size-12 items-center justify-center rounded-sm border border-border bg-muted-hover text-foreground/70 shadow-sm transition-colors hover:bg-background"
+					>
+						{isFullscreen ? (
+							<Minimize2 aria-hidden="true" size={25} />
+						) : (
+							<Maximize2 aria-hidden="true" size={25} />
+						)}
+					</button>
 				</div>
-				<div className="relative mx-auto aspect-square w-full ">
+				<div
+					className="relative mx-auto aspect-square w-full"
+					style={
+						isFullscreen ? { width: "min(100%, calc(100% - 4rem))" } : undefined
+					}
+				>
 					<svg
 						viewBox="0 0 100 100"
 						role="img"
