@@ -1,6 +1,9 @@
 "use client";
 
+import { Pause, Play, RotateCcw } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import runningDog from "@/src/app/Running.gif";
+import sittingDog from "@/src/app/Sitting.png";
 
 const focusDurationSeconds = 25 * 60;
 const circleRadius = 43;
@@ -23,6 +26,15 @@ export default function PomodoroTimer() {
 		() => circleCircumference * (1 - elapsedProgress),
 		[elapsedProgress],
 	);
+	const dogAngle = elapsedProgress * 2 * Math.PI - Math.PI / 2;
+	const dogPosition = useMemo(
+		() => ({
+			x: 50 + circleRadius * Math.cos(dogAngle),
+			y: 50 + circleRadius * Math.sin(dogAngle),
+		}),
+		[dogAngle],
+	);
+	const dogImage = isRunning ? runningDog : sittingDog;
 	const isReset = remainingSeconds === focusDurationSeconds && !isRunning;
 
 	useEffect(() => {
@@ -56,8 +68,33 @@ export default function PomodoroTimer() {
 	return (
 		<section
 			aria-label="Pomodoro timer"
-			className="flex min-h-96 w-full flex-col justify-evenly rounded-sm bg-muted p-4 shadow lg:h-1/2 lg:min-h-0"
+			className="flex min-h-96 w-full flex-col justify-evenly gap-4 rounded-sm bg-muted p-4 shadow lg:h-1/2 lg:min-h-0"
 		>
+			<div className="flex items-center justify-center gap-3">
+				<button
+					type="button"
+					onClick={toggleTimer}
+					aria-label={isRunning ? "Pause timer" : "Start timer"}
+					title={isRunning ? "Pause timer" : "Start timer"}
+					className="flex size-12 items-center justify-center rounded-sm bg-primary text-primary-foreground shadow-sm transition-opacity hover:opacity-85"
+				>
+					{isRunning ? (
+						<Pause aria-hidden="true" size={26} fill="currentColor" />
+					) : (
+						<Play aria-hidden="true" size={26} fill="currentColor" />
+					)}
+				</button>
+				<button
+					type="button"
+					onClick={stopTimer}
+					disabled={isReset}
+					aria-label="Reset timer"
+					title="Reset timer"
+					className="flex size-12 items-center justify-center rounded-sm border border-border bg-muted-hover text-foreground/70 shadow-sm transition-colors hover:bg-background disabled:cursor-not-allowed disabled:opacity-55"
+				>
+					<RotateCcw aria-hidden="true" size={25} />
+				</button>
+			</div>
 			<div className="flex items-center justify-center py-4">
 				<div className="relative aspect-square w-full max-w-72 ">
 					<svg
@@ -72,21 +109,38 @@ export default function PomodoroTimer() {
 							r={circleRadius}
 							fill="none"
 							stroke="var(--muted-hover)"
-							strokeWidth="6"
+							strokeWidth="10"
 						/>
 						<circle
 							cx="50"
 							cy="50"
 							r={circleRadius}
 							fill="none"
-							strokeWidth="7"
+							strokeWidth="10"
 							strokeLinecap="round"
 							strokeDasharray={circleCircumference}
 							strokeDashoffset={progressOffset}
 							transform="rotate(-90 50 50)"
-							className="stroke-primary transition-all duration-300 ease-out"
+							className="stroke-primary relative"
+							style={{ transition: "stroke-dashoffset 1s linear" }}
 						/>
 					</svg>
+					<img
+						src={dogImage.src}
+						alt=""
+						aria-hidden="true"
+						draggable={false}
+						className={`pointer-events-none absolute z-20 h-auto select-none drop-shadow-md ${
+							isRunning ? "w-20" : "w-20"
+						}`}
+						style={{
+							imageRendering: "pixelated",
+							left: `${dogPosition.x}%`,
+							top: `${dogPosition.y}%`,
+							transform: "translate(-50%, -62%)",
+							transition: "left 1s linear, top 1s linear",
+						}}
+					/>
 					<div className="pointer-events-none absolute inset-0 flex items-center justify-center">
 						<span
 							aria-live={isRunning ? "off" : "polite"}
@@ -96,23 +150,6 @@ export default function PomodoroTimer() {
 						</span>
 					</div>
 				</div>
-			</div>
-			<div className="grid grid-cols-2 gap-3">
-				<button
-					type="button"
-					onClick={stopTimer}
-					disabled={isReset}
-					className="h-12 rounded-sm border border-border bg-muted-hover font-medium text-foreground/70 transition-colors hover:bg-background disabled:cursor-not-allowed disabled:opacity-55"
-				>
-					Stop
-				</button>
-				<button
-					type="button"
-					onClick={toggleTimer}
-					className="h-12 rounded-sm bg-primary font-medium text-primary-foreground transition-opacity hover:opacity-85"
-				>
-					{isRunning ? "Pause" : "Start"}
-				</button>
 			</div>
 		</section>
 	);
