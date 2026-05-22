@@ -20,7 +20,7 @@ export default function BigPanel({
 		scrollAreaProps ?? {};
 
 	return (
-		<div className=" flex min-h-0 w-full flex-1 flex-col rounded-sm bg-muted  p-4 shadow">
+		<div className=" flex min-h-0 w-full flex-1 flex-col rounded-sm bg-muted shadow p-4 ">
 			<div className="flex items-center gap-4 pb-4 font-medium text-3xl">
 				<div className="min-w-0 basis-2/3">{title}</div>
 				{control && <div className="min-w-0 basis-1/3">{control}</div>}
