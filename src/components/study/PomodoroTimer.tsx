@@ -34,6 +34,7 @@ export default function PomodoroTimer() {
 		}),
 		[dogAngle],
 	);
+	const dogRotationDegrees = elapsedProgress * 360;
 	const dogImage = isRunning ? runningDog : sittingDog;
 	const isReset = remainingSeconds === focusDurationSeconds && !isRunning;
 
@@ -65,38 +66,44 @@ export default function PomodoroTimer() {
 		setRemainingSeconds(focusDurationSeconds);
 	}
 
+	useEffect(() => {
+		if (isRunning) {
+			document.title = `${formatTime(remainingSeconds)} | Study Sesh`;
+		}
+	}, [remainingSeconds, isRunning]);
+
 	return (
-		<section
-			aria-label="Pomodoro timer"
-			className="flex min-h-96 w-full flex-col justify-evenly gap-4 rounded-sm bg-muted p-4 shadow lg:h-1/2 lg:min-h-0"
-		>
-			<div className="flex items-center justify-center gap-3">
-				<button
-					type="button"
-					onClick={toggleTimer}
-					aria-label={isRunning ? "Pause timer" : "Start timer"}
-					title={isRunning ? "Pause timer" : "Start timer"}
-					className="flex size-12 items-center justify-center rounded-sm bg-primary text-primary-foreground shadow-sm transition-opacity hover:opacity-85"
-				>
-					{isRunning ? (
-						<Pause aria-hidden="true" size={26} fill="currentColor" />
-					) : (
-						<Play aria-hidden="true" size={26} fill="currentColor" />
-					)}
-				</button>
-				<button
-					type="button"
-					onClick={stopTimer}
-					disabled={isReset}
-					aria-label="Reset timer"
-					title="Reset timer"
-					className="flex size-12 items-center justify-center rounded-sm border border-border bg-muted-hover text-foreground/70 shadow-sm transition-colors hover:bg-background disabled:cursor-not-allowed disabled:opacity-55"
-				>
-					<RotateCcw aria-hidden="true" size={25} />
-				</button>
-			</div>
-			<div className="flex items-center justify-center py-4">
-				<div className="relative aspect-square w-full max-w-72 ">
+		<div className="">
+			<section
+				aria-label="Pomodoro timer"
+				className="flex min-h-0 w-full p-4 space-y-4 flex-col justify-evenly rounded-sm bg-muted shadow lg:h-1/2"
+			>
+				<div className="flex items-center justify-center gap-3">
+					<button
+						type="button"
+						onClick={toggleTimer}
+						aria-label={isRunning ? "Pause timer" : "Start timer"}
+						title={isRunning ? "Pause timer" : "Start timer"}
+						className="flex size-12 items-center justify-center rounded-sm bg-primary text-primary-foreground shadow-sm transition-opacity hover:opacity-85"
+					>
+						{isRunning ? (
+							<Pause aria-hidden="true" size={26} fill="currentColor" />
+						) : (
+							<Play aria-hidden="true" size={26} fill="currentColor" />
+						)}
+					</button>
+					<button
+						type="button"
+						onClick={stopTimer}
+						disabled={isReset}
+						aria-label="Reset timer"
+						title="Reset timer"
+						className="flex size-12 items-center justify-center rounded-sm border border-border bg-muted-hover text-foreground/70 shadow-sm transition-colors hover:bg-background disabled:cursor-not-allowed disabled:opacity-55"
+					>
+						<RotateCcw aria-hidden="true" size={25} />
+					</button>
+				</div>
+				<div className="relative mx-auto aspect-square w-full ">
 					<svg
 						viewBox="0 0 100 100"
 						role="img"
@@ -109,20 +116,7 @@ export default function PomodoroTimer() {
 							r={circleRadius}
 							fill="none"
 							stroke="var(--muted-hover)"
-							strokeWidth="10"
-						/>
-						<circle
-							cx="50"
-							cy="50"
-							r={circleRadius}
-							fill="none"
-							strokeWidth="10"
-							strokeLinecap="round"
-							strokeDasharray={circleCircumference}
-							strokeDashoffset={progressOffset}
-							transform="rotate(-90 50 50)"
-							className="stroke-primary relative"
-							style={{ transition: "stroke-dashoffset 1s linear" }}
+							strokeWidth="12"
 						/>
 					</svg>
 					<img
@@ -130,27 +124,24 @@ export default function PomodoroTimer() {
 						alt=""
 						aria-hidden="true"
 						draggable={false}
-						className={`pointer-events-none absolute z-20 h-auto select-none drop-shadow-md ${
-							isRunning ? "w-20" : "w-20"
-						}`}
+						className="pointer-events-none absolute z-20 h-auto w-3/10 select-none drop-shadow-md"
 						style={{
 							imageRendering: "pixelated",
 							left: `${dogPosition.x}%`,
 							top: `${dogPosition.y}%`,
-							transform: "translate(-50%, -62%)",
-							transition: "left 1s linear, top 1s linear",
+							transform: `translate(-50%, -62%) rotate(${dogRotationDegrees}deg)`,
+							transformOrigin: "50% 62%",
+							transition: "left 1s linear, top 1s linear, transform 1s linear",
 						}}
 					/>
-					<div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-						<span
-							aria-live={isRunning ? "off" : "polite"}
-							className="tabular-nums text-5xl font-semibold text-foreground"
-						>
-							{formatTime(remainingSeconds)}
-						</span>
-					</div>
+					<span
+						aria-live={isRunning ? "off" : "polite"}
+						className="pointer-events-none absolute inset-0 flex items-center justify-center tabular-nums text-5xl font-semibold text-foreground"
+					>
+						{formatTime(remainingSeconds)}
+					</span>
 				</div>
-			</div>
-		</section>
+			</section>
+		</div>
 	);
 }

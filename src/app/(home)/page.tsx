@@ -68,9 +68,7 @@ export default async function Home() {
 			<section className="relative grid min-h-dvh w-full grid-cols-1 gap-6 p-6 lg:h-dvh lg:min-h-0 lg:overflow-hidden lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_minmax(0,1fr)] lg:items-stretch lg:p-8">
 				<DueDatesPanel side="left" deadlines={deadlines ?? []} />
 				<FoldersList folders={folders ?? []} uploads={data} tables={tables} />
-				<aside className="min-h-0 lg:h-full">
-					<PomodoroTimer />
-				</aside>
+				<PomodoroTimer />
 			</section>
 		</main>
 	);
