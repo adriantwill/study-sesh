@@ -81,8 +81,8 @@ export default function PomodoroTimer() {
 				aria-label="Pomodoro timer"
 				className={
 					isFullscreen
-						? "flex aspect-square min-w-100dvw flex-col items-center justify-start space-y-4 rounded-sm bg-muted p-4 shadow"
-						: "flex min-h-0 w-full flex-col justify-evenly space-y-4 rounded-sm bg-muted p-4 shadow lg:h-1/2"
+						? "flex aspect-square min-w-100dvw flex-col items-center justify-start gap-4 rounded-sm bg-muted p-4 shadow"
+						: "flex min-h-0 w-full flex-col justify-evenly gap-4 rounded-sm bg-muted p-4 shadow lg:h-1/2"
 				}
 				style={
 					isFullscreen
@@ -129,47 +129,51 @@ export default function PomodoroTimer() {
 					</button>
 				</div>
 				<div
-					className="relative mx-auto aspect-square w-full"
-					style={
-						isFullscreen ? { width: "min(100%, calc(100% - 4rem))" } : undefined
-					}
+					className="grid min-h-[min(75vw,28rem)] w-full flex-1 place-items-center lg:min-h-0"
+					style={{ containerType: "size" }}
 				>
-					<svg
-						viewBox="0 0 100 100"
-						role="img"
-						aria-label={`${formatTime(remainingSeconds)} remaining`}
-						className="h-full w-full"
+					<div
+						className="relative aspect-square"
+						style={{ width: "min(100cqw, 100cqh)" }}
 					>
-						<circle
-							cx="50"
-							cy="50"
-							r={circleRadius}
-							fill="none"
-							stroke="var(--muted-hover)"
-							strokeWidth="12"
+						<svg
+							viewBox="0 0 100 100"
+							role="img"
+							aria-label={`${formatTime(remainingSeconds)} remaining`}
+							className="h-full w-full"
+						>
+							<circle
+								cx="50"
+								cy="50"
+								r={circleRadius}
+								fill="none"
+								stroke="var(--muted-hover)"
+								strokeWidth="12"
+							/>
+						</svg>
+						<img
+							src={dogImage.src}
+							alt=""
+							aria-hidden="true"
+							draggable={false}
+							className="pointer-events-none absolute z-20 h-auto w-3/10 select-none drop-shadow-md"
+							style={{
+								imageRendering: "pixelated",
+								left: `${dogPosition.x}%`,
+								top: `${dogPosition.y}%`,
+								transform: `translate(-50%, -62%) rotate(${dogRotationDegrees}deg)`,
+								transformOrigin: "50% 62%",
+								transition:
+									"left 1s linear, top 1s linear, transform 1s linear",
+							}}
 						/>
-					</svg>
-					<img
-						src={dogImage.src}
-						alt=""
-						aria-hidden="true"
-						draggable={false}
-						className="pointer-events-none absolute z-20 h-auto w-3/10 select-none drop-shadow-md"
-						style={{
-							imageRendering: "pixelated",
-							left: `${dogPosition.x}%`,
-							top: `${dogPosition.y}%`,
-							transform: `translate(-50%, -62%) rotate(${dogRotationDegrees}deg)`,
-							transformOrigin: "50% 62%",
-							transition: "left 1s linear, top 1s linear, transform 1s linear",
-						}}
-					/>
-					<span
-						aria-live={isRunning ? "off" : "polite"}
-						className="pointer-events-none absolute inset-0 flex items-center justify-center tabular-nums text-5xl font-semibold text-foreground"
-					>
-						{formatTime(remainingSeconds)}
-					</span>
+						<span
+							aria-live={isRunning ? "off" : "polite"}
+							className="pointer-events-none absolute inset-0 flex items-center justify-center tabular-nums text-5xl font-semibold text-foreground"
+						>
+							{formatTime(remainingSeconds)}
+						</span>
+					</div>
 				</div>
 			</section>
 		</div>
