@@ -197,6 +197,7 @@ export default function FlashcardView({
 						<Flashcard
 							text={filteredQuestions[currentIndex].question}
 							imageUrl={filteredQuestions[currentIndex].imageUrl}
+							limitImageSize={isStudyMode}
 						/>
 					</div>
 				</button>
