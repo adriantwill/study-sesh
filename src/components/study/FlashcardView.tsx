@@ -8,7 +8,7 @@ import type { StudyQuestion } from "@/src/types";
 import { shuffleArray } from "@/src/utils/cards";
 import { getItem, removeItem, setItem } from "@/src/utils/localStorage";
 import StudyProgress from "./StudyProgress";
-import { createEmptyCard, fsrs, Rating } from 'ts-fsrs'
+import { createEmptyCard, fsrs, Rating } from "ts-fsrs";
 
 export default function FlashcardView({
 	questions: initialQuestions,
@@ -47,13 +47,16 @@ export default function FlashcardView({
 		"initial",
 	);
 	const [isFlipped, setIsFlipped] = useState(false);
-	const scheduler = fsrs()
-	const card = createEmptyCard()
-	function setDifficulty(level: 0 | 1 | 2 | 3) {
-		changeDirection(1)
-		const result = scheduler.next(card, new Date(), Rating.Good)
-		console.log(result.card)
-		console.log(result.log)
+	const scheduler = fsrs();
+	const valid_ratings = [Rating.Again, Rating.Hard, Rating.Good] as const;
+	function setDifficulty(
+		level: (typeof valid_ratings)[number],
+		question: StudyQuestion,
+	) {
+		const card = createEmptyCard();
+		changeDirection(1);
+		const result = scheduler.next(card, new Date(), level);
+		console.log(result.card);
 	}
 	const changeDirection = (dir: -1 | 1) => {
 		setDirection(dir === 1 ? "next" : "prev");
@@ -226,18 +229,20 @@ export default function FlashcardView({
 			{isStudyMode && (
 				<div>
 					<div className="flex justify-center gap-4">
-						{([0, 1, 2, 3] as const).map((index) => {
-							const Icon = index === 0 ? Check : X;
-							console.log(index)
+						{valid_ratings.map((index) => {
+							const Icon = index === Rating.Again ? Check : X;
 							return (
 								<button
 									key={index}
 									type="button"
-									onClick={() => setDifficulty(index)}
-									className={`rounded-full p-4 text-muted-foreground transition-[transform,background-color,color,box-shadow] duration-200 ease-out hover:-translate-y-1 hover:scale-110 active:scale-90 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary /${index === 0
-										? "hover:bg-primary/10 hover:text-primary hover:shadow-lg"
-										: "hover:bg-muted hover:text-foreground hover:shadow-md"
-										}`}
+									onClick={() =>
+										setDifficulty(index, filteredQuestions[currentIndex])
+									}
+									className={`rounded-full p-4 text-muted-foreground transition-[transform,background-color,color,box-shadow] duration-200 ease-out hover:-translate-y-1 hover:scale-110 active:scale-90 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary /${
+										index === Rating.Again
+											? "hover:bg-primary/10 hover:text-primary hover:shadow-lg"
+											: "hover:bg-muted hover:text-foreground hover:shadow-md"
+									}`}
 								>
 									<Icon size={40} strokeWidth={2.5} />
 								</button>
