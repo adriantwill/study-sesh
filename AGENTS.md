@@ -13,8 +13,8 @@ AI-powered PDF-to-flashcard study tool. Uploads PowerPoint PDFs, extracts slides
 ## Commands
 
 ```bash
-pnpm run build    # build
-pnpm run start    # prod server
+npm run build    # build
+npm run start    # prod server
 # dev server run separately by user
 ```
 
@@ -54,4 +54,4 @@ pnpm run start    # prod server
 - No test suite
 - Firefox backface-visibility fix: add `rotate-x-0` to card faces when using `backface-hidden` with 3D transforms
 - Storage abstracted in `src/lib/storage.ts` for future migration
-- Always use pnpm instead of npm
+- Always use npm

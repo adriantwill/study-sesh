@@ -2,7 +2,10 @@
 	"name": "study-sesh",
 	"version": "0.1.0",
 	"private": true,
-	"packageManager": "pnpm@11.1.2",
+	"packageManager": "npm@11.16.0",
+	"allowScripts": {
+		"sharp@0.34.5": true
+	},
 	"scripts": {
 		"dev": "next dev",
 		"build": "next build",
@@ -20,6 +23,7 @@
 		"pg": "^8.20.0",
 		"react": "^19.2.4",
 		"react-dom": "^19.2.4",
+		"ts-fsrs": "^5.4.1",
 		"xlsx": "^0.18.5"
 	},
 	"devDependencies": {
