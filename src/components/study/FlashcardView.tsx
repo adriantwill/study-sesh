@@ -8,7 +8,7 @@ import type { StudyQuestion } from "@/src/types";
 import { shuffleArray } from "@/src/utils/cards";
 import { getItem, removeItem, setItem } from "@/src/utils/localStorage";
 import StudyProgress from "./StudyProgress";
-import { createEmptyCard, fsrs, Rating } from "ts-fsrs";
+import { Card, createEmptyCard, fsrs, Rating } from "ts-fsrs";
 
 export default function FlashcardView({
 	questions: initialQuestions,
@@ -54,6 +54,21 @@ export default function FlashcardView({
 		question: StudyQuestion,
 	) {
 		const card = createEmptyCard();
+		const test: Card = {
+			due: question.fsrsDue,
+			stability: question.fsrsState,
+			difficulty: question.fsrsDifficulty,
+			scheduled_days: question.fsrsScheduled,
+			learning_steps: question.fsrsLearning,
+			elapsed_days: Math.round(
+				(Date.now() - question.fsrsLastReviewed.getMilliseconds()) /
+					(60 * 60 * 24 * 1000),
+			),
+			reps: question.fsrsReviewCount,
+			lapses: question.fsrsLapses,
+			state: question.fsrsState,
+			last_review: question.fsrsLastReviewed,
+		};
 		changeDirection(1);
 		const result = scheduler.next(card, new Date(), level);
 		console.log(result.card);

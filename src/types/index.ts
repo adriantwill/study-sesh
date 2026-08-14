@@ -12,12 +12,15 @@ export interface StudyQuestion {
 	ocrText?: string | null;
 	originalQuestion?: string | null;
 	originalAnswer?: string | null;
-	fsrsDifficulty: number | null;
-	fsrsStability: number | null;
-	fsrsDue: number | null;
-	fsrsLastReviewed: number | null;
-	fsrsReviewCount: number | null;
-	fsrsState: number | null;
+	fsrsDifficulty: number;
+	fsrsStability: number;
+	fsrsDue: Date;
+	fsrsLastReviewed: Date;
+	fsrsReviewCount: number;
+	fsrsState: number;
+	fsrsScheduled: number;
+	fsrsLearning: number;
+	fsrsLapses: number;
 }
 export type ToolView = "flashcards" | "tables";
 
