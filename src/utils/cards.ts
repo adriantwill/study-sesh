@@ -19,6 +19,15 @@ export function questionRowToStudyQuestion(
 		| "image_url"
 		| "display_order"
 		| "options"
+		| "fsrs_difficulty"
+		| "fsrs_due_at"
+		| "fsrs_lapses"
+		| "fsrs_last_reviewed_at"
+		| "fsrs_learning"
+		| "fsrs_review_count"
+		| "fsrs_scheduled"
+		| "fsrs_stability"
+		| "fsrs_state"
 	>,
 ): StudyQuestion {
 	return {
@@ -29,5 +38,14 @@ export function questionRowToStudyQuestion(
 		imageUrl: q.image_url,
 		displayOrder: q.display_order ?? 0,
 		options: q.options,
+		fsrsDifficulty: q.fsrs_difficulty ?? 0,
+		fsrsStability: q.fsrs_stability ?? 0,
+		fsrsDue: new Date(q.fsrs_due_at ?? Date.now()),
+		fsrsLastReviewed: new Date(q.fsrs_last_reviewed_at ?? Date.now()),
+		fsrsReviewCount: q.fsrs_review_count ?? 0,
+		fsrsState: q.fsrs_state ?? 0,
+		fsrsScheduled: q.fsrs_scheduled ?? 0,
+		fsrsLearning: q.fsrs_learning ?? 0,
+		fsrsLapses: q.fsrs_lapses ?? 0,
 	};
 }
