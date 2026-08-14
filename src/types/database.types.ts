@@ -133,9 +133,12 @@ export type Database = {
           deleted: boolean
           display_order: number | null
           fsrs_difficulty: number | null
-          fsrs_due_at: number | null
-          fsrs_last_reviewed_at: number | null
+          fsrs_due_at: string | null
+          fsrs_lapses: number | null
+          fsrs_last_reviewed_at: string | null
+          fsrs_learning: number | null
           fsrs_review_count: number | null
+          fsrs_scheduled: number | null
           fsrs_stability: number | null
           fsrs_state: number | null
           id: string
@@ -154,9 +157,12 @@ export type Database = {
           deleted?: boolean
           display_order?: number | null
           fsrs_difficulty?: number | null
-          fsrs_due_at?: number | null
-          fsrs_last_reviewed_at?: number | null
+          fsrs_due_at?: string | null
+          fsrs_lapses?: number | null
+          fsrs_last_reviewed_at?: string | null
+          fsrs_learning?: number | null
           fsrs_review_count?: number | null
+          fsrs_scheduled?: number | null
           fsrs_stability?: number | null
           fsrs_state?: number | null
           id?: string
@@ -175,9 +181,12 @@ export type Database = {
           deleted?: boolean
           display_order?: number | null
           fsrs_difficulty?: number | null
-          fsrs_due_at?: number | null
-          fsrs_last_reviewed_at?: number | null
+          fsrs_due_at?: string | null
+          fsrs_lapses?: number | null
+          fsrs_last_reviewed_at?: string | null
+          fsrs_learning?: number | null
           fsrs_review_count?: number | null
+          fsrs_scheduled?: number | null
           fsrs_stability?: number | null
           fsrs_state?: number | null
           id?: string

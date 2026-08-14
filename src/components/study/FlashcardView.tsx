@@ -9,6 +9,7 @@ import { shuffleArray } from "@/src/utils/cards";
 import { getItem, removeItem, setItem } from "@/src/utils/localStorage";
 import StudyProgress from "./StudyProgress";
 import { Card, createEmptyCard, fsrs, Rating } from "ts-fsrs";
+import { updateFsrsAction } from "@/src/app/actions";
 
 export default function FlashcardView({
 	questions: initialQuestions,
@@ -53,8 +54,7 @@ export default function FlashcardView({
 		level: (typeof valid_ratings)[number],
 		question: StudyQuestion,
 	) {
-		const card = createEmptyCard();
-		const test: Card = {
+		const card: Card = {
 			due: question.fsrsDue,
 			stability: question.fsrsState,
 			difficulty: question.fsrsDifficulty,
@@ -71,6 +71,7 @@ export default function FlashcardView({
 		};
 		changeDirection(1);
 		const result = scheduler.next(card, new Date(), level);
+		updateFsrsAction(question.id, result.card);
 		console.log(result.card);
 	}
 	const changeDirection = (dir: -1 | 1) => {
