@@ -552,15 +552,14 @@ export async function updateParentAction<
 }
 export async function updateFsrsAction(id: string, card: Card) {
 	const supabase = await createClient();
-
 	const { error } = await supabase
 		.from("questions")
 		.update({
 			fsrs_difficulty: card.difficulty,
-			fsrs_due_at: card.due.toDateString(),
+			fsrs_due_at: card.due.toISOString(),
 			fsrs_lapses: card.lapses,
 			fsrs_last_reviewed_at:
-				card.last_review?.toDateString() ?? Date.now().toString(),
+				card.last_review?.toISOString() ?? Date.now().toString(),
 			fsrs_learning: card.learning_steps,
 			fsrs_review_count: card.reps,
 			fsrs_scheduled: card.scheduled_days,
@@ -574,7 +573,7 @@ export async function updateFsrsAction(id: string, card: Card) {
 		throw new Error("Failed to update FSRS data");
 	}
 
-	revalidatePath(`/uploads/${id}`, "page");
+	revalidatePath(`/study/${id}`);
 }
 type ReorderQuestion = Pick<StudyQuestion, "id" | "displayOrder" | "upload_id">;
 export async function reorderQuestionsAction(

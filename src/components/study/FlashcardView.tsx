@@ -23,7 +23,11 @@ export default function FlashcardView({
 	const isStudyMode = mode === "study";
 	const [questions, setQuestions] = useState(initialQuestions);
 	useEffect(() => {
-		setQuestions(initialQuestions);
+		const filtered = initialQuestions.filter(
+			(question) => question.fsrsDue <= new Date(Date.now()),
+		);
+		console.log(initialQuestions);
+		setQuestions(filtered);
 	}, [initialQuestions]);
 	const [actionHistory, setActionHistory] = useState<
 		Array<{
@@ -50,13 +54,15 @@ export default function FlashcardView({
 	const [isFlipped, setIsFlipped] = useState(false);
 	const scheduler = fsrs();
 	const valid_ratings = [Rating.Again, Rating.Hard, Rating.Good] as const;
+
 	function setDifficulty(
 		level: (typeof valid_ratings)[number],
 		question: StudyQuestion,
 	) {
+		console.log(question);
 		const card: Card = {
 			due: question.fsrsDue,
-			stability: question.fsrsState,
+			stability: question.fsrsStability,
 			difficulty: question.fsrsDifficulty,
 			scheduled_days: question.fsrsScheduled,
 			learning_steps: question.fsrsLearning,
@@ -71,8 +77,12 @@ export default function FlashcardView({
 		};
 		changeDirection(1);
 		const result = scheduler.next(card, new Date(), level);
+		const filtered = questions.filter(
+			(question) => question.fsrsDue <= new Date(Date.now()),
+		);
+		setQuestions(filtered);
+		console.log(result.card.due.toString());
 		updateFsrsAction(question.id, result.card);
-		console.log(result.card);
 	}
 	const changeDirection = (dir: -1 | 1) => {
 		setDirection(dir === 1 ? "next" : "prev");
