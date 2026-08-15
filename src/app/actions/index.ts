@@ -72,14 +72,6 @@ export async function generateWrongOptionsAction(
 	return generateWrongOptions(question, answer, questionId);
 }
 
-export async function uploadRecordActionTEMP(
-	uploadId: string,
-	questionList: StudyQuestion[],
-	displayOrder: number,
-) {
-	await uploadRecordAction(uploadId, questionList, displayOrder);
-}
-
 export async function uploadAndGenerateAction(formData: FormData) {
 	const file = formData.get("pdf") as File;
 	if (!(file instanceof File) || file.size === 0)

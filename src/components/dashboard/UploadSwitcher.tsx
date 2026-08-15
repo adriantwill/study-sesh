@@ -5,11 +5,11 @@ import { useState } from "react";
 import {
 	createUpload,
 	uploadAndGenerateAction,
-	uploadRecordActionTEMP,
 	uploadTableAction,
 } from "@/src/app/actions";
 import { signOutAction } from "@/src/app/actions/auth";
 import SegmentedControl from "@/src/components/ui/SegmentedControl";
+import { uploadRecordAction } from "@/src/lib/questions";
 import type { StudyQuestion } from "@/src/types";
 
 type UploadMode = "pdf" | "text" | "xlsx";
@@ -96,6 +96,7 @@ export default function UploadSwitcher() {
 	}
 
 	async function handleSubmit() {
+		setLoading(true);
 		if (mode === "pdf") {
 			await handleFileUpload("pdf");
 		} else if (mode === "text") {
@@ -112,7 +113,6 @@ export default function UploadSwitcher() {
 	};
 
 	async function handleGenerate() {
-		setLoading(true);
 		const questionList: StudyQuestion[] = textInput
 			.split(/\r?\n/)
 			.map((line) => line.trim())
@@ -129,6 +129,15 @@ export default function UploadSwitcher() {
 					question: line.slice(0, colonIndex).trim(),
 					answer: line.slice(colonIndex + 1).trim(),
 					displayOrder: 0,
+					fsrsDifficulty: 0,
+					fsrsStability: 0,
+					fsrsDue: null as unknown as Date,
+					fsrsLastReviewed: null as unknown as Date,
+					fsrsReviewCount: 0,
+					fsrsState: 0,
+					fsrsScheduled: 0,
+					fsrsLearning: 0,
+					fsrsLapses: 0,
 				};
 			})
 			.filter(
@@ -140,11 +149,20 @@ export default function UploadSwitcher() {
 					question: string;
 					answer: string;
 					displayOrder: number;
+					fsrsDifficulty: number;
+					fsrsStability: number;
+					fsrsDue: Date;
+					fsrsLastReviewed: Date;
+					fsrsReviewCount: number;
+					fsrsState: number;
+					fsrsScheduled: number;
+					fsrsLearning: number;
+					fsrsLapses: number;
 				} => pair !== null,
 			);
 		try {
 			const upload = await createUpload("Untitled");
-			await uploadRecordActionTEMP(upload.id, questionList, 0);
+			await uploadRecordAction(upload.id, questionList, 0);
 			router.push(`/uploads/${upload.id}`);
 		} catch (err) {
 			console.error("Upload error:", err);
@@ -231,7 +249,10 @@ Question 2:Answer 2`}
 			</div>
 			<button
 				type="button"
-				onClick={handleSubmit}
+				onClick={() => {
+					setLoading(true);
+					handleSubmit();
+				}}
 				disabled={loading}
 				className={`origin-center overflow-hidden ${switchTransition} ${
 					canSubmit ? "h-12" : "pointer-events-none -mt-4 -mb-4 h-0"
