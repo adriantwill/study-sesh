@@ -18,7 +18,7 @@ export default function StudyProgress({
 	const safeTotal = Math.max(totalCount, 1);
 	const progress = clampPercentage((completedCount / safeTotal) * 100);
 	const stats = [{ label: "Left", value: cardsLeft }];
-
+	console.log(progress);
 	return (
 		<div className="w-full px-2">
 			<div className="mb-2 flex items-center justify-between gap-3 px-1 text-[0.68rem] font-medium uppercase tracking-[0.16em] text-muted-foreground/80 sm:text-[0.7rem]">
