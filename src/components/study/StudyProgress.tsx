@@ -17,12 +17,7 @@ export default function StudyProgress({
 }: StudyProgressProps) {
 	const safeTotal = Math.max(totalCount, 1);
 	const progress = clampPercentage((completedCount / safeTotal) * 100);
-	const remainingCount = Math.max(totalCount - completedCount, 0);
-	const stats = [
-		{ label: "Known", value: completedCount },
-		{ label: "Left", value: cardsLeft },
-		{ label: "Unknown", value: remainingCount },
-	];
+	const stats = [{ label: "Left", value: cardsLeft }];
 
 	return (
 		<div className="w-full px-2">

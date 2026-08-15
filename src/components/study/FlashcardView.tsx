@@ -22,12 +22,14 @@ export default function FlashcardView({
 }) {
 	const isStudyMode = mode === "study";
 	const [questions, setQuestions] = useState(initialQuestions);
+	const [filteredQuestions, setFQuestions] = useState(initialQuestions);
 	useEffect(() => {
 		const filtered = initialQuestions.filter(
-			(question) => question.fsrsDue <= new Date(Date.now()),
+			(question) => question.fsrsDue <= new Date(),
 		);
-		console.log(initialQuestions);
 		setQuestions(filtered);
+		setFQuestions(filtered);
+		setCurrentIndex(currentIndex % filtered.length);
 	}, [initialQuestions]);
 	const [actionHistory, setActionHistory] = useState<
 		Array<{
@@ -42,24 +44,22 @@ export default function FlashcardView({
 		return questions.filter((q) => getItem(q.id)).map((q) => q.id);
 	});
 
-	const filteredQuestions = useMemo(() => {
-		if (!isStudyMode) return questions;
-		return questions.filter((q) => !completedIds.includes(q.id));
-	}, [questions, isStudyMode, completedIds]);
-
+	// const filteredQuestions = useMemo(() => {
+	// 	if (!isStudyMode) return questions;
+	// 	return questions.filter((q) => !completedIds.includes(q.id));
+	// }, [questions, isStudyMode, completedIds]);
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [direction, setDirection] = useState<"next" | "prev" | "initial">(
 		"initial",
 	);
 	const [isFlipped, setIsFlipped] = useState(false);
 	const scheduler = fsrs();
-	const valid_ratings = [Rating.Again, Rating.Hard, Rating.Good] as const;
+	const valid_ratings = [Rating.Again, Rating.Good] as const;
 
 	function setDifficulty(
 		level: (typeof valid_ratings)[number],
 		question: StudyQuestion,
 	) {
-		console.log(question);
 		const card: Card = {
 			due: question.fsrsDue,
 			stability: question.fsrsStability,
@@ -75,22 +75,19 @@ export default function FlashcardView({
 			state: question.fsrsState,
 			last_review: question.fsrsLastReviewed,
 		};
-		changeDirection(1);
 		const result = scheduler.next(card, new Date(), level);
-		const filtered = questions.filter(
-			(question) => question.fsrsDue <= new Date(Date.now()),
+		updateFsrsAction(
+			question.id,
+			result.card,
+			currentIndex,
+			filteredQuestions.length,
 		);
-		setQuestions(filtered);
-		console.log(result.card.due.toString());
-		updateFsrsAction(question.id, result.card);
+		changeDirection(1);
 	}
 	const changeDirection = (dir: -1 | 1) => {
 		setDirection(dir === 1 ? "next" : "prev");
 		setIsFlipped(false);
-		setCurrentIndex(
-			(prev) =>
-				(prev + dir + filteredQuestions.length) % filteredQuestions.length,
-		);
+		setCurrentIndex((currentIndex + dir) % filteredQuestions.length);
 	};
 
 	const handleComplete = () => {
@@ -153,6 +150,10 @@ export default function FlashcardView({
 		setCurrentIndex(0);
 		setActionHistory([]);
 	};
+	function allCards() {
+		setFQuestions(initialQuestions);
+		setCurrentIndex(0);
+	}
 
 	const animationClass =
 		direction === "next"
@@ -161,19 +162,19 @@ export default function FlashcardView({
 				? "animate-slide-in-left"
 				: "animate-slide-in-right";
 
-	if (filteredQuestions.length === 0) {
+	if (filteredQuestions.length <= 0) {
 		return (
-			<div className="mx-auto max-w-md animate-soft-pop rounded-xl border border-primary/20 bg-muted/80 px-8 py-16 text-center shadow-lg motion-reduce:animate-none">
-				<p className="mb-4 text-2xl font-semibold text-foreground">
-					All questions completed!
+			<div className="mx-auto max-w-md space-y-4 animate-soft-pop rounded-xl border border-primary/20 bg-muted/80 px-8 py-16 text-center shadow-lg motion-reduce:animate-none">
+				<p className="text-2xl font-semibold text-foreground">
+					All questions completed for now!
 				</p>
-				<button
-					type="button"
-					onClick={handleReset}
-					className="rounded-full px-4 py-2 text-sm text-muted-foreground underline transition-[transform,background-color,color] duration-200 hover:-translate-y-0.5 hover:bg-muted-hover hover:text-foreground active:scale-95"
-				>
-					Reset progress
-				</button>
+				{/* <button */}
+				{/* 	type="button" */}
+				{/* 	onClick={() => allCards()} */}
+				{/* 	className="rounded-full px-4 py-2 text-sm text-muted-foreground underline transition-[transform,background-color,color] duration-200 hover:-translate-y-0.5 hover:text-foreground active:scale-95" */}
+				{/* > */}
+				{/* 	Keep Studying? */}
+				{/* </button> */}
 			</div>
 		);
 	}
@@ -207,8 +208,8 @@ export default function FlashcardView({
 		>
 			{isStudyMode && (
 				<StudyProgress
-					completedCount={completedIds.length}
-					totalCount={questions.length}
+					completedCount={currentIndex}
+					totalCount={filteredQuestions.length}
 					cardsLeft={filteredQuestions.length - currentIndex}
 				/>
 			)}
@@ -256,7 +257,7 @@ export default function FlashcardView({
 				<div>
 					<div className="flex justify-center gap-4">
 						{valid_ratings.map((index) => {
-							const Icon = index === Rating.Again ? Check : X;
+							const Icon = index === valid_ratings[1] ? Check : X;
 							return (
 								<button
 									key={index}
@@ -265,7 +266,7 @@ export default function FlashcardView({
 										setDifficulty(index, filteredQuestions[currentIndex])
 									}
 									className={`rounded-full p-4 text-muted-foreground transition-[transform,background-color,color,box-shadow] duration-200 ease-out hover:-translate-y-1 hover:scale-110 active:scale-90 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary /${
-										index === Rating.Again
+										index === valid_ratings[1]
 											? "hover:bg-primary/10 hover:text-primary hover:shadow-lg"
 											: "hover:bg-muted hover:text-foreground hover:shadow-md"
 									}`}
@@ -275,25 +276,25 @@ export default function FlashcardView({
 							);
 						})}
 					</div>
-					<div className="mt-4 flex justify-center gap-6 text-sm text-muted-foreground">
-						{completedIds.length > 0 || actionHistory.length > 0 ? (
-							<button
-								type="button"
-								onClick={actionHistory.length > 0 ? handleUndo : handleReset}
-								className="rounded-full px-3 py-1 underline transition-[transform,background-color,color] duration-200 hover:-translate-y-0.5 hover:bg-muted-hover hover:text-foreground active:scale-95"
-							>
-								{actionHistory.length > 0 ? "Undo" : "Reset progress"}
-							</button>
-						) : (
-							<button
-								type="button"
-								onClick={() => setQuestions(shuffleArray(questions))}
-								className="rounded-full px-3 py-1 underline transition-[transform,background-color,color] duration-200 hover:-translate-y-0.5 hover:bg-muted-hover hover:text-foreground active:scale-95"
-							>
-								Shuffle Deck
-							</button>
-						)}
-					</div>
+					{/* <div className="mt-4 flex justify-center gap-6 text-sm text-muted-foreground"> */}
+					{/* 	{completedIds.length > 0 || actionHistory.length > 0 ? ( */}
+					{/* 		<button */}
+					{/* 			type="button" */}
+					{/* 			onClick={actionHistory.length > 0 ? handleUndo : handleReset} */}
+					{/* 			className="rounded-full px-3 py-1 underline transition-[transform,background-color,color] duration-200 hover:-translate-y-0.5 hover:bg-muted-hover hover:text-foreground active:scale-95" */}
+					{/* 		> */}
+					{/* 			{actionHistory.length > 0 ? "Undo" : "Reset progress"} */}
+					{/* 		</button> */}
+					{/* 	) : ( */}
+					{/* 		<button */}
+					{/* 			type="button" */}
+					{/* 			onClick={() => setQuestions(shuffleArray(questions))} */}
+					{/* 			className="rounded-full px-3 py-1 underline transition-[transform,background-color,color] duration-200 hover:-translate-y-0.5 hover:bg-muted-hover hover:text-foreground active:scale-95" */}
+					{/* 		> */}
+					{/* 			Shuffle Deck */}
+					{/* 		</button> */}
+					{/* 	)} */}
+					{/* </div> */}
 				</div>
 			)}
 		</div>

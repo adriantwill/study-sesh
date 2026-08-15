@@ -56,7 +56,7 @@ export default async function Home() {
 		<main>
 			<section className="flex min-h-dvh flex-col items-center p-6">
 				<h1 className="flex justify-center gap-3 text-[clamp(2.25rem,8vw,3rem)] font-bold text-foreground">
-					<span>{session.user.name}'s' Study Sesh</span>
+					<span>{session.user.name}'s Study Sesh</span>
 					<BrandMark size={54} className="translate-y-0.5" />
 				</h1>
 				<div className="flex flex-1 items-center">

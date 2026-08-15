@@ -550,7 +550,12 @@ export async function updateParentAction<
 
 	revalidatePath("/");
 }
-export async function updateFsrsAction(id: string, card: Card) {
+export async function updateFsrsAction(
+	id: string,
+	card: Card,
+	currentIndex: number,
+	count: number,
+) {
 	const supabase = await createClient();
 	const { error } = await supabase
 		.from("questions")
@@ -572,8 +577,9 @@ export async function updateFsrsAction(id: string, card: Card) {
 		console.error("Update FSRS error:", error);
 		throw new Error("Failed to update FSRS data");
 	}
-
-	revalidatePath(`/study/${id}`);
+	if (currentIndex >= count - 1) {
+		revalidatePath(`/study`);
+	}
 }
 type ReorderQuestion = Pick<StudyQuestion, "id" | "displayOrder" | "upload_id">;
 export async function reorderQuestionsAction(
