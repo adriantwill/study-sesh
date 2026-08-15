@@ -40,7 +40,7 @@ export default async function ReviewPage({
 			supabase
 				.from("questions")
 				.select(
-					"id, upload_id, question_text, answer_text, image_url, display_order, options",
+					"id, upload_id, question_text, answer_text, image_url, display_order, options, fsrs_difficulty",
 				)
 				.eq("upload_id", reviewId)
 				.eq("deleted", false)

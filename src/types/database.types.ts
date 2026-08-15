@@ -132,6 +132,15 @@ export type Database = {
           created_at: string | null
           deleted: boolean
           display_order: number | null
+          fsrs_difficulty: number | null
+          fsrs_due_at: string
+          fsrs_lapses: number | null
+          fsrs_last_reviewed_at: string
+          fsrs_learning: number | null
+          fsrs_review_count: number | null
+          fsrs_scheduled: number | null
+          fsrs_stability: number | null
+          fsrs_state: number | null
           id: string
           image_url: string | null
           ocr_text: string | null
@@ -147,6 +156,15 @@ export type Database = {
           created_at?: string | null
           deleted?: boolean
           display_order?: number | null
+          fsrs_difficulty?: number | null
+          fsrs_due_at: string
+          fsrs_lapses?: number | null
+          fsrs_last_reviewed_at: string
+          fsrs_learning?: number | null
+          fsrs_review_count?: number | null
+          fsrs_scheduled?: number | null
+          fsrs_stability?: number | null
+          fsrs_state?: number | null
           id?: string
           image_url?: string | null
           ocr_text?: string | null
@@ -162,6 +180,15 @@ export type Database = {
           created_at?: string | null
           deleted?: boolean
           display_order?: number | null
+          fsrs_difficulty?: number | null
+          fsrs_due_at?: string
+          fsrs_lapses?: number | null
+          fsrs_last_reviewed_at?: string
+          fsrs_learning?: number | null
+          fsrs_review_count?: number | null
+          fsrs_scheduled?: number | null
+          fsrs_stability?: number | null
+          fsrs_state?: number | null
           id?: string
           image_url?: string | null
           ocr_text?: string | null

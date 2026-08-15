@@ -35,11 +35,11 @@ export default async function StudyPage({
 			supabase
 				.from("questions")
 				.select(
-					"id, upload_id, question_text, answer_text, image_url, display_order, options",
+					"id, upload_id, question_text, answer_text, image_url, display_order, options, fsrs_difficulty, fsrs_due_at, fsrs_lapses, fsrs_last_reviewed_at, fsrs_learning, fsrs_review_count, fsrs_scheduled, fsrs_stability, fsrs_state",
 				)
 				.eq("upload_id", studyId)
 				.eq("deleted", false)
-				.order("display_order", { ascending: true }),
+				.order("fsrs_last_reviewed_at", { ascending: true }),
 			supabase.from("uploads").select("filename").eq("id", studyId).single(),
 		]);
 
@@ -58,7 +58,6 @@ export default async function StudyPage({
 	}
 
 	const questions = data.map((q) => questionRowToStudyQuestion(q));
-
 	const title = upload.filename;
 
 	return (
