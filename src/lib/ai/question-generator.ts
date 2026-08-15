@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { Poppler } from "node-poppler";
 import { uploadRecordAction } from "../questions";
 import { createClient } from "../supabase/server";
+import { StudyQuestion } from "@/src/types";
 
 export async function generateWrongOptions(
 	question: string,
@@ -298,7 +299,7 @@ Return JSON array only:
 							options: string[];
 						}>;
 
-						const questions = pageQuestions.map((q) => ({
+						const questions: StudyQuestion[] = pageQuestions.map((q) => ({
 							id: "id", // Placeholder
 							upload_id: "",
 							question: q.question,
@@ -308,6 +309,15 @@ Return JSON array only:
 							pageNumber,
 							ocrText: null,
 							originalQuestion: q.question,
+							fsrsDifficulty: 0,
+							fsrsStability: 0,
+							fsrsDue: null as unknown as Date,
+							fsrsLastReviewed: null as unknown as Date,
+							fsrsReviewCount: 0,
+							fsrsState: 0,
+							fsrsScheduled: 0,
+							fsrsLearning: 0,
+							fsrsLapses: 0,
 						}));
 						const inserted = await uploadRecordAction(uploadId, questions, i);
 						insertedCount += inserted;

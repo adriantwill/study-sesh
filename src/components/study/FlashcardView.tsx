@@ -27,8 +27,10 @@ export default function FlashcardView({
 		initialQuestions[0].fsrsDue <= new Date() ? initialQuestions[0] : null,
 	);
 	const [filterCount, setFilterCount] = useState(initialQuestions.length);
+	const [disabled, setDisabled] = useState(false);
 	//TODO Fix if only 1 study card
 	if (initialQuestions !== filteredQuestions) {
+		setDisabled(false);
 		const filtered = initialQuestions.filter(
 			(question) => question.fsrsDue <= new Date(),
 		);
@@ -95,6 +97,7 @@ export default function FlashcardView({
 			}
 		}
 		setFilterCount(filterCount - 1);
+		setDisabled(true);
 	}
 
 	const changeDirection = (dir: -1 | 1) => {
@@ -283,12 +286,9 @@ export default function FlashcardView({
 								<button
 									key={index}
 									type="button"
+									disabled={disabled}
 									onClick={() => setDifficulty(index, currentCard)}
-									className={`rounded-full p-4 text-muted-foreground transition-[transform,background-color,color,box-shadow] duration-200 ease-out hover:-translate-y-1 hover:scale-110 active:scale-90 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary /${
-										index === valid_ratings[1]
-											? "hover:bg-primary/10 hover:text-primary hover:shadow-lg"
-											: "hover:bg-muted hover:text-foreground hover:shadow-md"
-									}`}
+									className={`rounded-full p-4 text-muted-foreground transition-[transform,background-color,color,box-shadow] duration-200 ease-out enabled:hover:-translate-y-1 enabled:hover:scale-110 active:scale-90 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary enabled:hover:text-primary enabled:hover:shadow-lg`}
 								>
 									<Icon size={40} strokeWidth={2.5} />
 								</button>

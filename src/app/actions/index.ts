@@ -388,6 +388,15 @@ export async function addQuestionAction(
 			original_answer_text: "Untitled Answer",
 			page_number: null,
 			ocr_text: null,
+			fsrs_difficulty: 0,
+			fsrs_stability: 0,
+			fsrs_due_at: null,
+			fsrs_last_reviewed_at: null,
+			fsrs_review_count: 0,
+			fsrs_state: 0,
+			fsrs_scheduled: 0,
+			fsrs_learning: 0,
+			fsrs_lapses: 0,
 			display_order: displayOrder,
 		} as never)
 		.select("id")
