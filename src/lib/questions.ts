@@ -10,6 +10,7 @@ export async function uploadRecordAction(
 	if (questions.length === 0) return 0;
 
 	const supabase = await createClient();
+	const now = new Date().toISOString();
 	// Insert questions
 	const questionRows = questions.map((q, idx) => ({
 		upload_id: upload_id,
@@ -19,6 +20,8 @@ export async function uploadRecordAction(
 		original_answer_text: q.originalAnswer ?? q.answer,
 		page_number: q.pageNumber ?? null,
 		ocr_text: q.ocrText ?? null,
+		fsrs_due_at: now,
+		fsrs_last_reviewed_at: now,
 		display_order:
 			(q.pageNumber ?? pos + 1) * 1000 + (idx + 1) * DISPLAY_ORDER_STEP,
 		options: q.options ?? [],
