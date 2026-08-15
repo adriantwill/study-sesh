@@ -21,28 +21,35 @@ export default function FlashcardView({
 	mode?: "review" | "study";
 }) {
 	const isStudyMode = mode === "study";
-	const [questions, setQuestions] = useState(initialQuestions);
+	// const [questions, setQuestions] = useState(initialQuestions);
 	const [filteredQuestions, setFQuestions] = useState(initialQuestions);
-	useEffect(() => {
+	const [currentCard, setCurrentCard] = useState<StudyQuestion | null>(
+		initialQuestions[0].fsrsDue <= new Date() ? initialQuestions[0] : null,
+	);
+	const [filterCount, setFilterCount] = useState(initialQuestions.length);
+	//TODO Fix if only 1 study card
+	if (initialQuestions !== filteredQuestions) {
 		const filtered = initialQuestions.filter(
 			(question) => question.fsrsDue <= new Date(),
 		);
-		setQuestions(filtered);
-		setFQuestions(filtered);
-		setCurrentIndex(currentIndex % filtered.length);
-	}, [initialQuestions]);
-	const [actionHistory, setActionHistory] = useState<
-		Array<{
-			type: "complete" | "skip";
-			id: string;
-			prevIndex: number;
-		}>
-	>([]);
-
-	const [completedIds, setCompletedIds] = useState<string[]>(() => {
-		if (!isStudyMode) return [];
-		return questions.filter((q) => getItem(q.id)).map((q) => q.id);
-	});
+		setFilterCount(filtered.length);
+		setFQuestions(initialQuestions);
+		setCurrentCard(
+			initialQuestions[0].fsrsDue <= new Date() ? initialQuestions[0] : null,
+		);
+	}
+	// const [actionHistory, setActionHistory] = useState<
+	// 	Array<{
+	// 		type: "complete" | "skip";
+	// 		id: string;
+	// 		prevIndex: number;
+	// 	}>
+	// >([]);
+	//
+	// const [completedIds, setCompletedIds] = useState<string[]>(() => {
+	// 	if (!isStudyMode) return [];
+	// 	return questions.filter((q) => getItem(q.id)).map((q) => q.id);
+	// });
 
 	// const filteredQuestions = useMemo(() => {
 	// 	if (!isStudyMode) return questions;
@@ -76,84 +83,96 @@ export default function FlashcardView({
 			last_review: question.fsrsLastReviewed,
 		};
 		const result = scheduler.next(card, new Date(), level);
-		updateFsrsAction(
-			question.id,
-			result.card,
-			currentIndex,
-			filteredQuestions.length,
-		);
-		changeDirection(1);
+		updateFsrsAction(question.id, result.card);
+		setDirection("next");
+		setIsFlipped(false);
+		console.log(initialQuestions);
+
+		if (result.card.due >= filteredQuestions[1].fsrsDue) {
+			setCurrentCard(filteredQuestions[1]);
+			if (filteredQuestions[1].fsrsDue > new Date()) {
+				setCurrentCard(null);
+			}
+		}
+		setFilterCount(filterCount - 1);
 	}
+
 	const changeDirection = (dir: -1 | 1) => {
 		setDirection(dir === 1 ? "next" : "prev");
 		setIsFlipped(false);
-		setCurrentIndex((currentIndex + dir) % filteredQuestions.length);
+		const temp =
+			(((currentIndex + dir) % initialQuestions.length) +
+				initialQuestions.length) %
+			initialQuestions.length;
+		setCurrentIndex(temp);
+		setCurrentCard(initialQuestions[temp]);
+		console.log(initialQuestions.length);
 	};
-
-	const handleComplete = () => {
-		const id = filteredQuestions[currentIndex].id;
-		setActionHistory((prev) => [
-			...prev,
-			{ type: "complete", id, prevIndex: currentIndex },
-		]);
-		setItem(id, true);
-		setIsFlipped(false);
-		setCompletedIds((prev) => [...prev, id]);
-		if (currentIndex >= filteredQuestions.length - 1) {
-			setCurrentIndex(0);
-		}
-	};
-
-	const handleSkip = () => {
-		const id = filteredQuestions[currentIndex].id;
-		setActionHistory((prev) => [
-			...prev,
-			{ type: "skip", id, prevIndex: currentIndex },
-		]);
-		changeDirection(1);
-	};
-
-	const handleUndo = () => {
-		const lastAction = actionHistory.at(-1);
-		if (!lastAction) return;
-
-		if (lastAction.type === "complete") {
-			removeItem(lastAction.id);
-			setCompletedIds((prev) => {
-				const nextCompletedIds = prev.filter((id) => id !== lastAction.id);
-				const nextFilteredQuestions = questions.filter(
-					(q) => !nextCompletedIds.includes(q.id),
-				);
-				const targetIndex = nextFilteredQuestions.findIndex(
-					(q) => q.id === lastAction.id,
-				);
-				setCurrentIndex(targetIndex === -1 ? 0 : targetIndex);
-				return nextCompletedIds;
-			});
-			setActionHistory((prev) => prev.slice(0, -1));
-			return;
-		}
-
-		const targetIndex = Math.max(
-			0,
-			Math.min(lastAction.prevIndex, filteredQuestions.length - 1),
-		);
-		setCurrentIndex(targetIndex);
-		setActionHistory((prev) => prev.slice(0, -1));
-	};
-
-	const handleReset = () => {
-		for (const id of completedIds) {
-			removeItem(id);
-		}
-		setCompletedIds([]);
-		setCurrentIndex(0);
-		setActionHistory([]);
-	};
-	function allCards() {
-		setFQuestions(initialQuestions);
-		setCurrentIndex(0);
-	}
+	//
+	// const handleComplete = () => {
+	// 	const id = filteredQuestions[currentIndex].id;
+	// 	setActionHistory((prev) => [
+	// 		...prev,
+	// 		{ type: "complete", id, prevIndex: currentIndex },
+	// 	]);
+	// 	setItem(id, true);
+	// 	setIsFlipped(false);
+	// 	setCompletedIds((prev) => [...prev, id]);
+	// 	if (currentIndex >= filteredQuestions.length - 1) {
+	// 		setCurrentIndex(0);
+	// 	}
+	// };
+	//
+	// const handleSkip = () => {
+	// 	const id = filteredQuestions[currentIndex].id;
+	// 	setActionHistory((prev) => [
+	// 		...prev,
+	// 		{ type: "skip", id, prevIndex: currentIndex },
+	// 	]);
+	// 	changeDirection(1);
+	// };
+	//
+	// const handleUndo = () => {
+	// 	const lastAction = actionHistory.at(-1);
+	// 	if (!lastAction) return;
+	//
+	// 	if (lastAction.type === "complete") {
+	// 		removeItem(lastAction.id);
+	// 		setCompletedIds((prev) => {
+	// 			const nextCompletedIds = prev.filter((id) => id !== lastAction.id);
+	// 			const nextFilteredQuestions = questions.filter(
+	// 				(q) => !nextCompletedIds.includes(q.id),
+	// 			);
+	// 			const targetIndex = nextFilteredQuestions.findIndex(
+	// 				(q) => q.id === lastAction.id,
+	// 			);
+	// 			setCurrentIndex(targetIndex === -1 ? 0 : targetIndex);
+	// 			return nextCompletedIds;
+	// 		});
+	// 		setActionHistory((prev) => prev.slice(0, -1));
+	// 		return;
+	// 	}
+	//
+	// 	const targetIndex = Math.max(
+	// 		0,
+	// 		Math.min(lastAction.prevIndex, filteredQuestions.length - 1),
+	// 	);
+	// 	setCurrentIndex(targetIndex);
+	// 	setActionHistory((prev) => prev.slice(0, -1));
+	// };
+	//
+	// const handleReset = () => {
+	// 	for (const id of completedIds) {
+	// 		removeItem(id);
+	// 	}
+	// 	setCompletedIds([]);
+	// 	setCurrentIndex(0);
+	// 	setActionHistory([]);
+	// };
+	// function allCards() {
+	// 	setFQuestions(initialQuestions);
+	// 	setCurrentIndex(0);
+	// }
 
 	const animationClass =
 		direction === "next"
@@ -162,7 +181,7 @@ export default function FlashcardView({
 				? "animate-slide-in-left"
 				: "animate-slide-in-right";
 
-	if (filteredQuestions.length <= 0) {
+	if (currentCard == null) {
 		return (
 			<div className="mx-auto max-w-md space-y-4 animate-soft-pop rounded-xl border border-primary/20 bg-muted/80 px-8 py-16 text-center shadow-lg motion-reduce:animate-none">
 				<p className="text-2xl font-semibold text-foreground">
@@ -184,6 +203,7 @@ export default function FlashcardView({
 			className="mx-auto space-y-20 focus:outline-none focus-visible:outline-none"
 			role="listbox"
 			tabIndex={0}
+			/*
 			onKeyDown={(e) => {
 				const focusTarget = e.currentTarget;
 
@@ -205,12 +225,13 @@ export default function FlashcardView({
 					focusTarget.focus();
 				});
 			}}
+		*/
 		>
 			{isStudyMode && (
 				<StudyProgress
-					completedCount={currentIndex}
-					totalCount={filteredQuestions.length}
-					cardsLeft={filteredQuestions.length - currentIndex}
+					completedCount={initialQuestions.length - filterCount}
+					totalCount={initialQuestions.length}
+					cardsLeft={filterCount}
 				/>
 			)}
 			<div className="flex gap-4">
@@ -221,7 +242,7 @@ export default function FlashcardView({
 					/>
 				)}
 				<button
-					key={`${filteredQuestions[currentIndex].id}-${direction}`}
+					key={`${currentCard.id}-${direction}`}
 					type="button"
 					className={`group w-full ${height} perspective-distant cursor-pointer rounded-xl transition-transform duration-200 ease-out active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary motion-reduce:animate-none motion-reduce:transition-none ${animationClass}`}
 					onClick={() => {
@@ -231,10 +252,10 @@ export default function FlashcardView({
 					<div
 						className={`relative h-full w-full transform-3d transition-[transform] duration-500 ease-out motion-reduce:transition-none ${isFlipped ? "-rotate-y-180" : "hover:-rotate-y-6 hover:scale-[1.01]"}`}
 					>
-						<Flashcard text={filteredQuestions[currentIndex].answer} isBack />
+						<Flashcard text={currentCard.answer} isBack />
 						<Flashcard
-							text={filteredQuestions[currentIndex].question}
-							imageUrl={filteredQuestions[currentIndex].imageUrl}
+							text={currentCard.question}
+							imageUrl={currentCard.imageUrl}
 							limitImageSize={isStudyMode}
 						/>
 					</div>
@@ -262,9 +283,7 @@ export default function FlashcardView({
 								<button
 									key={index}
 									type="button"
-									onClick={() =>
-										setDifficulty(index, filteredQuestions[currentIndex])
-									}
+									onClick={() => setDifficulty(index, currentCard)}
 									className={`rounded-full p-4 text-muted-foreground transition-[transform,background-color,color,box-shadow] duration-200 ease-out hover:-translate-y-1 hover:scale-110 active:scale-90 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary /${
 										index === valid_ratings[1]
 											? "hover:bg-primary/10 hover:text-primary hover:shadow-lg"

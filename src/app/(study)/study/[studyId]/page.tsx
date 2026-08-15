@@ -39,7 +39,7 @@ export default async function StudyPage({
 				)
 				.eq("upload_id", studyId)
 				.eq("deleted", false)
-				.order("fsrs_last_reviewed_at", { ascending: true }),
+				.order("fsrs_due_at", { ascending: true }),
 			supabase.from("uploads").select("filename").eq("id", studyId).single(),
 		]);
 
