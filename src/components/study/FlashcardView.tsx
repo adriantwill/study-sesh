@@ -30,26 +30,6 @@ export default function FlashcardView({
 	const [isFlipped, setIsFlipped] = useState(false);
 	const scheduler = fsrs();
 	const valid_ratings = [Rating.Again, Rating.Good] as const;
-	useEffect(() => {
-		if (
-			initialQuestions[0] !== null &&
-			cardId.current !== initialQuestions[0]?.id
-		) {
-			const telemetry: Tables<"events"> = {
-				//TODO MAKE THIS A CUSTOM TYPE
-				before_difficulty: initialQuestions[0].fsrsDifficulty,
-				before_stability: initialQuestions[0].fsrsStability,
-				created_at: new Date().toISOString(),
-				difficulty: initialQuestions[0].fsrsDifficulty,
-				event_type: "card_shown",
-				question_id: initialQuestions[0].id,
-				rating: null,
-				stability: initialQuestions[0].fsrsStability,
-			};
-			cardId.current = initialQuestions[0].id;
-			addTelemetry(telemetry);
-		}
-	}, [initialQuestions[0]]);
 	//TODO Fix if only 1 study card
 	// const [actionHistory, setActionHistory] = useState<
 	// 	Array<{
@@ -118,6 +98,7 @@ export default function FlashcardView({
 				stability: initialQuestions[1].fsrsStability,
 			};
 			addTelemetry(telemetry);
+			console.log("test");
 		}
 	}
 
