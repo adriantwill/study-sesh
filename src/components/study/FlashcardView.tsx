@@ -1,14 +1,14 @@
 "use client";
 
 import { Check, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { Card, createEmptyCard, fsrs, Rating } from "ts-fsrs";
+import { useState } from "react";
+import type { Card } from "ts-fsrs";
+import { fsrs, Rating } from "ts-fsrs";
 import { updateFsrsAction } from "@/src/app/actions";
 import Flashcard from "@/src/components/study/Flashcard";
 import NavigationButton from "@/src/components/ui/NavigationButton";
 import type { StudyQuestion } from "@/src/types";
-import { shuffleArray } from "@/src/utils/cards";
-import { getItem, removeItem, setItem } from "@/src/utils/localStorage";
+import type { Tables } from "@/src/types/database.types";
 import StudyProgress from "./StudyProgress";
 
 export default function FlashcardView({
@@ -20,6 +20,17 @@ export default function FlashcardView({
 	height?: string;
 	mode?: "review" | "study";
 }) {
+	const _telemetry: Tables<"events"> = {
+		before_difficulty: null,
+		before_stability: null,
+		created_at: new Date().toISOString(),
+		difficulty: 0,
+		event_type: "card_shown",
+		id: 0,
+		question_id: initialQuestions[0].id,
+		rating: null,
+		stability: 0,
+	};
 	const isStudyMode = mode === "study";
 	// const [questions, setQuestions] = useState(initialQuestions);
 	const [filteredQuestions, setFQuestions] = useState(initialQuestions);
