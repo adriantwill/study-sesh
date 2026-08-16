@@ -4,7 +4,10 @@
 	"private": true,
 	"packageManager": "npm@11.16.0",
 	"allowScripts": {
-		"sharp@0.34.5": true
+		"sharp@0.34.5": true,
+		"esbuild@0.18.20": true,
+		"esbuild@0.25.12": true,
+		"esbuild@0.28.2": true
 	},
 	"scripts": {
 		"dev": "next dev",
@@ -17,6 +20,8 @@
 	"dependencies": {
 		"@supabase/ssr": "^0.8.0",
 		"better-auth": "^1.6.11",
+		"dotenv": "^17.4.2",
+		"drizzle-orm": "^0.45.2",
 		"lucide-react": "^0.562.0",
 		"next": "^16.0.10",
 		"node-poppler": "^9.0.1",
@@ -30,11 +35,13 @@
 		"@biomejs/biome": "2.5.8",
 		"@tailwindcss/postcss": "^4",
 		"@types/node": "^20",
-		"@types/pg": "^8.20.0",
+		"@types/pg": "^8.21.0",
 		"@types/react": "^19",
 		"@types/react-dom": "^19",
+		"drizzle-kit": "^0.31.10",
 		"postcss": "^8.5.6",
 		"tailwindcss": "4",
+		"tsx": "^4.23.12",
 		"typescript": "^5"
 	}
 }
