@@ -2,14 +2,14 @@
 
 import { Check, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { Card, createEmptyCard, fsrs, Rating } from "ts-fsrs";
+import { updateFsrsAction } from "@/src/app/actions";
 import Flashcard from "@/src/components/study/Flashcard";
 import NavigationButton from "@/src/components/ui/NavigationButton";
 import type { StudyQuestion } from "@/src/types";
 import { shuffleArray } from "@/src/utils/cards";
 import { getItem, removeItem, setItem } from "@/src/utils/localStorage";
 import StudyProgress from "./StudyProgress";
-import { Card, createEmptyCard, fsrs, Rating } from "ts-fsrs";
-import { updateFsrsAction } from "@/src/app/actions";
 
 export default function FlashcardView({
 	questions: initialQuestions,

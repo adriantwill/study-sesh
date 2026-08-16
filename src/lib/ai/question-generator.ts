@@ -2,9 +2,9 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { revalidatePath } from "next/cache";
 import { Poppler } from "node-poppler";
+import { StudyQuestion } from "@/src/types";
 import { uploadRecordAction } from "../questions";
 import { createClient } from "../supabase/server";
-import { StudyQuestion } from "@/src/types";
 
 export async function generateWrongOptions(
 	question: string,
@@ -311,8 +311,8 @@ Return JSON array only:
 							originalQuestion: q.question,
 							fsrsDifficulty: 0,
 							fsrsStability: 0,
-							fsrsDue: null as unknown as Date,
-							fsrsLastReviewed: null as unknown as Date,
+							fsrsDue: new Date(),
+							fsrsLastReviewed: new Date(),
 							fsrsReviewCount: 0,
 							fsrsState: 0,
 							fsrsScheduled: 0,

@@ -131,8 +131,8 @@ export default function UploadSwitcher() {
 					displayOrder: 0,
 					fsrsDifficulty: 0,
 					fsrsStability: 0,
-					fsrsDue: null as unknown as Date,
-					fsrsLastReviewed: null as unknown as Date,
+					fsrsDue: new Date(),
+					fsrsLastReviewed: new Date(),
 					fsrsReviewCount: 0,
 					fsrsState: 0,
 					fsrsScheduled: 0,
@@ -249,10 +249,7 @@ Question 2:Answer 2`}
 			</div>
 			<button
 				type="button"
-				onClick={() => {
-					setLoading(true);
-					handleSubmit();
-				}}
+				onClick={handleSubmit}
 				disabled={loading}
 				className={`origin-center overflow-hidden ${switchTransition} ${
 					canSubmit ? "h-12" : "pointer-events-none -mt-4 -mb-4 h-0"
