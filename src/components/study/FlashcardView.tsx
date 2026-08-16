@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, X } from "lucide-react";
+import { Check, Rat, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Card } from "ts-fsrs";
 import { fsrs, Rating } from "ts-fsrs";
@@ -102,6 +102,18 @@ export default function FlashcardView({
 		};
 		const result = scheduler.next(card, new Date(), level);
 		updateFsrsAction(question.id, result.card);
+		const telemetry: Tables<"events"> = {
+			//TODO MAKE THIS A CUSTOM TYPE
+			before_difficulty: card.difficulty,
+			before_stability: card.stability,
+			created_at: new Date().toISOString(),
+			difficulty: result.card.difficulty,
+			event_type: "card_rated",
+			question_id: question.id,
+			rating: level,
+			stability: result.card.stability,
+		};
+		addTelemetry(telemetry);
 		setDirection("next");
 		setIsFlipped(false);
 		console.log(initialQuestions);
