@@ -19,7 +19,7 @@ import {
 import { createClient } from "@/src/lib/supabase/server";
 import { isParsedTableData, parseXlsxTable } from "@/src/lib/xlsx-table";
 import type { parentColumnByTable, StudyQuestion } from "@/src/types";
-import type { Database, Json } from "@/src/types/database.types";
+import type { Database, Json, Tables } from "@/src/types/database.types";
 
 const DISPLAY_ORDER_STEP = 100;
 type PublicTables = Database["public"]["Tables"];
@@ -382,8 +382,8 @@ export async function addQuestionAction(
 			ocr_text: null,
 			fsrs_difficulty: 0,
 			fsrs_stability: 0,
-			fsrs_due_at: null,
-			fsrs_last_reviewed_at: null,
+			fsrs_due_at: new Date().toISOString(),
+			fsrs_last_reviewed_at: new Date().toISOString(),
 			fsrs_review_count: 0,
 			fsrs_state: 0,
 			fsrs_scheduled: 0,
