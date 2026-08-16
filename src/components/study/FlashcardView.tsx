@@ -284,7 +284,7 @@ export default function FlashcardView({
 							before_stability: currentCard.fsrsStability,
 							created_at: new Date().toISOString(),
 							difficulty: currentCard.fsrsDifficulty,
-							event_type: "card_switched",
+							event_type: "card_flipped",
 							question_id: currentCard.id,
 							rating: null,
 							stability: currentCard.fsrsStability,
