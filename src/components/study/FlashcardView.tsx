@@ -1,14 +1,14 @@
 "use client";
 
-import { Check, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { Card, createEmptyCard, fsrs, Rating } from "ts-fsrs";
-import { updateFsrsAction } from "@/src/app/actions";
+import { Check, Rat, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import type { Card } from "ts-fsrs";
+import { fsrs, Rating } from "ts-fsrs";
+import { addTelemetry, updateFsrsAction } from "@/src/app/actions";
 import Flashcard from "@/src/components/study/Flashcard";
 import NavigationButton from "@/src/components/ui/NavigationButton";
 import type { StudyQuestion } from "@/src/types";
-import { shuffleArray } from "@/src/utils/cards";
-import { getItem, removeItem, setItem } from "@/src/utils/localStorage";
+import type { Tables } from "@/src/types/database.types";
 import StudyProgress from "./StudyProgress";
 
 export default function FlashcardView({
@@ -28,6 +28,22 @@ export default function FlashcardView({
 	);
 	const [filterCount, setFilterCount] = useState(initialQuestions.length);
 	const [disabled, setDisabled] = useState(false);
+	useEffect(() => {
+		if (currentCard !== null) {
+			const telemetry: Tables<"events"> = {
+				//TODO MAKE THIS A CUSTOM TYPE
+				before_difficulty: currentCard.fsrsDifficulty,
+				before_stability: currentCard.fsrsStability,
+				created_at: new Date().toISOString(),
+				difficulty: currentCard.fsrsDifficulty,
+				event_type: "card_shown",
+				question_id: currentCard.id,
+				rating: null,
+				stability: currentCard.fsrsStability,
+			};
+			addTelemetry(telemetry);
+		}
+	}, [currentCard]);
 	//TODO Fix if only 1 study card
 	if (initialQuestions !== filteredQuestions) {
 		setDisabled(false);
@@ -86,6 +102,18 @@ export default function FlashcardView({
 		};
 		const result = scheduler.next(card, new Date(), level);
 		updateFsrsAction(question.id, result.card);
+		const telemetry: Tables<"events"> = {
+			//TODO MAKE THIS A CUSTOM TYPE
+			before_difficulty: card.difficulty,
+			before_stability: card.stability,
+			created_at: new Date().toISOString(),
+			difficulty: result.card.difficulty,
+			event_type: "card_rated",
+			question_id: question.id,
+			rating: level,
+			stability: result.card.stability,
+		};
+		addTelemetry(telemetry);
 		setDirection("next");
 		setIsFlipped(false);
 		console.log(initialQuestions);
@@ -250,6 +278,18 @@ export default function FlashcardView({
 					className={`group w-full ${height} perspective-distant cursor-pointer rounded-xl transition-transform duration-200 ease-out active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary motion-reduce:animate-none motion-reduce:transition-none ${animationClass}`}
 					onClick={() => {
 						setIsFlipped(!isFlipped);
+						const telemetry: Tables<"events"> = {
+							//TODO MAKE THIS A CUSTOM TYPE
+							before_difficulty: currentCard.fsrsDifficulty,
+							before_stability: currentCard.fsrsStability,
+							created_at: new Date().toISOString(),
+							difficulty: currentCard.fsrsDifficulty,
+							event_type: "card_flipped",
+							question_id: currentCard.id,
+							rating: null,
+							stability: currentCard.fsrsStability,
+						};
+						addTelemetry(telemetry);
 					}}
 				>
 					<div

@@ -414,7 +414,17 @@ export async function addQuestionAction(
 		});
 	}
 }
+export async function addTelemetry(telemtry: Tables<"events">) {
+	const supabase = await createClient();
+	const { error } = await supabase.from("events").insert(telemtry).single();
 
+	if (error) {
+		console.error("Update deadline due date error:", error);
+		throw new Error("Failed to update deadline");
+	}
+
+	revalidatePath("/study");
+}
 export async function addFolderAction() {
 	const userId = await getSessionUserId();
 	const supabase = await createClient();

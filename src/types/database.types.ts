@@ -94,6 +94,50 @@ export type Database = {
         }
         Relationships: []
       }
+      events: {
+        Row: {
+          before_difficulty: number | null
+          before_stability: number | null
+          created_at: string
+          difficulty: number
+          event_type: string
+          id: number
+          question_id: string
+          rating: number | null
+          stability: number
+        }
+        Insert: {
+          before_difficulty?: number | null
+          before_stability?: number | null
+          created_at?: string
+          difficulty: number
+          event_type: string
+          id?: number
+          question_id: string
+          rating?: number | null
+          stability: number
+        }
+        Update: {
+          before_difficulty?: number | null
+          before_stability?: number | null
+          created_at?: string
+          difficulty?: number
+          event_type?: string
+          id?: number
+          question_id?: string
+          rating?: number | null
+          stability?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       folders: {
         Row: {
           created_at: string | null
