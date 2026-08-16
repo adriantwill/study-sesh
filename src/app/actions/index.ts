@@ -422,8 +422,6 @@ export async function addTelemetry(telemtry: Tables<"events">) {
 		console.error("Update deadline due date error:", error);
 		throw new Error("Failed to update deadline");
 	}
-
-	revalidatePath("/study");
 }
 export async function addFolderAction() {
 	const userId = await getSessionUserId();

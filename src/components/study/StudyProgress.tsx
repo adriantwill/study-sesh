@@ -1,7 +1,6 @@
 "use client";
 
 type StudyProgressProps = {
-	completedCount: number;
 	totalCount: number;
 	cardsLeft: number;
 };
@@ -11,12 +10,13 @@ function clampPercentage(value: number) {
 }
 
 export default function StudyProgress({
-	completedCount,
 	totalCount,
 	cardsLeft,
 }: StudyProgressProps) {
 	const safeTotal = Math.max(totalCount, 1);
-	const progress = clampPercentage((completedCount / safeTotal) * 100);
+	const progress = clampPercentage(
+		((totalCount - cardsLeft) / safeTotal) * 100,
+	);
 	const stats = [{ label: "Left", value: cardsLeft }];
 	console.log(progress);
 	return (

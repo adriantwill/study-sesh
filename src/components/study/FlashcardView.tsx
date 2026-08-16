@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, Rat, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Card } from "ts-fsrs";
 import { fsrs, Rating } from "ts-fsrs";
 import { addTelemetry, updateFsrsAction } from "@/src/app/actions";
@@ -22,40 +22,35 @@ export default function FlashcardView({
 }) {
 	const isStudyMode = mode === "study";
 	// const [questions, setQuestions] = useState(initialQuestions);
-	const [filteredQuestions, setFQuestions] = useState(initialQuestions);
-	const [currentCard, setCurrentCard] = useState<StudyQuestion | null>(
-		initialQuestions[0].fsrsDue <= new Date() ? initialQuestions[0] : null,
+	const [card, setCard] = useState(initialQuestions[0]);
+	const cardId = useRef<string | undefined>(undefined);
+	const [direction, setDirection] = useState<"next" | "prev" | "initial">(
+		"initial",
 	);
-	const [filterCount, setFilterCount] = useState(initialQuestions.length);
-	const [disabled, setDisabled] = useState(false);
+	const [isFlipped, setIsFlipped] = useState(false);
+	const scheduler = fsrs();
+	const valid_ratings = [Rating.Again, Rating.Good] as const;
 	useEffect(() => {
-		if (currentCard !== null) {
+		if (
+			initialQuestions[0] !== null &&
+			cardId.current !== initialQuestions[0]?.id
+		) {
 			const telemetry: Tables<"events"> = {
 				//TODO MAKE THIS A CUSTOM TYPE
-				before_difficulty: currentCard.fsrsDifficulty,
-				before_stability: currentCard.fsrsStability,
+				before_difficulty: initialQuestions[0].fsrsDifficulty,
+				before_stability: initialQuestions[0].fsrsStability,
 				created_at: new Date().toISOString(),
-				difficulty: currentCard.fsrsDifficulty,
+				difficulty: initialQuestions[0].fsrsDifficulty,
 				event_type: "card_shown",
-				question_id: currentCard.id,
+				question_id: initialQuestions[0].id,
 				rating: null,
-				stability: currentCard.fsrsStability,
+				stability: initialQuestions[0].fsrsStability,
 			};
+			cardId.current = initialQuestions[0].id;
 			addTelemetry(telemetry);
 		}
-	}, [currentCard]);
+	}, [initialQuestions[0]]);
 	//TODO Fix if only 1 study card
-	if (initialQuestions !== filteredQuestions) {
-		setDisabled(false);
-		const filtered = initialQuestions.filter(
-			(question) => question.fsrsDue <= new Date(),
-		);
-		setFilterCount(filtered.length);
-		setFQuestions(initialQuestions);
-		setCurrentCard(
-			initialQuestions[0].fsrsDue <= new Date() ? initialQuestions[0] : null,
-		);
-	}
 	// const [actionHistory, setActionHistory] = useState<
 	// 	Array<{
 	// 		type: "complete" | "skip";
@@ -69,22 +64,17 @@ export default function FlashcardView({
 	// 	return questions.filter((q) => getItem(q.id)).map((q) => q.id);
 	// });
 
-	// const filteredQuestions = useMemo(() => {
+	// const initialQuestions = useMemo(() => {
 	// 	if (!isStudyMode) return questions;
 	// 	return questions.filter((q) => !completedIds.includes(q.id));
 	// }, [questions, isStudyMode, completedIds]);
 	const [currentIndex, setCurrentIndex] = useState(0);
-	const [direction, setDirection] = useState<"next" | "prev" | "initial">(
-		"initial",
-	);
-	const [isFlipped, setIsFlipped] = useState(false);
-	const scheduler = fsrs();
-	const valid_ratings = [Rating.Again, Rating.Good] as const;
 
 	function setDifficulty(
 		level: (typeof valid_ratings)[number],
 		question: StudyQuestion,
 	) {
+		changeDirection(1);
 		const card: Card = {
 			due: question.fsrsDue,
 			stability: question.fsrsStability,
@@ -92,7 +82,7 @@ export default function FlashcardView({
 			scheduled_days: question.fsrsScheduled,
 			learning_steps: question.fsrsLearning,
 			elapsed_days: Math.round(
-				(Date.now() - question.fsrsLastReviewed.getMilliseconds()) /
+				(Date.now() - question.fsrsLastReviewed.getTime()) /
 					(60 * 60 * 24 * 1000),
 			),
 			reps: question.fsrsReviewCount,
@@ -102,6 +92,7 @@ export default function FlashcardView({
 		};
 		const result = scheduler.next(card, new Date(), level);
 		updateFsrsAction(question.id, result.card);
+		console.log(initialQuestions);
 		const telemetry: Tables<"events"> = {
 			//TODO MAKE THIS A CUSTOM TYPE
 			before_difficulty: card.difficulty,
@@ -114,34 +105,37 @@ export default function FlashcardView({
 			stability: result.card.stability,
 		};
 		addTelemetry(telemetry);
-		setDirection("next");
-		setIsFlipped(false);
-		console.log(initialQuestions);
-
-		if (result.card.due >= filteredQuestions[1].fsrsDue) {
-			setCurrentCard(filteredQuestions[1]);
-			if (filteredQuestions[1].fsrsDue > new Date()) {
-				setCurrentCard(null);
-			}
+		if (initialQuestions[1].fsrsDue <= new Date()) {
+			const telemetry: Tables<"events"> = {
+				//TODO MAKE THIS A CUSTOM TYPE
+				before_difficulty: initialQuestions[1].fsrsDifficulty,
+				before_stability: initialQuestions[1].fsrsStability,
+				created_at: new Date().toISOString(),
+				difficulty: initialQuestions[1].fsrsDifficulty,
+				event_type: "card_shown",
+				question_id: initialQuestions[1].id,
+				rating: null,
+				stability: initialQuestions[1].fsrsStability,
+			};
+			addTelemetry(telemetry);
 		}
-		setFilterCount(filterCount - 1);
-		setDisabled(true);
 	}
 
 	const changeDirection = (dir: -1 | 1) => {
 		setDirection(dir === 1 ? "next" : "prev");
 		setIsFlipped(false);
 		const temp =
-			(((currentIndex + dir) % initialQuestions.length) +
-				initialQuestions.length) %
-			initialQuestions.length;
+			mode === "review"
+				? (((currentIndex + dir) % initialQuestions.length) +
+						initialQuestions.length) %
+					initialQuestions.length
+				: 1;
 		setCurrentIndex(temp);
-		setCurrentCard(initialQuestions[temp]);
-		console.log(initialQuestions.length);
+		setCard(initialQuestions[temp]);
 	};
 	//
 	// const handleComplete = () => {
-	// 	const id = filteredQuestions[currentIndex].id;
+	// 	const id = initialQuestions[currentIndex].id;
 	// 	setActionHistory((prev) => [
 	// 		...prev,
 	// 		{ type: "complete", id, prevIndex: currentIndex },
@@ -149,13 +143,13 @@ export default function FlashcardView({
 	// 	setItem(id, true);
 	// 	setIsFlipped(false);
 	// 	setCompletedIds((prev) => [...prev, id]);
-	// 	if (currentIndex >= filteredQuestions.length - 1) {
+	// 	if (currentIndex >= initialQuestions.length - 1) {
 	// 		setCurrentIndex(0);
 	// 	}
 	// };
 	//
 	// const handleSkip = () => {
-	// 	const id = filteredQuestions[currentIndex].id;
+	// 	const id = initialQuestions[currentIndex].id;
 	// 	setActionHistory((prev) => [
 	// 		...prev,
 	// 		{ type: "skip", id, prevIndex: currentIndex },
@@ -171,10 +165,10 @@ export default function FlashcardView({
 	// 		removeItem(lastAction.id);
 	// 		setCompletedIds((prev) => {
 	// 			const nextCompletedIds = prev.filter((id) => id !== lastAction.id);
-	// 			const nextFilteredQuestions = questions.filter(
+	// 			const nextinitialQuestions = questions.filter(
 	// 				(q) => !nextCompletedIds.includes(q.id),
 	// 			);
-	// 			const targetIndex = nextFilteredQuestions.findIndex(
+	// 			const targetIndex = nextinitialQuestions.findIndex(
 	// 				(q) => q.id === lastAction.id,
 	// 			);
 	// 			setCurrentIndex(targetIndex === -1 ? 0 : targetIndex);
@@ -186,7 +180,7 @@ export default function FlashcardView({
 	//
 	// 	const targetIndex = Math.max(
 	// 		0,
-	// 		Math.min(lastAction.prevIndex, filteredQuestions.length - 1),
+	// 		Math.min(lastAction.prevIndex, initialQuestions.length - 1),
 	// 	);
 	// 	setCurrentIndex(targetIndex);
 	// 	setActionHistory((prev) => prev.slice(0, -1));
@@ -212,7 +206,7 @@ export default function FlashcardView({
 				? "animate-slide-in-left"
 				: "animate-slide-in-right";
 
-	if (currentCard == null) {
+	if (card.fsrsDue >= new Date()) {
 		return (
 			<div className="mx-auto max-w-md space-y-4 animate-soft-pop rounded-xl border border-primary/20 bg-muted/80 px-8 py-16 text-center shadow-lg motion-reduce:animate-none">
 				<p className="text-2xl font-semibold text-foreground">
@@ -260,9 +254,11 @@ export default function FlashcardView({
 		>
 			{isStudyMode && (
 				<StudyProgress
-					completedCount={initialQuestions.length - filterCount}
 					totalCount={initialQuestions.length}
-					cardsLeft={filterCount}
+					cardsLeft={
+						initialQuestions.filter((q) => q.fsrsDue <= new Date()).length -
+						(card.id === initialQuestions[0].id ? 0 : 1)
+					}
 				/>
 			)}
 			<div className="flex gap-4">
@@ -273,21 +269,21 @@ export default function FlashcardView({
 					/>
 				)}
 				<button
-					key={`${currentCard.id}-${direction}`}
+					key={`${card.id}-${direction}`}
 					type="button"
 					className={`group w-full ${height} perspective-distant cursor-pointer rounded-xl transition-transform duration-200 ease-out active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary motion-reduce:animate-none motion-reduce:transition-none ${animationClass}`}
 					onClick={() => {
 						setIsFlipped(!isFlipped);
 						const telemetry: Tables<"events"> = {
 							//TODO MAKE THIS A CUSTOM TYPE
-							before_difficulty: currentCard.fsrsDifficulty,
-							before_stability: currentCard.fsrsStability,
+							before_difficulty: card.fsrsDifficulty,
+							before_stability: card.fsrsStability,
 							created_at: new Date().toISOString(),
-							difficulty: currentCard.fsrsDifficulty,
+							difficulty: card.fsrsDifficulty,
 							event_type: "card_flipped",
-							question_id: currentCard.id,
+							question_id: card.id,
 							rating: null,
-							stability: currentCard.fsrsStability,
+							stability: card.fsrsStability,
 						};
 						addTelemetry(telemetry);
 					}}
@@ -295,10 +291,10 @@ export default function FlashcardView({
 					<div
 						className={`relative h-full w-full transform-3d transition-[transform] duration-500 ease-out motion-reduce:transition-none ${isFlipped ? "-rotate-y-180" : "hover:-rotate-y-6 hover:scale-[1.01]"}`}
 					>
-						<Flashcard text={currentCard.answer} isBack />
+						<Flashcard text={card.answer} isBack />
 						<Flashcard
-							text={currentCard.question}
-							imageUrl={currentCard.imageUrl}
+							text={card.question}
+							imageUrl={card.imageUrl}
 							limitImageSize={isStudyMode}
 						/>
 					</div>
@@ -313,7 +309,7 @@ export default function FlashcardView({
 			{!isStudyMode && (
 				<div className="mt-4 flex flex-col items-center">
 					<div className="text-sm font-medium text-muted-foreground">
-						{currentIndex + 1} / {filteredQuestions.length}
+						{currentIndex + 1} / {initialQuestions.length}
 					</div>
 				</div>
 			)}
@@ -326,8 +322,8 @@ export default function FlashcardView({
 								<button
 									key={index}
 									type="button"
-									disabled={disabled}
-									onClick={() => setDifficulty(index, currentCard)}
+									disabled={card.id === initialQuestions[1].id}
+									onClick={() => setDifficulty(index, card)}
 									className={`rounded-full p-4 text-muted-foreground transition-[transform,background-color,color,box-shadow] duration-200 ease-out enabled:hover:-translate-y-1 enabled:hover:scale-110 active:scale-90 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary enabled:hover:text-primary enabled:hover:shadow-lg`}
 								>
 									<Icon size={40} strokeWidth={2.5} />

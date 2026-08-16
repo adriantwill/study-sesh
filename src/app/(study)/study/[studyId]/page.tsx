@@ -1,9 +1,11 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { addTelemetry } from "@/src/app/actions";
 import EditTitle from "@/src/components/questions/EditTitle";
 import FlashcardView from "@/src/components/study/FlashcardView";
 import { auth } from "@/src/lib/auth";
 import { createClient } from "@/src/lib/supabase/server";
+import type { Tables } from "@/src/types/database.types";
 import { questionRowToStudyQuestion } from "@/src/utils/cards";
 
 export default async function StudyPage({
@@ -39,7 +41,8 @@ export default async function StudyPage({
 				)
 				.eq("upload_id", studyId)
 				.eq("deleted", false)
-				.order("fsrs_due_at", { ascending: true }),
+				.order("fsrs_due_at", { ascending: true })
+				.order("fsrs_last_reviewed_at", { ascending: true }),
 			supabase.from("uploads").select("filename").eq("id", studyId).single(),
 		]);
 
@@ -60,6 +63,20 @@ export default async function StudyPage({
 	const questions = data.map((q) => questionRowToStudyQuestion(q));
 	const title = upload.filename;
 
+	// if (questions[0].fsrsDue <= new Date()) {
+	// 	const telemetry: Tables<"events"> = {
+	// 		//TODO MAKE THIS A CUSTOM TYPE
+	// 		before_difficulty: questions[0].fsrsDifficulty,
+	// 		before_stability: questions[0].fsrsStability,
+	// 		created_at: new Date().toISOString(),
+	// 		difficulty: questions[0].fsrsDifficulty,
+	// 		event_type: "card_shown",
+	// 		question_id: questions[0].id,
+	// 		rating: null,
+	// 		stability: questions[0].fsrsStability,
+	// 	};
+	// 	addTelemetry(telemetry);
+	// }
 	return (
 		<div className="flex min-h-dvh flex-col px-8 py-[clamp(0.75rem,4dvh,2rem)]">
 			<EditTitle title={title} reviewId={studyId} />
