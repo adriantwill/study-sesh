@@ -212,7 +212,7 @@ export default function FlashcardView({
 				? "animate-slide-in-left"
 				: "animate-slide-in-right";
 
-	if (initialQuestions[0] == null) {
+	if (currentCard == null) {
 		return (
 			<div className="mx-auto max-w-md space-y-4 animate-soft-pop rounded-xl border border-primary/20 bg-muted/80 px-8 py-16 text-center shadow-lg motion-reduce:animate-none">
 				<p className="text-2xl font-semibold text-foreground">
@@ -278,6 +278,18 @@ export default function FlashcardView({
 					className={`group w-full ${height} perspective-distant cursor-pointer rounded-xl transition-transform duration-200 ease-out active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary motion-reduce:animate-none motion-reduce:transition-none ${animationClass}`}
 					onClick={() => {
 						setIsFlipped(!isFlipped);
+						const telemetry: Tables<"events"> = {
+							//TODO MAKE THIS A CUSTOM TYPE
+							before_difficulty: currentCard.fsrsDifficulty,
+							before_stability: currentCard.fsrsStability,
+							created_at: new Date().toISOString(),
+							difficulty: currentCard.fsrsDifficulty,
+							event_type: "card_switched",
+							question_id: currentCard.id,
+							rating: null,
+							stability: currentCard.fsrsStability,
+						};
+						addTelemetry(telemetry);
 					}}
 				>
 					<div
