@@ -416,7 +416,6 @@ export async function addQuestionAction(
 }
 export async function addTelemetry(telemtry: Tables<"events">) {
 	const supabase = await createClient();
-
 	const { error } = await supabase.from("events").insert(telemtry).single();
 
 	if (error) {

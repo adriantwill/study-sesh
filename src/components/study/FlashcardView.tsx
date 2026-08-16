@@ -1,10 +1,10 @@
 "use client";
 
 import { Check, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Card } from "ts-fsrs";
 import { fsrs, Rating } from "ts-fsrs";
-import { updateFsrsAction } from "@/src/app/actions";
+import { addTelemetry, updateFsrsAction } from "@/src/app/actions";
 import Flashcard from "@/src/components/study/Flashcard";
 import NavigationButton from "@/src/components/ui/NavigationButton";
 import type { StudyQuestion } from "@/src/types";
@@ -20,17 +20,6 @@ export default function FlashcardView({
 	height?: string;
 	mode?: "review" | "study";
 }) {
-	const _telemetry: Tables<"events"> = {
-		before_difficulty: null,
-		before_stability: null,
-		created_at: new Date().toISOString(),
-		difficulty: 0,
-		event_type: "card_shown",
-		id: 0,
-		question_id: initialQuestions[0].id,
-		rating: null,
-		stability: 0,
-	};
 	const isStudyMode = mode === "study";
 	// const [questions, setQuestions] = useState(initialQuestions);
 	const [filteredQuestions, setFQuestions] = useState(initialQuestions);
@@ -39,6 +28,22 @@ export default function FlashcardView({
 	);
 	const [filterCount, setFilterCount] = useState(initialQuestions.length);
 	const [disabled, setDisabled] = useState(false);
+	useEffect(() => {
+		if (currentCard !== null) {
+			const telemetry: Tables<"events"> = {
+				//TODO MAKE THIS A CUSTOM TYPE
+				before_difficulty: currentCard.fsrsDifficulty,
+				before_stability: currentCard.fsrsStability,
+				created_at: new Date().toISOString(),
+				difficulty: currentCard.fsrsDifficulty,
+				event_type: "card_shown",
+				question_id: currentCard.id,
+				rating: null,
+				stability: currentCard.fsrsStability,
+			};
+			addTelemetry(telemetry);
+		}
+	}, [currentCard]);
 	//TODO Fix if only 1 study card
 	if (initialQuestions !== filteredQuestions) {
 		setDisabled(false);
@@ -195,7 +200,7 @@ export default function FlashcardView({
 				? "animate-slide-in-left"
 				: "animate-slide-in-right";
 
-	if (currentCard == null) {
+	if (initialQuestions[0] == null) {
 		return (
 			<div className="mx-auto max-w-md space-y-4 animate-soft-pop rounded-xl border border-primary/20 bg-muted/80 px-8 py-16 text-center shadow-lg motion-reduce:animate-none">
 				<p className="text-2xl font-semibold text-foreground">
