@@ -184,6 +184,22 @@ export async function deleteItemAction(id: string, variant: ActionTableName) {
 				break;
 			}
 			case "questions": {
+				const { data: events, error: noEvents } = await supabase
+					.from("questions")
+					.select("id")
+					.eq("upload_id", id);
+
+				if (noEvents) throw noEvents;
+				if (events.length > 0) {
+					const { error: deleteEventsError } = await supabase
+						.from("events")
+						.delete()
+						.in(
+							"question_id",
+							events.map((e) => e.id),
+						);
+					if (deleteEventsError) throw deleteEventsError;
+				}
 				const { error } = await supabase
 					.from("questions")
 					.update({ deleted: true })
@@ -219,11 +235,26 @@ export async function deleteItemAction(id: string, variant: ActionTableName) {
 					.eq("id", id)
 					.single();
 
+				const { data: events, error: noEvents } = await supabase
+					.from("questions")
+					.select("id")
+					.eq("upload_id", id);
+
+				if (noEvents) throw noEvents;
+				if (events.length > 0) {
+					const { error: deleteEventsError } = await supabase
+						.from("events")
+						.delete()
+						.in(
+							"question_id",
+							events.map((e) => e.id),
+						);
+					if (deleteEventsError) throw deleteEventsError;
+				}
 				const { error: deleteQuestionsError } = await supabase
 					.from("questions")
 					.delete()
 					.eq("upload_id", id);
-
 				if (deleteQuestionsError) throw deleteQuestionsError;
 
 				if (upload?.storage_path) {
