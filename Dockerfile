@@ -27,7 +27,14 @@ ARG APP_VERSION=development
 ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
 ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-RUN printf '{"version":"%s"}\n' "$APP_VERSION" > public/version.json && npm run build
+RUN --mount=type=secret,id=DATABASE_URL,required=true \
+    --mount=type=secret,id=BETTER_AUTH_SECRET,required=true \
+    --mount=type=secret,id=BETTER_AUTH_URL,required=true \
+    export DATABASE_URL="$(cat /run/secrets/DATABASE_URL)" && \
+    export BETTER_AUTH_SECRET="$(cat /run/secrets/BETTER_AUTH_SECRET)" && \
+    export BETTER_AUTH_URL="$(cat /run/secrets/BETTER_AUTH_URL)" && \
+    printf '{"version":"%s"}\n' "$APP_VERSION" > public/version.json && \
+    npm run build
 
 # Production
 FROM base AS runner

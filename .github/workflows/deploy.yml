@@ -39,6 +39,10 @@ jobs:
             APP_VERSION=${{ github.sha }}
             NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
             NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          secrets: |
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            BETTER_AUTH_SECRET=${{ secrets.BETTER_AUTH_SECRET }}
+            BETTER_AUTH_URL=${{ secrets.BETTER_AUTH_URL }}
     outputs:
       digest: ${{ steps.build.outputs.digest }}
 
