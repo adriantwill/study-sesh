@@ -98,8 +98,7 @@ export default async function ReviewPage({
 						<EditField
 							textField={description}
 							id={reviewId}
-							table="uploads"
-							col="description"
+							columnName="description"
 						/>
 					</div>
 				</div>

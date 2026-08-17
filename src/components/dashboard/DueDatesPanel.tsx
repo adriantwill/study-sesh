@@ -177,8 +177,7 @@ export default function DueDatesPanel({
 							<EditField
 								textField={item.title ?? "Untitled"}
 								id={String(item.id)}
-								table="deadlines"
-								col="title"
+								columnName="title"
 							/>
 						</div>
 						<div className="flex items-center gap-2">

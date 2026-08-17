@@ -19,24 +19,17 @@ export type DeleteItemName =
 	| "folders"
 	| "uploads";
 
-type QuestionInsert = typeof questions.$inferInsert;
-type UploadInsert = typeof uploads.$inferInsert;
-type FolderInsert = typeof folders.$inferInsert;
-type DeadlineInsert = typeof deadlines.$inferInsert;
-
-type TextUpdateRows = {
-	questions: Pick<QuestionInsert, "questionText" | "answerText">;
-	uploads: Pick<UploadInsert, "filename" | "description">;
-	folders: Pick<FolderInsert, "name">;
-	deadlines: Pick<DeadlineInsert, "title">;
-};
-
-export type TextUpdateTable = keyof TextUpdateRows;
-export type TextUpdateColumn<T extends TextUpdateTable> = Extract<
-	keyof TextUpdateRows[T],
-	string
+export type ParentTable = "uploads" | "table_uploads" | "folders";
+export type ReorderQuestion = Pick<
+	StudyQuestion,
+	"id" | "displayOrder" | "upload_id"
 >;
-
+export type Temp =
+	| typeof uploads
+	| typeof folders
+	| typeof tableUploads
+	| typeof questions
+	| typeof deadlines;
 export interface StudyQuestion {
 	id: string;
 	upload_id: string;

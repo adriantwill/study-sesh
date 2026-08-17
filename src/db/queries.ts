@@ -1,6 +1,5 @@
 "use server";
 import { and, eq, inArray, sql } from "drizzle-orm";
-import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { after } from "next/server";
@@ -21,7 +20,6 @@ import { auth } from "@/src/lib/auth";
 import {
 	getQuestionImagePublicUrl,
 	removeFile,
-	removePdf,
 	uploadPdf,
 	uploadQuestionImage,
 } from "@/src/lib/storage";
@@ -29,40 +27,34 @@ import { isParsedTableData, parseXlsxTable } from "@/src/lib/xlsx-table";
 import type {
 	DeleteItemName,
 	EventInsert,
-	StudyQuestion,
-	TextUpdateColumn,
-	TextUpdateTable,
+	ParentTable,
+	ReorderQuestion,
+	Temp,
 } from "@/src/types";
 import { db } from "./index";
 
 const DISPLAY_ORDER_STEP = 100;
-type ReorderQuestion = Pick<StudyQuestion, "id" | "displayOrder" | "upload_id">;
-type OwnedTable =
-	| "questions"
-	| "uploads"
-	| "folders"
-	| "tableUploads"
-	| "table_uploads"
-	| "deadlines";
-const ownedTables = {
-	uploads: [uploads, uploads.id, uploads.userId],
-	folders: [folders, folders.id, folders.userId],
-	tableUploads: [tableUploads, tableUploads.id, tableUploads.userId],
-	table_uploads: [tableUploads, tableUploads.id, tableUploads.userId],
-	deadlines: [deadlines, deadlines.id, deadlines.userId],
-} as const;
 async function getSessionUserId() {
 	const session = await auth.api.getSession({ headers: await headers() });
 	if (!session) throw new Error("Not authenticated");
 	return session.user.id;
 }
-type Temp =
-	| typeof uploads
-	| typeof folders
-	| typeof tableUploads
-	| typeof questions
-	| typeof deadlines;
-async function assertOwnedTest(table: Temp, id: string, userId: string) {
+const column_to_table = {
+	questionText: questions,
+	answerText: questions,
+	filename: uploads,
+	description: uploads,
+	name: folders,
+	title: deadlines,
+} as const;
+export type TextUpdateColumn = keyof typeof column_to_table;
+const string_to_table = {
+	table_uploads: tableUploads,
+	questions,
+	folders,
+	uploads,
+};
+async function assertOwned(table: Temp, id: string, userId: string) {
 	switch (table) {
 		case questions: {
 			const [result] = await db
@@ -79,71 +71,15 @@ async function assertOwnedTest(table: Temp, id: string, userId: string) {
 		case folders:
 		case uploads: {
 			const [result] = await db
-				.select({ id: uploads.id })
-				.from(uploads)
-				.where(and(eq(uploads.id, id), eq(uploads.userId, userId)))
+				.select({ id: table.id })
+				.from(table)
+				.where(and(eq(table.id, id), eq(table.userId, userId)))
 				.limit(1);
 
 			if (!result) throw new Error("Not authorized");
 			return;
 		}
 		case deadlines: {
-			const [result] = await db
-				.select({ id: deadlines.id })
-				.from(deadlines)
-				.where(and(eq(deadlines.id, Number(id)), eq(deadlines.userId, userId)))
-				//TODO change this in db to type of string so no conversino needed
-				.limit(1);
-
-			if (!result) throw new Error("Not authorized");
-		}
-	}
-}
-async function assertOwned(table: OwnedTable, id: string, userId: string) {
-	switch (table) {
-		case "questions": {
-			const [result] = await db
-				.select({ uploadId: questions.uploadId })
-				.from(questions)
-				.innerJoin(uploads, eq(questions.uploadId, uploads.id))
-				.where(and(eq(questions.id, id), eq(uploads.userId, userId)))
-				.limit(1);
-
-			if (!result) throw new Error("Not authorized");
-			return result.uploadId;
-		}
-		case "uploads": {
-			const [result] = await db
-				.select({ id: uploads.id })
-				.from(uploads)
-				.where(and(eq(uploads.id, id), eq(uploads.userId, userId)))
-				.limit(1);
-
-			if (!result) throw new Error("Not authorized");
-			return;
-		}
-		case "folders": {
-			const [result] = await db
-				.select({ id: folders.id })
-				.from(folders)
-				.where(and(eq(folders.id, id), eq(folders.userId, userId)))
-				.limit(1);
-
-			if (!result) throw new Error("Not authorized");
-			return;
-		}
-		case "tableUploads":
-		case "table_uploads": {
-			const [result] = await db
-				.select({ id: tableUploads.id })
-				.from(tableUploads)
-				.where(and(eq(tableUploads.id, id), eq(tableUploads.userId, userId)))
-				.limit(1);
-
-			if (!result) throw new Error("Not authorized");
-			return;
-		}
-		case "deadlines": {
 			const [result] = await db
 				.select({ id: deadlines.id })
 				.from(deadlines)
@@ -171,7 +107,7 @@ async function normalizeOrder(uploadId: string) {
 	);
 }
 export async function normalizeQuestionDisplayOrder(uploadId: string) {
-	await assertOwned("uploads", uploadId, await getSessionUserId());
+	await assertOwned(uploads, uploadId, await getSessionUserId());
 	await normalizeOrder(uploadId);
 }
 export async function generateWrongOptionsAction(
@@ -180,7 +116,7 @@ export async function generateWrongOptionsAction(
 	questionId: string,
 ) {
 	const uploadId = await assertOwned(
-		"questions",
+		questions,
 		questionId,
 		await getSessionUserId(),
 	);
@@ -271,69 +207,39 @@ export async function deleteItemByNameAction(
 	id: string,
 	variant: DeleteItemName,
 ) {
-	await assertOwned(variant, id, await getSessionUserId());
-	const newvariant = {
-		table_uploads: tableUploads,
-		questions,
-		folders,
-		uploads,
-	}[variant];
+	await assertOwned(string_to_table[variant], id, await getSessionUserId());
 	//TODO make pdfs and images delete
 	try {
-		await db.delete(newvariant).where(eq(newvariant.id, id));
+		await db
+			.delete(string_to_table[variant])
+			.where(eq(string_to_table[variant].id, id));
 		revalidatePath("/");
 	} catch (error) {
 		console.error("Delete error:", error);
 		throw new Error(`Failed to delete ${variant}`);
 	}
 }
-export async function updateQuestionTextAction<T extends TextUpdateTable>(
+export async function updateQuestionTextAction(
 	id: string,
 	text: string,
-	table: T,
-	columnName: TextUpdateColumn<T>,
+	columnName: TextUpdateColumn,
 ) {
-	const uploadId = await assertOwned(table, id, await getSessionUserId());
-	switch (table) {
-		case "questions": {
-			if (columnName !== "questionText" && columnName !== "answerText") {
-				throw new Error("Invalid question column");
-			}
-			const values =
-				columnName === "questionText"
-					? { questionText: text }
-					: { answerText: text };
-			await db.update(questions).set(values).where(eq(questions.id, id));
-			break;
-		}
-
-		case "uploads": {
-			if (columnName !== "filename" && columnName !== "description") {
-				throw new Error("Invalid upload column");
-			}
-			const values =
-				columnName === "filename" ? { filename: text } : { description: text };
-			await db.update(uploads).set(values).where(eq(uploads.id, id));
-			break;
-		}
-
-		case "folders":
-			if (columnName !== "name") throw new Error("Invalid folder column");
-			await db.update(folders).set({ name: text }).where(eq(folders.id, id));
-			break;
-
-		case "deadlines":
-			if (columnName !== "title") throw new Error("Invalid deadline column");
-			await db
-				.update(deadlines)
-				.set({ title: text })
-				.where(eq(deadlines.id, Number(id)));
-			break;
+	if (!Object.hasOwn(column_to_table, columnName))
+		throw new Error("Invalid text column");
+	if (columnName === "title") {
+		await changeDeadline(Number(id), { title: text });
+		return;
 	}
+	const table = column_to_table[columnName];
+	const uploadId = await assertOwned(table, id, await getSessionUserId());
+	await db
+		.update(table)
+		.set({ [columnName]: text })
+		.where(eq(table.id, id));
 	revalidatePath(
 		uploadId
 			? `/uploads/${uploadId}`
-			: table === "uploads"
+			: table === uploads
 				? `/uploads/${id}`
 				: "/",
 	);
@@ -345,7 +251,7 @@ export async function updateTableCellAction(
 	value: string,
 ) {
 	const userId = await getSessionUserId();
-	await assertOwned("tableUploads", tableId, userId);
+	await assertOwned(tableUploads, tableId, userId);
 	const [data] = await db
 		.select({ parsedData: tableUploads.parsedData })
 		.from(tableUploads)
@@ -374,7 +280,7 @@ export async function uploadImageAction(
 	const file = formData.get("file");
 	if (!(file instanceof File)) return;
 	const uploadId = await assertOwned(
-		"questions",
+		questions,
 		questionId,
 		await getSessionUserId(),
 	);
@@ -388,13 +294,13 @@ export async function uploadImageAction(
 	revalidatePath(`/uploads/${uploadId}`, "page");
 }
 export async function addQuestionAction(
-	//TODO remove sparse ordering
+	//TODO remove sparse ordering sorting
 	uploadId: string,
 	_insertAtPosition: number,
 	prev?: number | null,
 	next?: number | null,
 ) {
-	await assertOwned("uploads", uploadId, await getSessionUserId());
+	await assertOwned(uploads, uploadId, await getSessionUserId());
 	const order = displayOrder(prev, next);
 	const now = new Date().toISOString();
 	await db.insert(questions).values({
@@ -420,11 +326,7 @@ export async function addQuestionAction(
 		});
 }
 export async function addTelemetry(telemetry: EventInsert) {
-	await assertOwned(
-		"questions",
-		telemetry.questionId,
-		await getSessionUserId(),
-	);
+	await assertOwned(questions, telemetry.questionId, await getSessionUserId());
 	await db.insert(events).values(telemetry);
 }
 export async function addFolderAction() {
@@ -465,7 +367,7 @@ async function changeDeadline(
 	operation: "delete" | { title: string } | { dueDate: string | null },
 ) {
 	const userId = await getSessionUserId();
-	await assertOwned("deadlines", String(id), userId);
+	await assertOwned(deadlines, String(id), userId);
 	if (operation === "delete")
 		await db.delete(deadlines).where(eq(deadlines.id, id));
 	else await db.update(deadlines).set(operation).where(eq(deadlines.id, id));
@@ -486,34 +388,28 @@ export async function deleteDeadlineAction(id: number) {
 export async function updateParentAction(
 	id: string,
 	parentId: string | null,
-	table: OwnedTable,
+	table: ParentTable,
 ) {
 	const userId = await getSessionUserId();
-	await assertOwned(table, id, userId);
-	if (parentId) await assertOwned("folders", parentId, userId);
-	switch (table) {
-		case "uploads":
+	await assertOwned(string_to_table[table], id, userId);
+	if (parentId) await assertOwned(folders, parentId, userId);
+	switch (string_to_table[table]) {
+		case tableUploads:
+		case uploads:
 			await db
-				.update(uploads)
+				.update(string_to_table[table])
 				.set({ folderId: parentId })
-				.where(eq(uploads.id, id));
+				.where(eq(string_to_table[table].id, id));
 			break;
 
-		case "tableUploads":
-			await db
-				.update(tableUploads)
-				.set({ folderId: parentId })
-				.where(eq(tableUploads.id, id));
-			break;
-
-		case "folders":
+		case folders:
 			await db.update(folders).set({ parentId }).where(eq(folders.id, id));
 			break;
 	}
 	revalidatePath("/");
 }
 export async function updateFsrsAction(id: string, card: Card) {
-	await assertOwned("questions", id, await getSessionUserId());
+	await assertOwned(questions, id, await getSessionUserId());
 	await db
 		.update(questions)
 		.set({
@@ -539,7 +435,7 @@ export async function reorderQuestionsAction(
 	if (index < 0) throw new Error("Question not found");
 	const active = items[index];
 	const uploadId = await assertOwned(
-		"questions",
+		questions,
 		activeId,
 		await getSessionUserId(),
 	);

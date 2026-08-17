@@ -18,12 +18,7 @@ export default function EditTitle({ title, reviewId }: EditTitleProps) {
 				href={`/uploads/${reviewId}`}
 				className="flex min-w-0 items-center gap-2 cursor-pointer"
 			>
-				<EditField
-					textField={title}
-					id={reviewId}
-					table="uploads"
-					col="filename"
-				/>
+				<EditField textField={title} id={reviewId} columnName="filename" />
 			</Link>
 		</h1>
 	);

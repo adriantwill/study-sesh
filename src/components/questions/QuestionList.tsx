@@ -205,8 +205,7 @@ export default function QuestionList({
 											onEditingChange={(isEditing) =>
 												handleEditingChange(`${q.id}:questionText`, isEditing)
 											}
-											table="questions"
-											col="questionText"
+											columnName="questionText"
 										/>
 										<ImageUploadButton id={q.id} />
 										<DeleteButton
@@ -238,8 +237,7 @@ export default function QuestionList({
 												onEditingChange={(isEditing) =>
 													handleEditingChange(`${q.id}:answerText`, isEditing)
 												}
-												table="questions"
-												col="answerText"
+												columnName="answerText"
 											/>
 										</div>
 									</details>

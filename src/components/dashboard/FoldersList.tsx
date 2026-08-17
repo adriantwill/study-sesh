@@ -203,7 +203,7 @@ export default function FoldersList({
 				await updateParentAction(
 					draggedUpload.id,
 					parentId,
-					draggedUpload.table === "table_uploads" ? "tableUploads" : "uploads",
+					draggedUpload.table,
 				);
 				if (parentId) {
 					setOpenFolderIds((current) => new Set(current).add(parentId));
@@ -318,8 +318,7 @@ export default function FoldersList({
 					<EditField
 						textField={folder.name}
 						id={folder.id}
-						table="folders"
-						col="name"
+						columnName="name"
 						openFolder={() => toggleFolder(folder.id)}
 					/>
 					<DeleteButton
