@@ -10,12 +10,12 @@ import {
 	generateWrongOptionsAction,
 	reorderQuestionsAction,
 } from "@/src/db/queries";
-import type { StudyQuestion } from "@/src/types";
+import type { Question } from "@/src/types";
 import AddQuestionButton from "./AddQuestionButton";
 import ImageUploadButton from "./ImageUploadButton";
 
 interface QuestionListProps {
-	questions: StudyQuestion[];
+	questions: Question[];
 	reviewId: string;
 }
 
@@ -152,10 +152,10 @@ export default function QuestionList({
 		}
 	}
 
-	async function handleGenerateWrongOptions(question: StudyQuestion) {
+	async function handleGenerateWrongOptions(question: Question) {
 		const generatedOptions = await generateWrongOptionsAction(
-			question.question,
-			question.answer,
+			question.questionText,
+			question.answerText,
 			question.id,
 		);
 
@@ -200,7 +200,7 @@ export default function QuestionList({
 								<div className="w-1 flex-1">
 									<div className="flex items-center gap-2">
 										<EditField
-											textField={q.question}
+											textField={q.questionText}
 											id={q.id}
 											onEditingChange={(isEditing) =>
 												handleEditingChange(`${q.id}:questionText`, isEditing)
@@ -211,7 +211,7 @@ export default function QuestionList({
 										<DeleteButton
 											id={q.id}
 											table="questions"
-											name={q.question}
+											name={q.questionText}
 											displayElement={() => displayElement(q.id)}
 										/>
 
@@ -232,7 +232,7 @@ export default function QuestionList({
 										</summary>
 										<div className="mt-2 flex items-center justify-between gap-2 rounded-lg bg-muted-hover p-4">
 											<EditField
-												textField={q.answer}
+												textField={q.answerText}
 												id={q.id}
 												onEditingChange={(isEditing) =>
 													handleEditingChange(`${q.id}:answerText`, isEditing)

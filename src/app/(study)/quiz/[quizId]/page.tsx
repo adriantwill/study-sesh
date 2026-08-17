@@ -52,9 +52,9 @@ export default async function QuizPage({
 						<div className="text-muted-foreground">Question {i + 1}</div>
 						<div className="flex flex-1 flex-col justify-center space-y-16">
 							<div className="whitespace-pre-wrap text-center text-[clamp(1.5rem,4vw,1.875rem)] font-medium text-foreground">
-								{parseMarkdown(q.question)}
+								{parseMarkdown(q.questionText)}
 							</div>
-							<QuizChoices choices={q.options ?? []} answer={q.answer} />
+							<QuizChoices choices={q.options ?? []} answer={q.answerText} />
 						</div>
 					</div>
 					<QuizCard />

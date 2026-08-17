@@ -7,7 +7,7 @@ import { fsrs, Rating } from "ts-fsrs";
 import Flashcard from "@/src/components/study/Flashcard";
 import NavigationButton from "@/src/components/ui/NavigationButton";
 import { addTelemetry, updateFsrsAction } from "@/src/db/queries";
-import type { EventInsert, StudyQuestion } from "@/src/types";
+import type { EventInsert, Question } from "@/src/types";
 import StudyProgress from "./StudyProgress";
 
 export default function FlashcardView({
@@ -15,7 +15,7 @@ export default function FlashcardView({
 	height,
 	mode = "review",
 }: {
-	questions: StudyQuestion[];
+	questions: Question[];
 	height?: string;
 	mode?: "review" | "study";
 }) {
@@ -51,23 +51,23 @@ export default function FlashcardView({
 
 	function setDifficulty(
 		level: (typeof valid_ratings)[number],
-		question: StudyQuestion,
+		question: Question,
 	) {
 		changeDirection(1);
 		const card: Card = {
-			due: question.fsrsDue,
+			due: new Date(question.fsrsDueAt),
 			stability: question.fsrsStability,
 			difficulty: question.fsrsDifficulty,
 			scheduled_days: question.fsrsScheduled,
 			learning_steps: question.fsrsLearning,
 			elapsed_days: Math.round(
-				(Date.now() - question.fsrsLastReviewed.getTime()) /
+				(Date.now() - new Date(question.fsrsLastReviewedAt).getTime()) /
 					(60 * 60 * 24 * 1000),
 			),
 			reps: question.fsrsReviewCount,
 			lapses: question.fsrsLapses,
 			state: question.fsrsState,
-			last_review: question.fsrsLastReviewed,
+			last_review: new Date(question.fsrsLastReviewedAt),
 		};
 		const result = scheduler.next(card, new Date(), level);
 		updateFsrsAction(question.id, result.card);
@@ -83,7 +83,7 @@ export default function FlashcardView({
 			stability: result.card.stability,
 		};
 		addTelemetry(telemetry);
-		if (initialQuestions[1].fsrsDue <= new Date()) {
+		if (new Date(initialQuestions[1].fsrsDueAt) <= new Date()) {
 			const telemetry: EventInsert = {
 				beforeDifficulty: initialQuestions[1].fsrsDifficulty,
 				beforeStability: initialQuestions[1].fsrsStability,
@@ -184,7 +184,7 @@ export default function FlashcardView({
 				? "animate-slide-in-left"
 				: "animate-slide-in-right";
 
-	if (card.fsrsDue >= new Date()) {
+	if (new Date(card.fsrsDueAt) >= new Date()) {
 		return (
 			<div className="mx-auto max-w-md space-y-4 animate-soft-pop rounded-xl border border-primary/20 bg-muted/80 px-8 py-16 text-center shadow-lg motion-reduce:animate-none">
 				<p className="text-2xl font-semibold text-foreground">
@@ -234,8 +234,8 @@ export default function FlashcardView({
 				<StudyProgress
 					totalCount={initialQuestions.length}
 					cardsLeft={
-						initialQuestions.filter((q) => q.fsrsDue <= new Date()).length -
-						(card.id === initialQuestions[0].id ? 0 : 1)
+						initialQuestions.filter((q) => new Date(q.fsrsDueAt) <= new Date())
+							.length - (card.id === initialQuestions[0].id ? 0 : 1)
 					}
 				/>
 			)}
@@ -268,9 +268,9 @@ export default function FlashcardView({
 					<div
 						className={`relative h-full w-full transform-3d transition-[transform] duration-500 ease-out motion-reduce:transition-none ${isFlipped ? "-rotate-y-180" : "hover:-rotate-y-6 hover:scale-[1.01]"}`}
 					>
-						<Flashcard text={card.answer} isBack />
+						<Flashcard text={card.answerText} isBack />
 						<Flashcard
-							text={card.question}
+							text={card.questionText}
 							imageUrl={card.imageUrl}
 							limitImageSize={isStudyMode}
 						/>

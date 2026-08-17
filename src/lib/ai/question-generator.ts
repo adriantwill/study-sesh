@@ -1,8 +1,13 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Poppler } from "node-poppler";
-import type { StudyQuestion } from "@/src/types";
-import { uploadRecordAction } from "../questions";
+import type { Question } from "@/src/types";
+
+type UploadRecord = (
+	uploadId: string,
+	questions: Question[],
+	position: number,
+) => Promise<number>;
 
 export async function generateWrongOptions(
 	question: string,
@@ -100,7 +105,11 @@ Rules:
 }
 
 //TODO optimize the pdf cario thing
-export async function generateQuestions(pdfBuffer: Buffer, uploadId: string) {
+export async function generateQuestions(
+	pdfBuffer: Buffer,
+	uploadId: string,
+	uploadRecord: UploadRecord,
+) {
 	if (!process.env.GEMINI_API_KEY) {
 		throw new Error("GEMINI_API_KEY not configured");
 	}
@@ -279,27 +288,31 @@ Return JSON array only:
 							options: string[];
 						}>;
 
-						const questions: StudyQuestion[] = pageQuestions.map((q) => ({
+						const questions: Question[] = pageQuestions.map((q) => ({
 							id: "id", // Placeholder
-							upload_id: "",
-							question: q.question,
-							answer: q.answer,
+							uploadId: "",
+							questionText: q.question,
+							answerText: q.answer,
+							createdAt: null,
+							imageUrl: null,
 							displayOrder: 0,
 							options: q.options,
 							pageNumber,
 							ocrText: null,
-							originalQuestion: q.question,
+							originalQuestionText: q.question,
+							originalAnswerText: q.answer,
+							deleted: false,
 							fsrsDifficulty: 0,
 							fsrsStability: 0,
-							fsrsDue: new Date(),
-							fsrsLastReviewed: new Date(),
+							fsrsDueAt: new Date().toISOString(),
+							fsrsLastReviewedAt: new Date().toISOString(),
 							fsrsReviewCount: 0,
 							fsrsState: 0,
 							fsrsScheduled: 0,
 							fsrsLearning: 0,
 							fsrsLapses: 0,
 						}));
-						const inserted = await uploadRecordAction(uploadId, questions, i);
+						const inserted = await uploadRecord(uploadId, questions, i);
 						insertedCount += inserted;
 					} catch (err) {
 						failedSlideCount += 1;

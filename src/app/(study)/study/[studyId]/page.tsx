@@ -50,7 +50,7 @@ export default async function StudyPage({
 	const questions = data.map((q) => questionRowToStudyQuestion(q));
 	const title = upload.filename;
 
-	// if (questions[0].fsrsDue <= new Date()) {
+	// if (new Date(questions[0].fsrsDueAt) <= new Date()) {
 	// 	const telemetry: Tables<"events"> = {
 	// 		//TODO MAKE THIS A CUSTOM TYPE
 	// 		before_difficulty: questions[0].fsrsDifficulty,
