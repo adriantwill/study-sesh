@@ -1,7 +1,7 @@
 "use client";
 
 import { CalendarDays, Trash2 } from "lucide-react";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import EditField from "@/src/components/questions/EditField";
 import {
 	addDeadlineAction,
@@ -10,8 +10,6 @@ import {
 } from "@/src/db/queries";
 import type { Deadline } from "@/src/types";
 import BigPanel from "./BigPanel";
-
-type DueDatePanelSide = "left" | "right";
 
 const millisecondsPerDay = 24 * 60 * 60 * 1000;
 
@@ -70,10 +68,8 @@ function sortDeadlines(deadlines: Deadline[]) {
 }
 
 export default function DueDatesPanel({
-	side,
 	deadlines,
 }: {
-	side: DueDatePanelSide;
 	deadlines: Deadline[];
 }) {
 	const dateInputRefs = useRef<Record<number, HTMLInputElement | null>>({});

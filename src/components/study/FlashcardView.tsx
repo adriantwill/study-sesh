@@ -1,7 +1,7 @@
 "use client";
 
-import { Check, Rat, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Check, X } from "lucide-react";
+import { useRef, useState } from "react";
 import type { Card } from "ts-fsrs";
 import { fsrs, Rating } from "ts-fsrs";
 import Flashcard from "@/src/components/study/Flashcard";
@@ -22,7 +22,7 @@ export default function FlashcardView({
 	const isStudyMode = mode === "study";
 	// const [questions, setQuestions] = useState(initialQuestions);
 	const [card, setCard] = useState(initialQuestions[0]);
-	const cardId = useRef<string | undefined>(undefined);
+	const _cardId = useRef<string | undefined>(undefined);
 	const [direction, setDirection] = useState<"next" | "prev" | "initial">(
 		"initial",
 	);
