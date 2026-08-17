@@ -1,16 +1,12 @@
 "use client";
 
 import { Trash2 } from "lucide-react";
-import { deleteItemAction } from "@/src/app/actions";
-import type { Database } from "@/src/types/database.types";
+import { deleteItemByNameAction } from "@/src/db/queries";
+import type { DeleteItemName } from "@/src/types";
 
-type DeleteButtonTable = keyof Pick<
-	Database["public"]["Tables"],
-	"questions" | "uploads" | "folders" | "table_uploads"
->;
 interface DeleteButtonProps {
 	id: string;
-	table: DeleteButtonTable;
+	table: DeleteItemName;
 	name: string;
 	displayElement?: () => Promise<void> | void;
 }
@@ -27,7 +23,7 @@ export default function DeleteButton({
 			if (displayElement) {
 				displayElement();
 			}
-			await deleteItemAction(id, table);
+			await deleteItemByNameAction(id, table);
 		}
 	}
 

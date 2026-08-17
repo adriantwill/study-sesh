@@ -4,26 +4,23 @@ import { useEffect, useRef, useState } from "react";
 import {
 	updateDeadlineTitleAction,
 	updateQuestionTextAction,
-} from "@/src/app/actions";
+} from "@/src/db/queries";
 import { parseMarkdown } from "@/src/lib/markdown";
-import type { Database } from "@/src/types/database.types";
+import type { TextUpdateColumn, TextUpdateTable } from "@/src/types";
 
-type PublicTables = Database["public"]["Tables"];
-type EditFieldTable = keyof PublicTables;
-type EditFieldColumn<T extends EditFieldTable> = keyof PublicTables[T]["Row"];
 const iconButtonClass =
 	"flex items-center justify-center enabled:cursor-pointer enabled:hover:text-primary";
 
-interface EditFieldProps<T extends EditFieldTable> {
+interface EditFieldProps<T extends TextUpdateTable> {
 	table: T;
-	col: EditFieldColumn<T>;
+	col: TextUpdateColumn<T>;
 	textField: string;
 	id: string;
 	onEditingChange?: (isEditing: boolean) => void;
 	openFolder?: () => void;
 }
 
-export default function EditField<T extends EditFieldTable>({
+export default function EditField<T extends TextUpdateTable>({
 	textField,
 	id,
 	onEditingChange,
@@ -35,7 +32,7 @@ export default function EditField<T extends EditFieldTable>({
 	const [text, setText] = useState(textField);
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 	const isFolderName = table === "folders" && col === "name";
-	const isAnswerText = table === "questions" && col === "answer_text";
+	const isAnswerText = table === "questions" && col === "answerText";
 	const isDeadlineTitle = table === "deadlines" && col === "title";
 
 	useEffect(() => {

@@ -1,13 +1,12 @@
 "use client";
 import * as lucideReact from "lucide-react";
 import { useState } from "react";
-import { updateParentAction } from "@/src/app/actions/index";
 import EditField from "@/src/components/questions/EditField";
 import DeleteButton from "@/src/components/ui/DeleteButton";
 import SegmentedControl from "@/src/components/ui/SegmentedControl";
+import { addFolderAction, updateParentAction } from "@/src/db/queries";
 import type * as types from "@/src/types";
 import type { Database, Tables } from "@/src/types/database.types";
-import { addFolderAction } from "../../app/actions/index";
 import BigPanel from "./BigPanel";
 import UploadLink from "./UploadLink";
 
@@ -204,8 +203,8 @@ export default function FoldersList({
 				await updateParentAction(
 					draggedUpload.id,
 					parentId,
-					draggedUpload.table,
-					"folder_id",
+					draggedUpload.table === "table_uploads" ? "tableUploads" : "uploads",
+					"folderId",
 				);
 				if (parentId) {
 					setOpenFolderIds((current) => new Set(current).add(parentId));
@@ -224,7 +223,7 @@ export default function FoldersList({
 				draggedFolderId,
 				parentId,
 				"folders",
-				"parent_id",
+				"parentId",
 			);
 			if (parentId) {
 				setOpenFolderIds((current) => new Set(current).add(parentId));

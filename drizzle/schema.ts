@@ -1,5 +1,5 @@
-import { pgTable, unique, text, boolean, timestamp, index, foreignKey, uuid, check, integer, doublePrecision, jsonb, bigint, real } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
+import { bigint, boolean, check, doublePrecision, foreignKey, index, integer, jsonb, pgTable, real, text, timestamp, unique, uuid } from "drizzle-orm/pg-core"
 
 
 
@@ -70,13 +70,13 @@ export const verification = pgTable("verification", {
 
 export const uploads = pgTable("uploads", {
 	id: uuid().defaultRandom().primaryKey().notNull(),
-	userId: text("user_id").default(').notNull(),
+	userId: text("user_id").default("").notNull(),
 	filename: text().notNull(),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow(),
 	folderId: uuid("folder_id"),
-	description: text().default(').notNull(),
+	description: text().default("").notNull(),
 	storagePath: text("storage_path"),
-	status: text().default('complete').notNull(),
+	status: text().default("complete").notNull(),
 }, (table) => [
 	foreignKey({
 			columns: [table.folderId],

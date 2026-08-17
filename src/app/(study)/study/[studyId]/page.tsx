@@ -1,11 +1,9 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { addTelemetry } from "@/src/app/actions";
 import EditTitle from "@/src/components/questions/EditTitle";
 import FlashcardView from "@/src/components/study/FlashcardView";
 import { auth } from "@/src/lib/auth";
 import { createClient } from "@/src/lib/supabase/server";
-import type { Tables } from "@/src/types/database.types";
 import { questionRowToStudyQuestion } from "@/src/utils/cards";
 
 export default async function StudyPage({

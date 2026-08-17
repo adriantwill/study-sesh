@@ -1,4 +1,59 @@
-import type { Database } from "./database.types";
+import type {
+	deadlines,
+	events,
+	folders,
+	questions,
+	tableUploads,
+	uploads,
+} from "@/drizzle/schema";
+
+export type Folder = typeof folders.$inferSelect;
+export type Question = typeof questions.$inferSelect;
+export type Table = typeof tableUploads.$inferSelect;
+export type Upload = typeof uploads.$inferSelect;
+export type Deadline = typeof deadlines.$inferSelect;
+export type EventInsert = typeof events.$inferInsert;
+export type databaseDelete =
+	| typeof tableUploads
+	| typeof questions
+	| typeof folders
+	| typeof uploads;
+export type DeleteItemName =
+	| "table_uploads"
+	| "questions"
+	| "folders"
+	| "uploads";
+
+type QuestionInsert = typeof questions.$inferInsert;
+type UploadInsert = typeof uploads.$inferInsert;
+type FolderInsert = typeof folders.$inferInsert;
+type DeadlineInsert = typeof deadlines.$inferInsert;
+type TableUploadInsert = typeof tableUploads.$inferInsert;
+
+type TextUpdateRows = {
+	questions: Pick<QuestionInsert, "questionText" | "answerText">;
+	uploads: Pick<UploadInsert, "filename" | "description">;
+	folders: Pick<FolderInsert, "name">;
+	deadlines: Pick<DeadlineInsert, "title">;
+};
+
+export type TextUpdateTable = keyof TextUpdateRows;
+export type TextUpdateColumn<T extends TextUpdateTable> = Extract<
+	keyof TextUpdateRows[T],
+	string
+>;
+
+type ParentUpdateRows = {
+	uploads: Pick<UploadInsert, "folderId">;
+	tableUploads: Pick<TableUploadInsert, "folderId">;
+	folders: Pick<FolderInsert, "parentId">;
+};
+
+export type ParentUpdateTable = keyof ParentUpdateRows;
+export type ParentUpdateColumn<T extends ParentUpdateTable> = Extract<
+	keyof ParentUpdateRows[T],
+	string
+>;
 
 export interface StudyQuestion {
 	id: string;
@@ -23,11 +78,3 @@ export interface StudyQuestion {
 	fsrsLapses: number;
 }
 export type ToolView = "flashcards" | "tables";
-
-export const parentColumnByTable = {
-	uploads: "folder_id",
-	table_uploads: "folder_id",
-	folders: "parent_id",
-} as const satisfies Partial<{
-	[T in keyof Database["public"]["Tables"]]: keyof Database["public"]["Tables"][T]["Row"];
-}>;

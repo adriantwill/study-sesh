@@ -4,12 +4,12 @@ import { Brain } from "lucide-react";
 import Image from "next/image";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
+import EditField from "@/src/components/questions/EditField";
+import DeleteButton from "@/src/components/ui/DeleteButton";
 import {
 	generateWrongOptionsAction,
 	reorderQuestionsAction,
-} from "@/src/app/actions";
-import EditField from "@/src/components/questions/EditField";
-import DeleteButton from "@/src/components/ui/DeleteButton";
+} from "@/src/db/queries";
 import type { StudyQuestion } from "@/src/types";
 import AddQuestionButton from "./AddQuestionButton";
 import ImageUploadButton from "./ImageUploadButton";
@@ -203,10 +203,10 @@ export default function QuestionList({
 											textField={q.question}
 											id={q.id}
 											onEditingChange={(isEditing) =>
-												handleEditingChange(`${q.id}:question_text`, isEditing)
+												handleEditingChange(`${q.id}:questionText`, isEditing)
 											}
 											table="questions"
-											col="question_text"
+											col="questionText"
 										/>
 										<ImageUploadButton id={q.id} />
 										<DeleteButton
@@ -236,10 +236,10 @@ export default function QuestionList({
 												textField={q.answer}
 												id={q.id}
 												onEditingChange={(isEditing) =>
-													handleEditingChange(`${q.id}:answer_text`, isEditing)
+													handleEditingChange(`${q.id}:answerText`, isEditing)
 												}
 												table="questions"
-												col="answer_text"
+												col="answerText"
 											/>
 										</div>
 									</details>

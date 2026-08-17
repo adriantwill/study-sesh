@@ -4,11 +4,10 @@ import { Check, Rat, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { Card } from "ts-fsrs";
 import { fsrs, Rating } from "ts-fsrs";
-import { addTelemetry, updateFsrsAction } from "@/src/app/actions";
 import Flashcard from "@/src/components/study/Flashcard";
 import NavigationButton from "@/src/components/ui/NavigationButton";
-import type { StudyQuestion } from "@/src/types";
-import type { Tables } from "@/src/types/database.types";
+import { addTelemetry, updateFsrsAction } from "@/src/db/queries";
+import type { EventInsert, StudyQuestion } from "@/src/types";
 import StudyProgress from "./StudyProgress";
 
 export default function FlashcardView({
@@ -73,27 +72,25 @@ export default function FlashcardView({
 		const result = scheduler.next(card, new Date(), level);
 		updateFsrsAction(question.id, result.card);
 		console.log(initialQuestions);
-		const telemetry: Tables<"events"> = {
-			//TODO MAKE THIS A CUSTOM TYPE
-			before_difficulty: card.difficulty,
-			before_stability: card.stability,
-			created_at: new Date().toISOString(),
+		const telemetry: EventInsert = {
+			beforeDifficulty: card.difficulty,
+			beforeStability: card.stability,
+			createdAt: new Date().toISOString(),
 			difficulty: result.card.difficulty,
-			event_type: "card_rated",
-			question_id: question.id,
+			eventType: "card_rated",
+			questionId: question.id,
 			rating: level,
 			stability: result.card.stability,
 		};
 		addTelemetry(telemetry);
 		if (initialQuestions[1].fsrsDue <= new Date()) {
-			const telemetry: Tables<"events"> = {
-				//TODO MAKE THIS A CUSTOM TYPE
-				before_difficulty: initialQuestions[1].fsrsDifficulty,
-				before_stability: initialQuestions[1].fsrsStability,
-				created_at: new Date().toISOString(),
+			const telemetry: EventInsert = {
+				beforeDifficulty: initialQuestions[1].fsrsDifficulty,
+				beforeStability: initialQuestions[1].fsrsStability,
+				createdAt: new Date().toISOString(),
 				difficulty: initialQuestions[1].fsrsDifficulty,
-				event_type: "card_shown",
-				question_id: initialQuestions[1].id,
+				eventType: "card_shown",
+				questionId: initialQuestions[1].id,
 				rating: null,
 				stability: initialQuestions[1].fsrsStability,
 			};
@@ -255,14 +252,13 @@ export default function FlashcardView({
 					className={`group w-full ${height} perspective-distant cursor-pointer rounded-xl transition-transform duration-200 ease-out active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary motion-reduce:animate-none motion-reduce:transition-none ${animationClass}`}
 					onClick={() => {
 						setIsFlipped(!isFlipped);
-						const telemetry: Tables<"events"> = {
-							//TODO MAKE THIS A CUSTOM TYPE
-							before_difficulty: card.fsrsDifficulty,
-							before_stability: card.fsrsStability,
-							created_at: new Date().toISOString(),
+						const telemetry: EventInsert = {
+							beforeDifficulty: card.fsrsDifficulty,
+							beforeStability: card.fsrsStability,
+							createdAt: new Date().toISOString(),
 							difficulty: card.fsrsDifficulty,
-							event_type: "card_flipped",
-							question_id: card.id,
+							eventType: "card_flipped",
+							questionId: card.id,
 							rating: null,
 							stability: card.fsrsStability,
 						};

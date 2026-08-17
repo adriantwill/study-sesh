@@ -3,12 +3,12 @@
 import { CalendarDays, Trash2 } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import EditField from "@/src/components/questions/EditField";
-import type { Tables } from "@/src/types/database.types";
 import {
 	addDeadlineAction,
 	deleteDeadlineAction,
 	updateDeadlineDueDateAction,
-} from "../../app/actions/index";
+} from "@/src/db/queries";
+import type { Tables } from "@/src/types/database.types";
 import BigPanel from "./BigPanel";
 
 type DueDatePanelSide = "left" | "right";

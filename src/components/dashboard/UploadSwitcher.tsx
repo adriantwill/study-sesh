@@ -2,13 +2,13 @@
 import { FileUp, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { signOutAction } from "@/src/app/actions/auth";
+import SegmentedControl from "@/src/components/ui/SegmentedControl";
 import {
 	createUpload,
 	uploadAndGenerateAction,
 	uploadTableAction,
-} from "@/src/app/actions";
-import { signOutAction } from "@/src/app/actions/auth";
-import SegmentedControl from "@/src/components/ui/SegmentedControl";
+} from "@/src/db/queries";
 import { uploadRecordAction } from "@/src/lib/questions";
 import type { StudyQuestion } from "@/src/types";
 
