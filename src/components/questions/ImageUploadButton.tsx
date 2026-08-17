@@ -1,6 +1,6 @@
 "use client";
 import { ImageIcon } from "lucide-react";
-import { uploadImageAction } from "@/src/app/actions";
+import { uploadImageAction } from "@/src/db/queries";
 
 interface ImageUploadButtonProps {
 	id: string;

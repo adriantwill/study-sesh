@@ -2,7 +2,7 @@
 
 import { FolderPlus } from "lucide-react";
 import { useState } from "react";
-import { addFolderAction } from "@/src/app/actions";
+import { addFolderAction } from "@/src/db/queries";
 
 export default function AddFolder() {
 	const [isCreating, setIsCreating] = useState(false);

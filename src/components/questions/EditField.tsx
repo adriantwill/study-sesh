@@ -1,42 +1,33 @@
 "use client";
 import { Bold, Check, Highlighter, List, Pencil } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import {
-	updateDeadlineTitleAction,
-	updateQuestionTextAction,
-} from "@/src/app/actions";
+import type { TextUpdateColumn } from "@/src/db/queries";
+import { updateQuestionTextAction } from "@/src/db/queries";
 import { parseMarkdown } from "@/src/lib/markdown";
-import type { Database } from "@/src/types/database.types";
 
-type PublicTables = Database["public"]["Tables"];
-type EditFieldTable = keyof PublicTables;
-type EditFieldColumn<T extends EditFieldTable> = keyof PublicTables[T]["Row"];
 const iconButtonClass =
 	"flex items-center justify-center enabled:cursor-pointer enabled:hover:text-primary";
 
-interface EditFieldProps<T extends EditFieldTable> {
-	table: T;
-	col: EditFieldColumn<T>;
+interface EditFieldProps {
+	columnName: TextUpdateColumn;
 	textField: string;
 	id: string;
 	onEditingChange?: (isEditing: boolean) => void;
 	openFolder?: () => void;
 }
 
-export default function EditField<T extends EditFieldTable>({
+export default function EditField({
 	textField,
 	id,
 	onEditingChange,
-	table,
-	col,
+	columnName,
 	openFolder,
-}: EditFieldProps<T>) {
+}: EditFieldProps) {
 	const [isEditing, setIsEditing] = useState(false);
 	const [text, setText] = useState(textField);
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
-	const isFolderName = table === "folders" && col === "name";
-	const isAnswerText = table === "questions" && col === "answer_text";
-	const isDeadlineTitle = table === "deadlines" && col === "title";
+	const isFolderName = columnName === "name";
+	const isAnswerText = columnName === "answerText";
 
 	useEffect(() => {
 		setText(textField);
@@ -71,11 +62,7 @@ export default function EditField<T extends EditFieldTable>({
 
 		if (nextText !== textField) {
 			try {
-				if (isDeadlineTitle) {
-					await updateDeadlineTitleAction(Number(id), nextText);
-				} else {
-					await updateQuestionTextAction(id, nextText, table, col);
-				}
+				await updateQuestionTextAction(id, nextText, columnName);
 			} catch (error) {
 				console.error("Failed to save text:", error);
 				setText(textField);

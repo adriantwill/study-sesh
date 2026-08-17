@@ -1,13 +1,12 @@
 "use client";
 import * as lucideReact from "lucide-react";
 import { useState } from "react";
-import { updateParentAction } from "@/src/app/actions/index";
 import EditField from "@/src/components/questions/EditField";
 import DeleteButton from "@/src/components/ui/DeleteButton";
 import SegmentedControl from "@/src/components/ui/SegmentedControl";
+import { addFolderAction, updateParentAction } from "@/src/db/queries";
 import type * as types from "@/src/types";
 import type { Database, Tables } from "@/src/types/database.types";
-import { addFolderAction } from "../../app/actions/index";
 import BigPanel from "./BigPanel";
 import UploadLink from "./UploadLink";
 
@@ -205,7 +204,6 @@ export default function FoldersList({
 					draggedUpload.id,
 					parentId,
 					draggedUpload.table,
-					"folder_id",
 				);
 				if (parentId) {
 					setOpenFolderIds((current) => new Set(current).add(parentId));
@@ -220,12 +218,7 @@ export default function FoldersList({
 		if (!draggedFolderId) return;
 
 		try {
-			await updateParentAction(
-				draggedFolderId,
-				parentId,
-				"folders",
-				"parent_id",
-			);
+			await updateParentAction(draggedFolderId, parentId, "folders");
 			if (parentId) {
 				setOpenFolderIds((current) => new Set(current).add(parentId));
 			}
@@ -325,8 +318,7 @@ export default function FoldersList({
 					<EditField
 						textField={folder.name}
 						id={folder.id}
-						table="folders"
-						col="name"
+						columnName="name"
 						openFolder={() => toggleFolder(folder.id)}
 					/>
 					<DeleteButton

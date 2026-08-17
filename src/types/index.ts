@@ -1,5 +1,35 @@
-import type { Database } from "./database.types";
+import type {
+	deadlines,
+	events,
+	folders,
+	questions,
+	tableUploads,
+	uploads,
+} from "@/drizzle/schema";
 
+export type Folder = typeof folders.$inferSelect;
+export type Question = typeof questions.$inferSelect;
+export type Table = typeof tableUploads.$inferSelect;
+export type Upload = typeof uploads.$inferSelect;
+export type Deadline = typeof deadlines.$inferSelect;
+export type EventInsert = typeof events.$inferInsert;
+export type DeleteItemName =
+	| "table_uploads"
+	| "questions"
+	| "folders"
+	| "uploads";
+
+export type ParentTable = "uploads" | "table_uploads" | "folders";
+export type ReorderQuestion = Pick<
+	StudyQuestion,
+	"id" | "displayOrder" | "upload_id"
+>;
+export type Temp =
+	| typeof uploads
+	| typeof folders
+	| typeof tableUploads
+	| typeof questions
+	| typeof deadlines;
 export interface StudyQuestion {
 	id: string;
 	upload_id: string;
@@ -23,11 +53,3 @@ export interface StudyQuestion {
 	fsrsLapses: number;
 }
 export type ToolView = "flashcards" | "tables";
-
-export const parentColumnByTable = {
-	uploads: "folder_id",
-	table_uploads: "folder_id",
-	folders: "parent_id",
-} as const satisfies Partial<{
-	[T in keyof Database["public"]["Tables"]]: keyof Database["public"]["Tables"][T]["Row"];
-}>;

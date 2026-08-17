@@ -1,7 +1,7 @@
 "use client";
 
 import { Plus } from "lucide-react";
-import { addQuestionAction } from "@/src/app/actions";
+import { addQuestionAction } from "@/src/db/queries";
 
 interface AddQuestionButtonProps {
 	uploadId: string;
