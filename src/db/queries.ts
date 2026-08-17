@@ -38,7 +38,6 @@ import type {
 import { db } from "./index";
 
 const DISPLAY_ORDER_STEP = 100;
-type UploadStatus = "processing" | "completed" | "failed";
 type ReorderQuestion = Pick<StudyQuestion, "id" | "displayOrder" | "upload_id">;
 type OwnedTable =
 	| "questions"
@@ -53,30 +52,6 @@ const ownedTables = {
 	tableUploads: [tableUploads, tableUploads.id, tableUploads.userId],
 	table_uploads: [tableUploads, tableUploads.id, tableUploads.userId],
 	deadlines: [deadlines, deadlines.id, deadlines.userId],
-} as const;
-const textTargets = {
-	questions: [
-		questions,
-		questions.id,
-		{ questionText: questions.questionText, answerText: questions.answerText },
-	],
-	uploads: [
-		uploads,
-		uploads.id,
-		{ filename: uploads.filename, description: uploads.description },
-	],
-	folders: [folders, folders.id, { name: folders.name }],
-	deadlines: [deadlines, deadlines.id, { title: deadlines.title }],
-} as const;
-const parentTargets = {
-	uploads: [uploads, uploads.id, uploads.folderId, "folderId"],
-	tableUploads: [
-		tableUploads,
-		tableUploads.id,
-		tableUploads.folderId,
-		"folderId",
-	],
-	folders: [folders, folders.id, folders.parentId, "parentId"],
 } as const;
 async function getSessionUserId() {
 	const session = await auth.api.getSession({ headers: await headers() });
@@ -114,9 +89,6 @@ async function normalizeOrder(uploadId: string) {
 		sql`select normalize_question_display_order(${uploadId}::uuid)`,
 	);
 }
-async function updateUploadStatus(uploadId: string, status: UploadStatus) {
-	await db.update(uploads).set({ status }).where(eq(uploads.id, uploadId));
-}
 export async function normalizeQuestionDisplayOrder(uploadId: string) {
 	await assertOwned("uploads", uploadId, await getSessionUserId());
 	await normalizeOrder(uploadId);
@@ -149,11 +121,18 @@ export async function uploadAndGenerateAction(formData: FormData) {
 	after(async () => {
 		try {
 			await generateQuestions(pdfBuffer, upload.id);
-			await updateUploadStatus(upload.id, "completed");
+			await db
+				.update(uploads)
+				.set({ status: "completed" })
+				.where(eq(uploads.id, upload.id));
+
 			revalidatePath(`/uploads/${upload.id}`);
 		} catch (error) {
 			console.error("Background question generation error:", error);
-			await updateUploadStatus(upload.id, "failed");
+			await db
+				.update(uploads)
+				.set({ status: "failed" })
+				.where(eq(uploads.id, upload.id));
 		}
 	});
 	revalidatePath("/");
@@ -208,6 +187,7 @@ export async function createUpload(source: File | string) {
 	}
 }
 export async function deleteItemAction(id: string, variant: databaseDelete) {
+	//TODO CONSOLIDATE BELOW
 	try {
 		await db.delete(variant).where(eq(variant.id, id));
 		revalidatePath("/");
@@ -233,12 +213,49 @@ export async function updateQuestionTextAction<T extends TextUpdateTable>(
 	columnName: TextUpdateColumn<T>,
 ) {
 	const uploadId = await assertOwned(table, id, await getSessionUserId());
-	const [target, idColumn, columns] = textTargets[table];
-	const column = (columns as Record<string, AnyPgColumn>)[columnName];
-	if (!column) throw new Error("Invalid text column");
-	await db.execute(
-		sql`update ${target} set ${column} = ${text} where ${idColumn} = ${id}`,
-	);
+	switch (table) {
+		case "questions": {
+			if (columnName !== "questionText" && columnName !== "answerText") {
+				throw new Error("Invalid question column");
+			}
+
+			const values =
+				columnName === "questionText"
+					? { questionText: text }
+					: { answerText: text };
+
+			await db.update(questions).set(values).where(eq(questions.id, id));
+			break;
+		}
+
+		case "uploads": {
+			if (columnName !== "filename" && columnName !== "description") {
+				throw new Error("Invalid upload column");
+			}
+
+			const values =
+				columnName === "filename" ? { filename: text } : { description: text };
+
+			await db.update(uploads).set(values).where(eq(uploads.id, id));
+			break;
+		}
+
+		case "folders":
+			if (columnName !== "name") throw new Error("Invalid folder column");
+
+			await db.update(folders).set({ name: text }).where(eq(folders.id, id));
+			break;
+
+		case "deadlines":
+			if (columnName !== "title") throw new Error("Invalid deadline column");
+
+			await db
+				.update(deadlines)
+				.set({ title: text })
+				.where(eq(deadlines.id, Number(id)));
+			break;
+	}
+
 	revalidatePath(
 		uploadId
 			? `/uploads/${uploadId}`
@@ -297,6 +314,7 @@ export async function uploadImageAction(
 	revalidatePath(`/uploads/${uploadId}`, "page");
 }
 export async function addQuestionAction(
+	//TODO remove sparse ordering
 	uploadId: string,
 	_insertAtPosition: number,
 	prev?: number | null,
@@ -344,6 +362,7 @@ export async function addFolderAction() {
 	return folder;
 }
 function deadlineDate(value: string | null) {
+	//TODO convert this to date
 	if (value && !/^\d{4}-\d{2}-\d{2}$/.test(value))
 		throw new Error("Invalid due date");
 	return value;
@@ -367,6 +386,7 @@ export async function addDeadlineAction(dueDate: string | null) {
 	return deadline;
 }
 async function changeDeadline(
+	//TODO MERGE TEHSE
 	id: number,
 	operation: "delete" | { title: string } | { dueDate: string | null },
 ) {
@@ -398,11 +418,25 @@ export async function updateParentAction<T extends ParentUpdateTable>(
 	const userId = await getSessionUserId();
 	await assertOwned(table, id, userId);
 	if (parentId) await assertOwned("folders", parentId, userId);
-	const [target, idColumn, parentColumn, expectedColumn] = parentTargets[table];
-	if (columnName !== expectedColumn) throw new Error("Invalid parent column");
-	await db.execute(
-		sql`update ${target} set ${parentColumn} = ${parentId} where ${idColumn} = ${id}`,
-	);
+	switch (table) {
+		case "uploads":
+			await db
+				.update(uploads)
+				.set({ folderId: parentId })
+				.where(eq(uploads.id, id));
+			break;
+
+		case "tableUploads":
+			await db
+				.update(tableUploads)
+				.set({ folderId: parentId })
+				.where(eq(tableUploads.id, id));
+			break;
+
+		case "folders":
+			await db.update(folders).set({ parentId }).where(eq(folders.id, id));
+			break;
+	}
 	revalidatePath("/");
 }
 export async function updateFsrsAction(id: string, card: Card) {
