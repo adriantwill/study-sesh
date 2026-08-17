@@ -1,9 +1,11 @@
+import { and, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { tableUploads } from "@/drizzle/schema";
 import EditTitle from "@/src/components/questions/EditTitle";
 import TableViewer from "@/src/components/tables/TableViewer";
+import { db } from "@/src/db";
 import { auth } from "@/src/lib/auth";
-import { createClient } from "@/src/lib/supabase/server";
 import { isParsedTableData } from "@/src/lib/xlsx-table";
 
 export default async function TablePage({
@@ -12,35 +14,36 @@ export default async function TablePage({
 	params: Promise<{ tableId: string }>;
 }) {
 	const { tableId } = await params;
-	const supabase = await createClient();
-	const { data: quizData, error: quizError } = await supabase
-		.from("table_uploads")
-		.select("user_id")
-		.eq("id", tableId)
-		.single();
-	if (quizError) {
-		console.error("Error fetching quiz:", quizError);
-		throw new Error("Failed to load quiz");
-	}
 	const session = await auth.api.getSession({ headers: await headers() });
 	if (!session) {
 		redirect("/signup");
-	} else if (!quizData || quizData.user_id !== session.user.id) {
+	}
+	const [ownedTable] = await db
+		.select({ id: tableUploads.id })
+		.from(tableUploads)
+		.where(
+			and(
+				eq(tableUploads.id, tableId),
+				eq(tableUploads.userId, session.user.id),
+			),
+		)
+		.limit(1);
+	if (!ownedTable) {
 		redirect("/");
 	}
 
-	const { data: tableUpload, error } = await supabase
-		.from("table_uploads")
-		.select("filename, parsed_data")
-		.eq("id", tableId)
-		.single();
+	const [tableUpload] = await db
+		.select({
+			filename: tableUploads.filename,
+			parsedData: tableUploads.parsedData,
+		})
+		.from(tableUploads)
+		.where(eq(tableUploads.id, tableId))
+		.limit(1);
 
-	if (error || !tableUpload) {
-		console.error("Error fetching table upload:", error);
-		throw new Error("Failed to load table");
-	}
+	if (!tableUpload) throw new Error("Failed to load table");
 
-	if (!isParsedTableData(tableUpload.parsed_data)) {
+	if (!isParsedTableData(tableUpload.parsedData)) {
 		throw new Error("No parsed table data found");
 	}
 
@@ -49,7 +52,7 @@ export default async function TablePage({
 			<div className="flex min-w-0">
 				<EditTitle title={tableUpload.filename} reviewId={tableId} />
 			</div>
-			<TableViewer table={tableUpload.parsed_data} />
+			<TableViewer table={tableUpload.parsedData} />
 		</div>
 	);
 }

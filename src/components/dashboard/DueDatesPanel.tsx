@@ -1,18 +1,15 @@
 "use client";
 
 import { CalendarDays, Trash2 } from "lucide-react";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import EditField from "@/src/components/questions/EditField";
 import {
 	addDeadlineAction,
 	deleteDeadlineAction,
 	updateDeadlineDueDateAction,
 } from "@/src/db/queries";
-import type { Tables } from "@/src/types/database.types";
+import type { Deadline } from "@/src/types";
 import BigPanel from "./BigPanel";
-
-type DueDatePanelSide = "left" | "right";
-type Deadline = Tables<"deadlines">;
 
 const millisecondsPerDay = 24 * 60 * 60 * 1000;
 
@@ -60,21 +57,19 @@ function getDateInputValue(dueDate: string | null) {
 
 function sortDeadlines(deadlines: Deadline[]) {
 	return [...deadlines].sort((a, b) => {
-		const dueDateCompare = (a.due_date ?? "9999-12-31").localeCompare(
-			b.due_date ?? "9999-12-31",
+		const dueDateCompare = (a.dueDate ?? "9999-12-31").localeCompare(
+			b.dueDate ?? "9999-12-31",
 		);
 
 		if (dueDateCompare !== 0) return dueDateCompare;
 
-		return a.created_at.localeCompare(b.created_at);
+		return a.createdAt.localeCompare(b.createdAt);
 	});
 }
 
 export default function DueDatesPanel({
-	side,
 	deadlines,
 }: {
-	side: DueDatePanelSide;
 	deadlines: Deadline[];
 }) {
 	const dateInputRefs = useRef<Record<number, HTMLInputElement | null>>({});
@@ -100,13 +95,13 @@ export default function DueDatesPanel({
 
 	async function handleDueDateChange(item: Deadline, dueDate: string) {
 		const nextDueDate = dueDate || null;
-		const previousDueDate = item.due_date;
+		const previousDueDate = item.dueDate;
 
 		setItems((currentItems) =>
 			sortDeadlines(
 				currentItems.map((currentItem) =>
 					currentItem.id === item.id
-						? { ...currentItem, due_date: nextDueDate }
+						? { ...currentItem, dueDate: nextDueDate }
 						: currentItem,
 				),
 			),
@@ -120,7 +115,7 @@ export default function DueDatesPanel({
 				sortDeadlines(
 					currentItems.map((currentItem) =>
 						currentItem.id === item.id
-							? { ...currentItem, due_date: previousDueDate }
+							? { ...currentItem, dueDate: previousDueDate }
 							: currentItem,
 					),
 				),
@@ -163,7 +158,7 @@ export default function DueDatesPanel({
 	return (
 		<BigPanel title={"Due Dates"} addAction={addNewItem}>
 			{items.map((item) => {
-				const dateInputValue = getDateInputValue(item.due_date);
+				const dateInputValue = getDateInputValue(item.dueDate);
 				const daysUntil = dateInputValue
 					? getDaysUntilDate(dateInputValue)
 					: null;

@@ -16,7 +16,7 @@ export default function QuizChoices({ choices, answer }: QuizChoicesProps) {
 		<div className="grid grid-cols-2 gap-3">
 			{choices.map((choice, idx) => (
 				<MultipleChoice
-					key={`${idx}-${choice}`}
+					key={choice + answer}
 					choice={choice}
 					correct={choice === answer}
 					selected={selectedIdx === idx}

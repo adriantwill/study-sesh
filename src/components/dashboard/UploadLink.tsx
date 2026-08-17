@@ -3,15 +3,12 @@
 import Link from "next/link";
 import { useState } from "react";
 import DeleteButton from "@/src/components/ui/DeleteButton";
-import type { Database, Tables } from "@/src/types/database.types";
+import type { Table, Upload } from "@/src/types";
 
-type UploadLinkTable = keyof Pick<
-	Database["public"]["Tables"],
-	"uploads" | "table_uploads"
->;
+type UploadLinkTable = "uploads" | "table_uploads";
 
 interface UploadLinkProps {
-	upload: Tables<"uploads"> | Tables<"table_uploads">;
+	upload: Upload | Table;
 	tree?: boolean;
 	draggable?: boolean;
 	isDragging?: boolean;

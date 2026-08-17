@@ -10,12 +10,12 @@ import {
 	generateWrongOptionsAction,
 	reorderQuestionsAction,
 } from "@/src/db/queries";
-import type { StudyQuestion } from "@/src/types";
+import type { Question } from "@/src/types";
 import AddQuestionButton from "./AddQuestionButton";
 import ImageUploadButton from "./ImageUploadButton";
 
 interface QuestionListProps {
-	questions: StudyQuestion[];
+	questions: Question[];
 	reviewId: string;
 }
 
@@ -69,12 +69,6 @@ export default function QuestionList({
 	const [dragOverId, setDragOverId] = useState<string | null>(null);
 	const [editingFields, setEditingFields] = useState<Set<string>>(new Set());
 	const [previewQuestions, setPreviewQuestions] = useState(initialQuestions);
-	const [optionsAddedAlert, setOptionsAddedAlert] = useState<string[] | null>(
-		null,
-	);
-	const optionsAddedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-		null,
-	);
 	const isAnyEditing = editingFields.size > 0;
 
 	const [isDeleting, setIsDeleting] = useState<string | null>(null);
@@ -152,21 +146,12 @@ export default function QuestionList({
 		}
 	}
 
-	async function handleGenerateWrongOptions(question: StudyQuestion) {
-		const generatedOptions = await generateWrongOptionsAction(
-			question.question,
-			question.answer,
+	async function handleGenerateWrongOptions(question: Question) {
+		await generateWrongOptionsAction(
+			question.questionText,
+			question.answerText,
 			question.id,
 		);
-
-		setOptionsAddedAlert(generatedOptions);
-		if (optionsAddedTimeoutRef.current) {
-			clearTimeout(optionsAddedTimeoutRef.current);
-		}
-		optionsAddedTimeoutRef.current = setTimeout(() => {
-			setOptionsAddedAlert(null);
-			optionsAddedTimeoutRef.current = null;
-		}, 3000);
 	}
 
 	return (
@@ -200,7 +185,7 @@ export default function QuestionList({
 								<div className="w-1 flex-1">
 									<div className="flex items-center gap-2">
 										<EditField
-											textField={q.question}
+											textField={q.questionText}
 											id={q.id}
 											onEditingChange={(isEditing) =>
 												handleEditingChange(`${q.id}:questionText`, isEditing)
@@ -211,7 +196,7 @@ export default function QuestionList({
 										<DeleteButton
 											id={q.id}
 											table="questions"
-											name={q.question}
+											name={q.questionText}
 											displayElement={() => displayElement(q.id)}
 										/>
 
@@ -232,7 +217,7 @@ export default function QuestionList({
 										</summary>
 										<div className="mt-2 flex items-center justify-between gap-2 rounded-lg bg-muted-hover p-4">
 											<EditField
-												textField={q.answer}
+												textField={q.answerText}
 												id={q.id}
 												onEditingChange={(isEditing) =>
 													handleEditingChange(`${q.id}:answerText`, isEditing)
@@ -253,19 +238,6 @@ export default function QuestionList({
 					</div>
 				);
 			})}
-			{optionsAddedAlert && (
-				<span
-					aria-live="polite"
-					className="absolute right-0 bottom-0 flex max-w-sm flex-col gap-1 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground shadow"
-				>
-					<span>Multiple choice questions added</span>
-					{optionsAddedAlert.map((option, index) => (
-						<span key={`${index}-${option}`} className="font-normal">
-							{index + 1}. {option}
-						</span>
-					))}
-				</span>
-			)}
 		</div>
 	);
 }

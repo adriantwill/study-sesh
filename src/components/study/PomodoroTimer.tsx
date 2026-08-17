@@ -1,13 +1,14 @@
 "use client";
 
 import { Maximize2, Minimize2, Pause, Play, RotateCcw } from "lucide-react";
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import runningDog from "@/src/app/Running.gif";
 import sittingDog from "@/src/app/Sitting.png";
 
 const focusDurationSeconds = 25 * 60;
 const circleRadius = 43;
-const circleCircumference = 2 * Math.PI * circleRadius;
+const _circleCircumference = 2 * Math.PI * circleRadius;
 
 function formatTime(totalSeconds: number) {
 	const minutes = Math.floor(totalSeconds / 60);
@@ -151,7 +152,7 @@ export default function PomodoroTimer() {
 								strokeWidth="12"
 							/>
 						</svg>
-						<img
+						<Image
 							src={dogImage.src}
 							alt=""
 							aria-hidden="true"

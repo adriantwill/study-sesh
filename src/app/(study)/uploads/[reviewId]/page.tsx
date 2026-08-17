@@ -1,14 +1,16 @@
+import { and, asc, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { questions as questionsTable, uploads } from "@/drizzle/schema";
 import EditField from "@/src/components/questions/EditField";
 import EditTitle from "@/src/components/questions/EditTitle";
 import GenerationPoller from "@/src/components/questions/GenerationPoller";
 import QuestionList from "@/src/components/questions/QuestionList";
 import FlashcardView from "@/src/components/study/FlashcardView";
 import ScrollToTopButton from "@/src/components/ui/ScrollToTopButton";
+import { db } from "@/src/db";
 import { auth } from "@/src/lib/auth";
-import { createClient } from "@/src/lib/supabase/server";
 import { questionRowToStudyQuestion } from "@/src/utils/cards";
 
 export default async function ReviewPage({
@@ -18,53 +20,34 @@ export default async function ReviewPage({
 }) {
 	const { reviewId } = await params;
 
-	const supabase = await createClient();
-	const { data: quizData, error: quizError } = await supabase
-		.from("uploads")
-		.select("user_id")
-		.eq("id", reviewId)
-		.single();
-	if (quizError) {
-		console.error("Error fetching quiz:", quizError);
-		throw new Error("Failed to load quiz");
-	}
 	const session = await auth.api.getSession({ headers: await headers() });
 	if (!session) {
 		redirect("/signup");
-	} else if (!quizData || quizData.user_id !== session.user.id) {
+	}
+	const [ownedUpload] = await db
+		.select({ id: uploads.id })
+		.from(uploads)
+		.where(and(eq(uploads.id, reviewId), eq(uploads.userId, session.user.id)))
+		.limit(1);
+	if (!ownedUpload) {
 		redirect("/");
 	}
 
-	const [{ data, error }, { data: upload, error: uploadError }] =
-		await Promise.all([
-			supabase
-				.from("questions")
-				.select(
-					"id, upload_id, question_text, answer_text, image_url, display_order, options, fsrs_difficulty",
-				)
-				.eq("upload_id", reviewId)
-				.eq("deleted", false)
-				.order("display_order", { ascending: true }),
-			supabase
-				.from("uploads")
-				.select("filename, description, status")
-				.eq("id", reviewId)
-				.single(),
-		]);
+	const [data, [upload]] = await Promise.all([
+		db
+			.select()
+			.from(questionsTable)
+			.where(
+				and(
+					eq(questionsTable.uploadId, reviewId),
+					eq(questionsTable.deleted, false),
+				),
+			)
+			.orderBy(asc(questionsTable.displayOrder)),
+		db.select().from(uploads).where(eq(uploads.id, reviewId)).limit(1),
+	]);
 
-	if (error) {
-		console.error("Error fetching questions:", error);
-		throw new Error("Failed to load questions");
-	}
-
-	if (!data) {
-		throw new Error("No questions found");
-	}
-
-	if (uploadError) {
-		console.error("Error fetching title:", uploadError);
-		throw new Error("Failed to load title");
-	}
+	if (!upload) throw new Error("Failed to load title");
 
 	const questions = data.map((q) => questionRowToStudyQuestion(q));
 	const isGenerating = upload.status === "processing";

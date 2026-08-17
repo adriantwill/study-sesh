@@ -7,10 +7,10 @@ import SegmentedControl from "@/src/components/ui/SegmentedControl";
 import {
 	createUpload,
 	uploadAndGenerateAction,
+	uploadRecordAction,
 	uploadTableAction,
 } from "@/src/db/queries";
-import { uploadRecordAction } from "@/src/lib/questions";
-import type { StudyQuestion } from "@/src/types";
+import type { Question } from "@/src/types";
 
 type UploadMode = "pdf" | "text" | "xlsx";
 
@@ -113,7 +113,7 @@ export default function UploadSwitcher() {
 	};
 
 	async function handleGenerate() {
-		const questionList: StudyQuestion[] = textInput
+		const questionList: Question[] = textInput
 			.split(/\r?\n/)
 			.map((line) => line.trim())
 			.filter((line) => line.length > 0)
@@ -125,14 +125,22 @@ export default function UploadSwitcher() {
 
 				return {
 					id: crypto.randomUUID(),
-					upload_id: "",
-					question: line.slice(0, colonIndex).trim(),
-					answer: line.slice(colonIndex + 1).trim(),
+					uploadId: "",
+					questionText: line.slice(0, colonIndex).trim(),
+					answerText: line.slice(colonIndex + 1).trim(),
+					createdAt: null,
+					imageUrl: null,
 					displayOrder: 0,
+					options: [],
+					pageNumber: null,
+					ocrText: null,
+					originalQuestionText: line.slice(0, colonIndex).trim(),
+					originalAnswerText: line.slice(colonIndex + 1).trim(),
+					deleted: false,
 					fsrsDifficulty: 0,
 					fsrsStability: 0,
-					fsrsDue: new Date(),
-					fsrsLastReviewed: new Date(),
+					fsrsDueAt: new Date().toISOString(),
+					fsrsLastReviewedAt: new Date().toISOString(),
 					fsrsReviewCount: 0,
 					fsrsState: 0,
 					fsrsScheduled: 0,
@@ -140,26 +148,7 @@ export default function UploadSwitcher() {
 					fsrsLapses: 0,
 				};
 			})
-			.filter(
-				(
-					pair,
-				): pair is {
-					id: string;
-					upload_id: string;
-					question: string;
-					answer: string;
-					displayOrder: number;
-					fsrsDifficulty: number;
-					fsrsStability: number;
-					fsrsDue: Date;
-					fsrsLastReviewed: Date;
-					fsrsReviewCount: number;
-					fsrsState: number;
-					fsrsScheduled: number;
-					fsrsLearning: number;
-					fsrsLapses: number;
-				} => pair !== null,
-			);
+			.filter((pair): pair is NonNullable<typeof pair> => pair !== null);
 		try {
 			const upload = await createUpload("Untitled");
 			await uploadRecordAction(upload.id, questionList, 0);

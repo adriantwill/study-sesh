@@ -28,6 +28,7 @@ import type {
 	DeleteItemName,
 	EventInsert,
 	ParentTable,
+	Question,
 	ReorderQuestion,
 	Temp,
 } from "@/src/types";
@@ -137,7 +138,7 @@ export async function uploadAndGenerateAction(formData: FormData) {
 	const upload = await createUpload(file);
 	after(async () => {
 		try {
-			await generateQuestions(pdfBuffer, upload.id);
+			await generateQuestions(pdfBuffer, upload.id, uploadRecordAction);
 			await db
 				.update(uploads)
 				.set({ status: "completed" })
@@ -202,6 +203,51 @@ export async function createUpload(source: File | string) {
 		if (storagePath) await removePdfOrThrow(storagePath);
 		throw error;
 	}
+}
+export async function uploadRecordAction(
+	uploadId: string,
+	questionItems: Question[],
+	position: number,
+) {
+	if (questionItems.length === 0) return 0;
+
+	await assertOwned(uploads, uploadId, await getSessionUserId());
+
+	const questionRows = questionItems.map(
+		(question, index) =>
+			({
+				uploadId,
+				questionText: question.questionText,
+				originalQuestionText:
+					question.originalQuestionText ?? question.questionText,
+				answerText: question.answerText,
+				originalAnswerText: question.originalAnswerText ?? question.answerText,
+				pageNumber: question.pageNumber ?? null,
+				ocrText: question.ocrText ?? null,
+				fsrsDifficulty: 0,
+				fsrsStability: 0,
+				fsrsDueAt: question.fsrsDueAt,
+				fsrsLastReviewedAt: question.fsrsLastReviewedAt,
+				fsrsReviewCount: 0,
+				fsrsState: 0,
+				fsrsScheduled: 0,
+				fsrsLearning: 0,
+				fsrsLapses: 0,
+				displayOrder:
+					(question.pageNumber ?? position + 1) * 1000 +
+					(index + 1) * DISPLAY_ORDER_STEP,
+				options: question.options ?? [],
+			}) satisfies typeof questions.$inferInsert,
+	);
+
+	try {
+		await db.insert(questions).values(questionRows);
+	} catch (error) {
+		console.error("Error inserting questions:", error);
+		throw error;
+	}
+
+	return questionRows.length;
 }
 export async function deleteItemByNameAction(
 	id: string,
@@ -351,13 +397,7 @@ export async function addDeadlineAction(dueDate: string | null) {
 			dueDate: deadlineDate(dueDate),
 			userId: await getSessionUserId(),
 		})
-		.returning({
-			id: deadlines.id,
-			created_at: deadlines.createdAt,
-			due_date: deadlines.dueDate,
-			title: deadlines.title,
-			user_id: deadlines.userId,
-		});
+		.returning();
 	revalidatePath("/");
 	return deadline;
 }
@@ -439,11 +479,11 @@ export async function reorderQuestionsAction(
 		activeId,
 		await getSessionUserId(),
 	);
-	if (active.upload_id !== uploadId) throw new Error("Invalid upload");
+	if (active.uploadId !== uploadId) throw new Error("Invalid upload");
 	const prev = items[index - 1];
 	const next = items[index + 1];
 	let order = displayOrder(prev?.displayOrder, next?.displayOrder);
-	if (prev && next && order === prev.displayOrder + 1) {
+	if (prev && next && order === (prev.displayOrder ?? 0) + 1) {
 		await normalizeOrder(uploadId);
 		const neighbors = await db
 			.select({ id: questions.id, order: questions.displayOrder })

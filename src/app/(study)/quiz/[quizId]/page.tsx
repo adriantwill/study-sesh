@@ -1,10 +1,12 @@
+import { and, asc, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { questions as questionsTable, uploads } from "@/drizzle/schema";
 import QuizCard from "@/src/components/quiz/QuizCard";
 import QuizChoices from "@/src/components/quiz/QuizChoices";
+import { db } from "@/src/db";
 import { auth } from "@/src/lib/auth";
 import { parseMarkdown } from "@/src/lib/markdown";
-import { createClient } from "@/src/lib/supabase/server";
 import { questionRowToStudyQuestion } from "@/src/utils/cards";
 
 export default async function QuizPage({
@@ -14,40 +16,29 @@ export default async function QuizPage({
 }) {
 	const { quizId } = await params;
 
-	const supabase = await createClient();
-	const { data: quizData, error: quizError } = await supabase
-		.from("uploads")
-		.select("user_id")
-		.eq("id", quizId)
-		.single();
-	if (quizError) {
-		console.error("Error fetching quiz:", quizError);
-		throw new Error("Failed to load quiz");
-	}
 	const session = await auth.api.getSession({ headers: await headers() });
 	if (!session) {
 		redirect("/signup");
-	} else if (!quizData || quizData.user_id !== session.user.id) {
+	}
+	const [ownedUpload] = await db
+		.select({ id: uploads.id })
+		.from(uploads)
+		.where(and(eq(uploads.id, quizId), eq(uploads.userId, session.user.id)))
+		.limit(1);
+	if (!ownedUpload) {
 		redirect("/");
 	}
 
-	const { data, error } = await supabase
-		.from("questions")
-		.select(
-			"id, upload_id, question_text, answer_text, image_url, display_order, options",
+	const data = await db
+		.select()
+		.from(questionsTable)
+		.where(
+			and(
+				eq(questionsTable.uploadId, quizId),
+				eq(questionsTable.deleted, false),
+			),
 		)
-		.eq("upload_id", quizId)
-		.eq("deleted", false)
-		.order("display_order", { ascending: true });
-
-	if (error) {
-		console.error("Error fetching questions:", error);
-		throw new Error("Failed to load questions");
-	}
-
-	if (!data) {
-		throw new Error("No questions found");
-	}
+		.orderBy(asc(questionsTable.displayOrder));
 
 	const questions = data.map((q) => questionRowToStudyQuestion(q));
 	return (
@@ -61,9 +52,9 @@ export default async function QuizPage({
 						<div className="text-muted-foreground">Question {i + 1}</div>
 						<div className="flex flex-1 flex-col justify-center space-y-16">
 							<div className="whitespace-pre-wrap text-center text-[clamp(1.5rem,4vw,1.875rem)] font-medium text-foreground">
-								{parseMarkdown(q.question)}
+								{parseMarkdown(q.questionText)}
 							</div>
-							<QuizChoices choices={q.options ?? []} answer={q.answer} />
+							<QuizChoices choices={q.options ?? []} answer={q.answerText} />
 						</div>
 					</div>
 					<QuizCard />

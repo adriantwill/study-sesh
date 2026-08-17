@@ -21,8 +21,8 @@ export type DeleteItemName =
 
 export type ParentTable = "uploads" | "table_uploads" | "folders";
 export type ReorderQuestion = Pick<
-	StudyQuestion,
-	"id" | "displayOrder" | "upload_id"
+	Question,
+	"id" | "displayOrder" | "uploadId"
 >;
 export type Temp =
 	| typeof uploads
@@ -30,26 +30,4 @@ export type Temp =
 	| typeof tableUploads
 	| typeof questions
 	| typeof deadlines;
-export interface StudyQuestion {
-	id: string;
-	upload_id: string;
-	question: string;
-	answer: string;
-	options?: string[];
-	imageUrl?: string | null;
-	displayOrder: number;
-	pageNumber?: number | null;
-	ocrText?: string | null;
-	originalQuestion?: string | null;
-	originalAnswer?: string | null;
-	fsrsDifficulty: number;
-	fsrsStability: number;
-	fsrsDue: Date;
-	fsrsLastReviewed: Date;
-	fsrsReviewCount: number;
-	fsrsState: number;
-	fsrsScheduled: number;
-	fsrsLearning: number;
-	fsrsLapses: number;
-}
 export type ToolView = "flashcards" | "tables";

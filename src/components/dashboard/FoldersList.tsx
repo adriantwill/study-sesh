@@ -6,14 +6,10 @@ import DeleteButton from "@/src/components/ui/DeleteButton";
 import SegmentedControl from "@/src/components/ui/SegmentedControl";
 import { addFolderAction, updateParentAction } from "@/src/db/queries";
 import type * as types from "@/src/types";
-import type { Database, Tables } from "@/src/types/database.types";
 import BigPanel from "./BigPanel";
 import UploadLink from "./UploadLink";
 
-type UploadTable = keyof Pick<
-	Database["public"]["Tables"],
-	"uploads" | "table_uploads"
->;
+type UploadTable = "uploads" | "table_uploads";
 
 type DraggedUpload = {
 	id: string;
@@ -21,9 +17,9 @@ type DraggedUpload = {
 };
 
 interface FoldersListProps {
-	folders: Tables<"folders">[];
-	uploads: Tables<"uploads">[];
-	tables: Tables<"table_uploads">[];
+	folders: types.Folder[];
+	uploads: types.Upload[];
+	tables: types.Table[];
 }
 
 const ROOT_DROP_ID = "__root__";
@@ -39,10 +35,6 @@ const fileToolOptions = [
 	},
 ] as const satisfies { label: string; value: types.ToolView }[];
 
-type FolderRow = Tables<"folders"> & {
-	parent_id?: string | null;
-};
-
 function groupBy<T, K>(items: T[], getKey: (item: T) => K) {
 	const groups = new Map<K, T[]>();
 
@@ -57,10 +49,10 @@ function groupBy<T, K>(items: T[], getKey: (item: T) => K) {
 	return groups;
 }
 
-function hasFolderId<T extends { folder_id: string | null }>(
+function hasFolderId<T extends { folderId: string | null }>(
 	item: T,
-): item is T & { folder_id: string } {
-	return item.folder_id !== null;
+): item is T & { folderId: string } {
+	return item.folderId !== null;
 }
 
 export default function FoldersList({
@@ -72,7 +64,7 @@ export default function FoldersList({
 	const [activeUpload, setActiveUpload] = useState<DraggedUpload | null>(null);
 	const [activeFolderId, setActiveFolderId] = useState<string | null>(null);
 	const [dropFolderId, setDropFolderId] = useState<string | null>(null);
-	const nestedFolders = folders as FolderRow[];
+	const nestedFolders = folders;
 	const [isDeleting, setIsDeleting] = useState<string | null>(null);
 	const [activeTool, setActiveTool] = useState<types.ToolView>("flashcards");
 
@@ -81,21 +73,21 @@ export default function FoldersList({
 	}
 	const foldersByParentId = groupBy(
 		nestedFolders,
-		(folder) => folder.parent_id ?? null,
+		(folder) => folder.parentId ?? null,
 	);
 	const folderById = new Map(
 		nestedFolders.map((folder) => [folder.id, folder]),
 	);
 	const uploadsByFolderId = groupBy(
 		uploads.filter(hasFolderId),
-		(upload) => upload.folder_id,
+		(upload) => upload.folderId,
 	);
 	const tablesByFolderId = groupBy(
 		tables.filter(hasFolderId),
-		(table) => table.folder_id,
+		(table) => table.folderId,
 	);
-	const rootUploads = uploads.filter((upload) => upload.folder_id === null);
-	const rootTables = tables.filter((table) => table.folder_id === null);
+	const rootUploads = uploads.filter((upload) => upload.folderId === null);
+	const rootTables = tables.filter((table) => table.folderId === null);
 	const rootFolders = foldersByParentId.get(null) ?? [];
 	const visibleFolderIds = new Set<string>();
 	const visibilityMemo = new Map<string, boolean>();
@@ -177,12 +169,12 @@ export default function FoldersList({
 				activeUpload.table === "uploads"
 					? uploads.find((item) => item.id === activeUpload.id)
 					: tables.find((item) => item.id === activeUpload.id);
-			return !!upload && upload.folder_id !== parentId;
+			return !!upload && upload.folderId !== parentId;
 		}
 
 		if (activeFolderId) {
 			if (parentId === null) {
-				return folderById.get(activeFolderId)?.parent_id !== null;
+				return folderById.get(activeFolderId)?.parentId !== null;
 			}
 
 			if (activeFolderId === parentId) return false;
@@ -273,7 +265,7 @@ export default function FoldersList({
 	}
 
 	function renderUpload(
-		upload: Tables<"uploads"> | Tables<"table_uploads">,
+		upload: types.Upload | types.Table,
 		tree = false,
 		variant: UploadTable,
 	) {
@@ -293,7 +285,7 @@ export default function FoldersList({
 		);
 	}
 
-	function renderFolder(folder: FolderRow) {
+	function renderFolder(folder: types.Folder) {
 		const isOpen = openFolderIds.has(folder.id);
 		const FolderIcon = isOpen ? lucideReact.FolderOpen : lucideReact.Folder;
 		const childFolders = foldersByParentId.get(folder.id) ?? [];
@@ -346,7 +338,7 @@ export default function FoldersList({
 							.map(renderFolder)}
 					</ul>
 				</div>
-				{!folder.parent_id && <hr className="mt-2 border-border/50" />}
+				{!folder.parentId && <hr className="mt-2 border-border/50" />}
 			</div>
 		);
 	}
