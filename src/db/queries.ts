@@ -351,13 +351,7 @@ export async function addDeadlineAction(dueDate: string | null) {
 			dueDate: deadlineDate(dueDate),
 			userId: await getSessionUserId(),
 		})
-		.returning({
-			id: deadlines.id,
-			created_at: deadlines.createdAt,
-			due_date: deadlines.dueDate,
-			title: deadlines.title,
-			user_id: deadlines.userId,
-		});
+		.returning();
 	revalidatePath("/");
 	return deadline;
 }

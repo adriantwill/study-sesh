@@ -1,9 +1,11 @@
+import { and, asc, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { questions as questionsTable, uploads } from "@/drizzle/schema";
 import EditTitle from "@/src/components/questions/EditTitle";
 import FlashcardView from "@/src/components/study/FlashcardView";
+import { db } from "@/src/db";
 import { auth } from "@/src/lib/auth";
-import { createClient } from "@/src/lib/supabase/server";
 import { questionRowToStudyQuestion } from "@/src/utils/cards";
 
 export default async function StudyPage({
@@ -13,50 +15,37 @@ export default async function StudyPage({
 }) {
 	const { studyId } = await params;
 
-	const supabase = await createClient();
-	const { data: quizData, error: quizError } = await supabase
-		.from("uploads")
-		.select("user_id")
-		.eq("id", studyId)
-		.single();
-	if (quizError) {
-		console.error("Error fetching quiz:", quizError);
-		throw new Error("Failed to load quiz");
-	}
 	const session = await auth.api.getSession({ headers: await headers() });
 	if (!session) {
 		redirect("/signup");
-	} else if (!quizData || quizData.user_id !== session.user.id) {
+	}
+	const [ownedUpload] = await db
+		.select({ id: uploads.id })
+		.from(uploads)
+		.where(and(eq(uploads.id, studyId), eq(uploads.userId, session.user.id)))
+		.limit(1);
+	if (!ownedUpload) {
 		redirect("/");
 	}
 
-	const [{ data, error }, { data: upload, error: uploadError }] =
-		await Promise.all([
-			supabase
-				.from("questions")
-				.select(
-					"id, upload_id, question_text, answer_text, image_url, display_order, options, fsrs_difficulty, fsrs_due_at, fsrs_lapses, fsrs_last_reviewed_at, fsrs_learning, fsrs_review_count, fsrs_scheduled, fsrs_stability, fsrs_state",
-				)
-				.eq("upload_id", studyId)
-				.eq("deleted", false)
-				.order("fsrs_due_at", { ascending: true })
-				.order("fsrs_last_reviewed_at", { ascending: true }),
-			supabase.from("uploads").select("filename").eq("id", studyId).single(),
-		]);
+	const [data, [upload]] = await Promise.all([
+		db
+			.select()
+			.from(questionsTable)
+			.where(
+				and(
+					eq(questionsTable.uploadId, studyId),
+					eq(questionsTable.deleted, false),
+				),
+			)
+			.orderBy(
+				asc(questionsTable.fsrsDueAt),
+				asc(questionsTable.fsrsLastReviewedAt),
+			),
+		db.select().from(uploads).where(eq(uploads.id, studyId)).limit(1),
+	]);
 
-	if (error) {
-		console.error("Error fetching questions:", error);
-		throw new Error("Failed to load questions");
-	}
-
-	if (!data) {
-		throw new Error("No questions found");
-	}
-
-	if (uploadError) {
-		console.error("Error fetching title:", uploadError);
-		throw new Error("Failed to load title");
-	}
+	if (!upload) throw new Error("Failed to load title");
 
 	const questions = data.map((q) => questionRowToStudyQuestion(q));
 	const title = upload.filename;
