@@ -204,7 +204,6 @@ export default function FoldersList({
 					draggedUpload.id,
 					parentId,
 					draggedUpload.table === "table_uploads" ? "tableUploads" : "uploads",
-					"folderId",
 				);
 				if (parentId) {
 					setOpenFolderIds((current) => new Set(current).add(parentId));
@@ -219,12 +218,7 @@ export default function FoldersList({
 		if (!draggedFolderId) return;
 
 		try {
-			await updateParentAction(
-				draggedFolderId,
-				parentId,
-				"folders",
-				"parentId",
-			);
+			await updateParentAction(draggedFolderId, parentId, "folders");
 			if (parentId) {
 				setOpenFolderIds((current) => new Set(current).add(parentId));
 			}

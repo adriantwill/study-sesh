@@ -13,11 +13,6 @@ export type Table = typeof tableUploads.$inferSelect;
 export type Upload = typeof uploads.$inferSelect;
 export type Deadline = typeof deadlines.$inferSelect;
 export type EventInsert = typeof events.$inferInsert;
-export type databaseDelete =
-	| typeof tableUploads
-	| typeof questions
-	| typeof folders
-	| typeof uploads;
 export type DeleteItemName =
 	| "table_uploads"
 	| "questions"
@@ -28,7 +23,6 @@ type QuestionInsert = typeof questions.$inferInsert;
 type UploadInsert = typeof uploads.$inferInsert;
 type FolderInsert = typeof folders.$inferInsert;
 type DeadlineInsert = typeof deadlines.$inferInsert;
-type TableUploadInsert = typeof tableUploads.$inferInsert;
 
 type TextUpdateRows = {
 	questions: Pick<QuestionInsert, "questionText" | "answerText">;
@@ -40,18 +34,6 @@ type TextUpdateRows = {
 export type TextUpdateTable = keyof TextUpdateRows;
 export type TextUpdateColumn<T extends TextUpdateTable> = Extract<
 	keyof TextUpdateRows[T],
-	string
->;
-
-type ParentUpdateRows = {
-	uploads: Pick<UploadInsert, "folderId">;
-	tableUploads: Pick<TableUploadInsert, "folderId">;
-	folders: Pick<FolderInsert, "parentId">;
-};
-
-export type ParentUpdateTable = keyof ParentUpdateRows;
-export type ParentUpdateColumn<T extends ParentUpdateTable> = Extract<
-	keyof ParentUpdateRows[T],
 	string
 >;
 

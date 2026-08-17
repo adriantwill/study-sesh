@@ -24,18 +24,13 @@ export async function uploadPdf(path: string, file: File) {
 }
 
 export async function removeFile(
-	bucket: string,
 	path: string,
 ): Promise<{ error: Error | null }> {
 	const supabase = await createClient();
 
-	const { error } = await supabase.storage.from(bucket).remove([path]);
+	const { error } = await supabase.storage.from(PDFS_BUCKET).remove([path]);
 
 	return { error: error ? new Error(error.message) : null };
-}
-
-export async function removePdf(path: string) {
-	return removeFile(PDFS_BUCKET, path);
 }
 
 export async function getPublicUrl(

@@ -20,6 +20,7 @@ import {
 import { auth } from "@/src/lib/auth";
 import {
 	getQuestionImagePublicUrl,
+	removeFile,
 	removePdf,
 	uploadPdf,
 	uploadQuestionImage,
@@ -27,10 +28,7 @@ import {
 import { isParsedTableData, parseXlsxTable } from "@/src/lib/xlsx-table";
 import type {
 	DeleteItemName,
-	databaseDelete,
 	EventInsert,
-	ParentUpdateColumn,
-	ParentUpdateTable,
 	StudyQuestion,
 	TextUpdateColumn,
 	TextUpdateTable,
@@ -58,24 +56,107 @@ async function getSessionUserId() {
 	if (!session) throw new Error("Not authenticated");
 	return session.user.id;
 }
-async function assertOwned(table: OwnedTable, id: string, userId: string) {
-	if (table === "questions") {
-		const result = await db.execute<{ upload_id: string }>(sql`
-			select ${questions.uploadId} from ${questions}
-			join ${uploads} on ${questions.uploadId} = ${uploads.id}
-			where ${questions.id} = ${id} and ${uploads.userId} = ${userId} limit 1
-		`);
-		if (!result.rows[0]) throw new Error("Not authorized");
-		return result.rows[0].upload_id;
+type Temp =
+	| typeof uploads
+	| typeof folders
+	| typeof tableUploads
+	| typeof questions
+	| typeof deadlines;
+async function assertOwnedTest(table: Temp, id: string, userId: string) {
+	switch (table) {
+		case questions: {
+			const [result] = await db
+				.select({ uploadId: questions.uploadId })
+				.from(questions)
+				.innerJoin(uploads, eq(questions.uploadId, uploads.id))
+				.where(and(eq(questions.id, id), eq(uploads.userId, userId)))
+				.limit(1);
+
+			if (!result) throw new Error("Not authorized");
+			return result.uploadId;
+		}
+		case tableUploads:
+		case folders:
+		case uploads: {
+			const [result] = await db
+				.select({ id: uploads.id })
+				.from(uploads)
+				.where(and(eq(uploads.id, id), eq(uploads.userId, userId)))
+				.limit(1);
+
+			if (!result) throw new Error("Not authorized");
+			return;
+		}
+		case deadlines: {
+			const [result] = await db
+				.select({ id: deadlines.id })
+				.from(deadlines)
+				.where(and(eq(deadlines.id, Number(id)), eq(deadlines.userId, userId)))
+				//TODO change this in db to type of string so no conversino needed
+				.limit(1);
+
+			if (!result) throw new Error("Not authorized");
+		}
 	}
-	const [target, idColumn, userColumn] = ownedTables[table];
-	const result = await db.execute(
-		sql`select 1 from ${target} where ${idColumn} = ${id} and ${userColumn} = ${userId} limit 1`,
-	);
-	if (!result.rows[0]) throw new Error("Not authorized");
+}
+async function assertOwned(table: OwnedTable, id: string, userId: string) {
+	switch (table) {
+		case "questions": {
+			const [result] = await db
+				.select({ uploadId: questions.uploadId })
+				.from(questions)
+				.innerJoin(uploads, eq(questions.uploadId, uploads.id))
+				.where(and(eq(questions.id, id), eq(uploads.userId, userId)))
+				.limit(1);
+
+			if (!result) throw new Error("Not authorized");
+			return result.uploadId;
+		}
+		case "uploads": {
+			const [result] = await db
+				.select({ id: uploads.id })
+				.from(uploads)
+				.where(and(eq(uploads.id, id), eq(uploads.userId, userId)))
+				.limit(1);
+
+			if (!result) throw new Error("Not authorized");
+			return;
+		}
+		case "folders": {
+			const [result] = await db
+				.select({ id: folders.id })
+				.from(folders)
+				.where(and(eq(folders.id, id), eq(folders.userId, userId)))
+				.limit(1);
+
+			if (!result) throw new Error("Not authorized");
+			return;
+		}
+		case "tableUploads":
+		case "table_uploads": {
+			const [result] = await db
+				.select({ id: tableUploads.id })
+				.from(tableUploads)
+				.where(and(eq(tableUploads.id, id), eq(tableUploads.userId, userId)))
+				.limit(1);
+
+			if (!result) throw new Error("Not authorized");
+			return;
+		}
+		case "deadlines": {
+			const [result] = await db
+				.select({ id: deadlines.id })
+				.from(deadlines)
+				.where(and(eq(deadlines.id, Number(id)), eq(deadlines.userId, userId)))
+				//TODO change this in db to type of string so no conversino needed
+				.limit(1);
+
+			if (!result) throw new Error("Not authorized");
+		}
+	}
 }
 async function removePdfOrThrow(path: string) {
-	const { error } = await removePdf(path);
+	const { error } = await removeFile(path);
 	if (error) throw new Error("Failed to delete PDF from storage");
 }
 function displayOrder(prev?: number | null, next?: number | null) {
@@ -186,25 +267,25 @@ export async function createUpload(source: File | string) {
 		throw error;
 	}
 }
-export async function deleteItemAction(id: string, variant: databaseDelete) {
-	//TODO CONSOLIDATE BELOW
-	try {
-		await db.delete(variant).where(eq(variant.id, id));
-		revalidatePath("/");
-	} catch (error) {
-		console.error("Delete error:", error);
-		throw new Error(`Failed to delete ${variant}`);
-	}
-}
 export async function deleteItemByNameAction(
 	id: string,
 	variant: DeleteItemName,
 ) {
 	await assertOwned(variant, id, await getSessionUserId());
-	await deleteItemAction(
-		id,
-		{ table_uploads: tableUploads, questions, folders, uploads }[variant],
-	);
+	const newvariant = {
+		table_uploads: tableUploads,
+		questions,
+		folders,
+		uploads,
+	}[variant];
+	//TODO make pdfs and images delete
+	try {
+		await db.delete(newvariant).where(eq(newvariant.id, id));
+		revalidatePath("/");
+	} catch (error) {
+		console.error("Delete error:", error);
+		throw new Error(`Failed to delete ${variant}`);
+	}
 }
 export async function updateQuestionTextAction<T extends TextUpdateTable>(
 	id: string,
@@ -218,12 +299,10 @@ export async function updateQuestionTextAction<T extends TextUpdateTable>(
 			if (columnName !== "questionText" && columnName !== "answerText") {
 				throw new Error("Invalid question column");
 			}
-
 			const values =
 				columnName === "questionText"
 					? { questionText: text }
 					: { answerText: text };
-
 			await db.update(questions).set(values).where(eq(questions.id, id));
 			break;
 		}
@@ -232,30 +311,25 @@ export async function updateQuestionTextAction<T extends TextUpdateTable>(
 			if (columnName !== "filename" && columnName !== "description") {
 				throw new Error("Invalid upload column");
 			}
-
 			const values =
 				columnName === "filename" ? { filename: text } : { description: text };
-
 			await db.update(uploads).set(values).where(eq(uploads.id, id));
 			break;
 		}
 
 		case "folders":
 			if (columnName !== "name") throw new Error("Invalid folder column");
-
 			await db.update(folders).set({ name: text }).where(eq(folders.id, id));
 			break;
 
 		case "deadlines":
 			if (columnName !== "title") throw new Error("Invalid deadline column");
-
 			await db
 				.update(deadlines)
 				.set({ title: text })
 				.where(eq(deadlines.id, Number(id)));
 			break;
 	}
-
 	revalidatePath(
 		uploadId
 			? `/uploads/${uploadId}`
@@ -409,11 +483,10 @@ export async function updateDeadlineTitleAction(id: number, title: string) {
 export async function deleteDeadlineAction(id: number) {
 	await changeDeadline(id, "delete");
 }
-export async function updateParentAction<T extends ParentUpdateTable>(
+export async function updateParentAction(
 	id: string,
 	parentId: string | null,
-	table: T,
-	columnName: ParentUpdateColumn<T>,
+	table: OwnedTable,
 ) {
 	const userId = await getSessionUserId();
 	await assertOwned(table, id, userId);
