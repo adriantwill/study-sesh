@@ -49,7 +49,7 @@ export default function FlashcardView({
 	// }, [questions, isStudyMode, completedIds]);
 	const [currentIndex, setCurrentIndex] = useState(0);
 
-	function setDifficulty(
+	async function setDifficulty(
 		level: (typeof valid_ratings)[number],
 		question: Question,
 	) {
@@ -70,7 +70,7 @@ export default function FlashcardView({
 			last_review: new Date(question.fsrsLastReviewedAt),
 		};
 		const result = scheduler.next(card, new Date(), level);
-		updateFsrsAction(question.id, result.card);
+		await updateFsrsAction(question.id, result.card);
 		const telemetry: EventInsert = {
 			beforeDifficulty: card.difficulty,
 			beforeStability: card.stability,
@@ -158,7 +158,7 @@ export default function FlashcardView({
 				? "animate-slide-in-left"
 				: "animate-slide-in-right";
 
-	if (new Date(card.fsrsDueAt) >= new Date()) {
+	if (isStudyMode && new Date(card.fsrsDueAt) >= new Date()) {
 		return (
 			<div className="mx-auto max-w-md space-y-4 animate-soft-pop rounded-xl border border-primary/20 bg-muted/80 px-8 py-16 text-center shadow-lg motion-reduce:animate-none">
 				<p className="text-2xl font-semibold text-foreground">
