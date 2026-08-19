@@ -71,7 +71,6 @@ export default function FlashcardView({
 		};
 		const result = scheduler.next(card, new Date(), level);
 		updateFsrsAction(question.id, result.card);
-		console.log(initialQuestions);
 		const telemetry: EventInsert = {
 			beforeDifficulty: card.difficulty,
 			beforeStability: card.stability,
@@ -95,7 +94,6 @@ export default function FlashcardView({
 				stability: initialQuestions[1].fsrsStability,
 			};
 			addTelemetry(telemetry);
-			console.log("test");
 		}
 	}
 
@@ -111,30 +109,6 @@ export default function FlashcardView({
 		setCurrentIndex(temp);
 		setCard(initialQuestions[temp]);
 	};
-	//
-	// const handleComplete = () => {
-	// 	const id = initialQuestions[currentIndex].id;
-	// 	setActionHistory((prev) => [
-	// 		...prev,
-	// 		{ type: "complete", id, prevIndex: currentIndex },
-	// 	]);
-	// 	setItem(id, true);
-	// 	setIsFlipped(false);
-	// 	setCompletedIds((prev) => [...prev, id]);
-	// 	if (currentIndex >= initialQuestions.length - 1) {
-	// 		setCurrentIndex(0);
-	// 	}
-	// };
-	//
-	// const handleSkip = () => {
-	// 	const id = initialQuestions[currentIndex].id;
-	// 	setActionHistory((prev) => [
-	// 		...prev,
-	// 		{ type: "skip", id, prevIndex: currentIndex },
-	// 	]);
-	// 	changeDirection(1);
-	// };
-	//
 	// const handleUndo = () => {
 	// 	const lastAction = actionHistory.at(-1);
 	// 	if (!lastAction) return;
@@ -206,7 +180,6 @@ export default function FlashcardView({
 			className="mx-auto space-y-20 focus:outline-none focus-visible:outline-none"
 			role="listbox"
 			tabIndex={0}
-			/*
 			onKeyDown={(e) => {
 				const focusTarget = e.currentTarget;
 
@@ -219,8 +192,8 @@ export default function FlashcardView({
 
 				e.preventDefault();
 				if (isStudyMode) {
-					if (e.key === "ArrowRight") handleSkip();
-					else handleComplete();
+					if (e.key === "ArrowRight") setDifficulty(Rating.Good, card);
+					else setDifficulty(Rating.Again, card);
 				} else {
 					changeDirection(e.key === "ArrowRight" ? 1 : -1);
 				}
@@ -228,7 +201,6 @@ export default function FlashcardView({
 					focusTarget.focus();
 				});
 			}}
-		*/
 		>
 			{isStudyMode && (
 				<StudyProgress

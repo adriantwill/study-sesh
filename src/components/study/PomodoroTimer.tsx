@@ -155,6 +155,8 @@ export default function PomodoroTimer() {
 						<Image
 							src={dogImage.src}
 							alt=""
+							width={1000}
+							height={1000}
 							aria-hidden="true"
 							draggable={false}
 							className="pointer-events-none absolute z-20 h-auto w-3/10 select-none drop-shadow-md"

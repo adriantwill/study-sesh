@@ -18,7 +18,6 @@ export default function MultipleChoice({
 	function checkAnswer() {
 		if (revealResult) return;
 		onSelect();
-		console.log(correct ? "Correct!" : "Incorrect!");
 	}
 
 	const resultClass =
