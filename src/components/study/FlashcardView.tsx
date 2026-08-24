@@ -10,6 +10,12 @@ import { addTelemetry, updateFsrsAction } from "@/src/db/queries";
 import type { EventInsert, Question } from "@/src/types";
 import StudyProgress from "./StudyProgress";
 
+function recordTelemetry(telemetry: EventInsert) {
+	void addTelemetry(telemetry).catch((error) => {
+		console.error("Failed to record telemetry:", error);
+	});
+}
+
 export default function FlashcardView({
 	questions: initialQuestions,
 	height,
@@ -21,15 +27,19 @@ export default function FlashcardView({
 }) {
 	const isStudyMode = mode === "study";
 	// const [questions, setQuestions] = useState(initialQuestions);
-	const [card, setCard] = useState(initialQuestions[0]);
-	const _cardId = useRef<string | undefined>(undefined);
+	const [studyQuestions, setStudyQuestions] = useState(() =>
+		initialQuestions.filter(
+			(question) => new Date(question.fsrsDueAt) <= new Date(),
+		),
+	);
+	const pendingCardIds = useRef(new Set<string>());
 	const [direction, setDirection] = useState<"next" | "prev" | "initial">(
 		"initial",
 	);
 	const [isFlipped, setIsFlipped] = useState(false);
+	const [saveError, setSaveError] = useState<string | null>(null);
 	const scheduler = fsrs();
 	const valid_ratings = [Rating.Again, Rating.Good] as const;
-	//TODO Fix if only 1 study card
 	// const [actionHistory, setActionHistory] = useState<
 	// 	Array<{
 	// 		type: "complete" | "skip";
@@ -48,52 +58,83 @@ export default function FlashcardView({
 	// 	return questions.filter((q) => !completedIds.includes(q.id));
 	// }, [questions, isStudyMode, completedIds]);
 	const [currentIndex, setCurrentIndex] = useState(0);
+	const card = isStudyMode ? studyQuestions[0] : initialQuestions[currentIndex];
 
 	async function setDifficulty(
 		level: (typeof valid_ratings)[number],
 		question: Question,
 	) {
-		changeDirection(1);
-		const card: Card = {
-			due: new Date(question.fsrsDueAt),
-			stability: question.fsrsStability,
-			difficulty: question.fsrsDifficulty,
-			scheduled_days: question.fsrsScheduled,
-			learning_steps: question.fsrsLearning,
-			elapsed_days: Math.round(
-				(Date.now() - new Date(question.fsrsLastReviewedAt).getTime()) /
-					(60 * 60 * 24 * 1000),
-			),
-			reps: question.fsrsReviewCount,
-			lapses: question.fsrsLapses,
-			state: question.fsrsState,
-			last_review: new Date(question.fsrsLastReviewedAt),
-		};
-		const result = scheduler.next(card, new Date(), level);
-		await updateFsrsAction(question.id, result.card);
-		const telemetry: EventInsert = {
-			beforeDifficulty: card.difficulty,
-			beforeStability: card.stability,
-			createdAt: new Date().toISOString(),
-			difficulty: result.card.difficulty,
-			eventType: "card_rated",
-			questionId: question.id,
-			rating: level,
-			stability: result.card.stability,
-		};
-		addTelemetry(telemetry);
-		if (new Date(initialQuestions[1].fsrsDueAt) <= new Date()) {
-			const telemetry: EventInsert = {
-				beforeDifficulty: initialQuestions[1].fsrsDifficulty,
-				beforeStability: initialQuestions[1].fsrsStability,
-				createdAt: new Date().toISOString(),
-				difficulty: initialQuestions[1].fsrsDifficulty,
-				eventType: "card_shown",
-				questionId: initialQuestions[1].id,
-				rating: null,
-				stability: initialQuestions[1].fsrsStability,
+		if (pendingCardIds.current.has(question.id)) return;
+
+		pendingCardIds.current.add(question.id);
+		setSaveError(null);
+		const nextQuestion = studyQuestions.find(
+			(studyQuestion) => studyQuestion.id !== question.id,
+		);
+
+		try {
+			const fsrsCard: Card = {
+				due: new Date(question.fsrsDueAt),
+				stability: question.fsrsStability,
+				difficulty: question.fsrsDifficulty,
+				scheduled_days: question.fsrsScheduled,
+				learning_steps: question.fsrsLearning,
+				elapsed_days: Math.round(
+					(Date.now() - new Date(question.fsrsLastReviewedAt).getTime()) /
+						(60 * 60 * 24 * 1000),
+				),
+				reps: question.fsrsReviewCount,
+				lapses: question.fsrsLapses,
+				state: question.fsrsState,
+				last_review: new Date(question.fsrsLastReviewedAt),
 			};
-			addTelemetry(telemetry);
+			const result = scheduler.next(fsrsCard, new Date(), level);
+
+			setDirection("next");
+			setIsFlipped(false);
+			setStudyQuestions((currentQuestions) =>
+				currentQuestions.filter(
+					(currentQuestion) => currentQuestion.id !== question.id,
+				),
+			);
+
+			if (nextQuestion) {
+				recordTelemetry({
+					beforeDifficulty: nextQuestion.fsrsDifficulty,
+					beforeStability: nextQuestion.fsrsStability,
+					createdAt: new Date().toISOString(),
+					difficulty: nextQuestion.fsrsDifficulty,
+					eventType: "card_shown",
+					questionId: nextQuestion.id,
+					rating: null,
+					stability: nextQuestion.fsrsStability,
+				});
+			}
+
+			await updateFsrsAction(question.id, result.card);
+			const telemetry: EventInsert = {
+				beforeDifficulty: fsrsCard.difficulty,
+				beforeStability: fsrsCard.stability,
+				createdAt: new Date().toISOString(),
+				difficulty: result.card.difficulty,
+				eventType: "card_rated",
+				questionId: question.id,
+				rating: level,
+				stability: result.card.stability,
+			};
+			recordTelemetry(telemetry);
+		} catch (error) {
+			console.error("Failed to update card rating:", error);
+			setSaveError("Could not save that rating. Card returned to the queue.");
+			setStudyQuestions((currentQuestions) =>
+				currentQuestions.some(
+					(currentQuestion) => currentQuestion.id === question.id,
+				)
+					? currentQuestions
+					: [...currentQuestions, question],
+			);
+		} finally {
+			pendingCardIds.current.delete(question.id);
 		}
 	}
 
@@ -101,13 +142,10 @@ export default function FlashcardView({
 		setDirection(dir === 1 ? "next" : "prev");
 		setIsFlipped(false);
 		const temp =
-			mode === "review"
-				? (((currentIndex + dir) % initialQuestions.length) +
-						initialQuestions.length) %
-					initialQuestions.length
-				: 1;
+			(((currentIndex + dir) % initialQuestions.length) +
+				initialQuestions.length) %
+			initialQuestions.length;
 		setCurrentIndex(temp);
-		setCard(initialQuestions[temp]);
 	};
 	// const handleUndo = () => {
 	// 	const lastAction = actionHistory.at(-1);
@@ -158,11 +196,13 @@ export default function FlashcardView({
 				? "animate-slide-in-left"
 				: "animate-slide-in-right";
 
-	if (isStudyMode && new Date(card.fsrsDueAt) >= new Date()) {
+	if (!card) {
 		return (
 			<div className="mx-auto max-w-md space-y-4 animate-soft-pop rounded-xl border border-primary/20 bg-muted/80 px-8 py-16 text-center shadow-lg motion-reduce:animate-none">
 				<p className="text-2xl font-semibold text-foreground">
-					All questions completed for now!
+					{isStudyMode
+						? "All questions completed for now!"
+						: "No questions available."}
 				</p>
 				{/* <button */}
 				{/* 	type="button" */}
@@ -205,10 +245,7 @@ export default function FlashcardView({
 			{isStudyMode && (
 				<StudyProgress
 					totalCount={initialQuestions.length}
-					cardsLeft={
-						initialQuestions.filter((q) => new Date(q.fsrsDueAt) <= new Date())
-							.length - (card.id === initialQuestions[0].id ? 0 : 1)
-					}
+					cardsLeft={studyQuestions.length}
 				/>
 			)}
 			<div className="flex gap-4">
@@ -234,7 +271,7 @@ export default function FlashcardView({
 							rating: null,
 							stability: card.fsrsStability,
 						};
-						addTelemetry(telemetry);
+						recordTelemetry(telemetry);
 					}}
 				>
 					<div
@@ -264,6 +301,14 @@ export default function FlashcardView({
 			)}
 			{isStudyMode && (
 				<div>
+					{saveError && (
+						<p
+							className="mb-4 text-center text-sm text-destructive"
+							role="alert"
+						>
+							{saveError}
+						</p>
+					)}
 					<div className="flex justify-center gap-4">
 						{valid_ratings.map((index) => {
 							const Icon = index === valid_ratings[1] ? Check : X;
@@ -271,7 +316,6 @@ export default function FlashcardView({
 								<button
 									key={index}
 									type="button"
-									disabled={card.id === initialQuestions[1].id}
 									onClick={() => setDifficulty(index, card)}
 									className={`rounded-full p-4 text-muted-foreground transition-[transform,background-color,color,box-shadow] duration-200 ease-out enabled:hover:-translate-y-1 enabled:hover:scale-110 active:scale-90 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary enabled:hover:text-primary enabled:hover:shadow-lg`}
 								>

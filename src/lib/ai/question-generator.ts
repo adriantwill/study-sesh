@@ -196,6 +196,7 @@ Question rules:
 - Ask only direct, positive questions about content visible on the slide
 - No filler framing: avoid "according to the slide", "in the context of...", "based on...", etc.
 - Do not ask about absent content or exclusions: no "NOT", "except", "not mentioned", or "not a symptom/example"
+- Avoid questions unrelated to the actual slide content, like names of institutions 
 
 For each question, generate exactly 3 wrong but plausible options based on the slide.
 Rules for options:

@@ -449,7 +449,7 @@ export async function updateParentAction(
 	revalidatePath("/");
 }
 export async function updateFsrsAction(id: string, card: Card) {
-	await assertOwned(questions, id, await getSessionUserId());
+	const uploadId = await assertOwned(questions, id, await getSessionUserId());
 	await db
 		.update(questions)
 		.set({
@@ -465,7 +465,7 @@ export async function updateFsrsAction(id: string, card: Card) {
 			fsrsState: card.state,
 		})
 		.where(eq(questions.id, id));
-	revalidatePath("/study");
+	revalidatePath(`/study/${uploadId}`);
 }
 export async function reorderQuestionsAction(
 	activeId: string,
