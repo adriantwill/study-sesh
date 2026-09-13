@@ -45,3 +45,4 @@ OPTIMISTIC_UPDATES.md
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+*.py
