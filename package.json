@@ -18,6 +18,7 @@
 		"update-types": "npx supabase gen types typescript --project-id ystrfizsczfvkcbwetpb > database.types.ts"
 	},
 	"dependencies": {
+		"@aws-sdk/client-s3": "^3.1131.0",
 		"@supabase/ssr": "^0.8.0",
 		"better-auth": "^1.6.11",
 		"dotenv": "^17.4.2",

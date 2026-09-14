@@ -11,6 +11,7 @@ Upload a PowerPoint PDF, extract slides with Poppler, generate study questions w
 - TypeScript
 - Tailwind CSS 4
 - PostgresSQL
+- S3 Object store
 - node-poppler
 - RunPod Serverless 
 
@@ -22,3 +23,4 @@ Upload a PowerPoint PDF, extract slides with Poppler, generate study questions w
 - Quiz mode
 - Folder organization
 - Inline editing for questions, answers, titles, and folders
+

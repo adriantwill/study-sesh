@@ -65,5 +65,9 @@ jobs:
               -e DATABASE_URL=${{ secrets.DATABASE_URL }} \
               -e BETTER_AUTH_SECRET=${{ secrets.BETTER_AUTH_SECRET }} \
               -e BETTER_AUTH_URL=${{ secrets.BETTER_AUTH_URL }} \
+              -e R2_ENDPOINT=${{ secrets.R2_ENDPOINT }} \
+              -e R2_ACCESS_KEY_ID=${{ secrets.R2_ACCESS_KEY_ID }} \
+              -e R2_SECRET_ACCESS_KEY=${{ secrets.R2_SECRET_ACCESS_KEY }} \
+              -e R2_IMAGE_PUBLIC_URL=${{ secrets.R2_IMAGE_PUBLIC_URL }} \
               ghcr.io/adriantwill/study-sesh@${{ needs.build-push.outputs.digest }}
             docker image prune -af
