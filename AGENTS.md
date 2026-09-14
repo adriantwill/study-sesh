@@ -6,9 +6,10 @@ AI-powered PDF-to-flashcard study tool. Uploads PowerPoint PDFs, extracts slides
 
 - Next.js 16 + React 19 + TypeScript
 - Tailwind CSS 4
-- Supabase (DB + storage)
+- PSQL DB
 - node-poppler (PDF→images)
-- Gemini API
+- Fine tuned Qwen model via RunPod
+- R2 Storage
 
 ## Commands
 
@@ -24,19 +25,12 @@ npm run start    # prod server
 - `src/app/actions.ts` - all server actions (upload, delete, edit, complete)
 - `src/components/` - React components (FlashcardView, UploadButton, etc)
 - `src/lib/ai/question-generator.ts` - PDF processing + AI prompt generation
-- `src/lib/supabase/` - client/server Supabase setup
-- `src/types/` - TypeScript types + generated Supabase types
+- `src/types/` - TypeScript types 
 
 ## DB Tables
 
 - `uploads` - PDF uploads (id, filename)
 - `questions` - generated questions (upload_id, page_number, question_text, answer_text, completed, image_url)
-
-## Env Vars
-
-- `GEMINI_API_KEY` - AI API key
-- `NEXT_PUBLIC_SUPABASE_URL` - Supabase URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase key
 
 ## Deployment
 
