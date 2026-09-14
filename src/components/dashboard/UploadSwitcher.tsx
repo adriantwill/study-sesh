@@ -127,6 +127,7 @@ export default function UploadSwitcher() {
 					id: crypto.randomUUID(),
 					uploadId: "",
 					questionText: line.slice(0, colonIndex).trim(),
+					modelUsed: "user",
 					answerText: line.slice(colonIndex + 1).trim(),
 					createdAt: null,
 					imageUrl: null,

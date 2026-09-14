@@ -218,6 +218,7 @@ export async function uploadRecordAction(
 			({
 				uploadId,
 				questionText: question.questionText,
+				modelUsed: question.modelUsed,
 				originalQuestionText:
 					question.originalQuestionText ?? question.questionText,
 				answerText: question.answerText,
@@ -352,6 +353,7 @@ export async function addQuestionAction(
 	await db.insert(questions).values({
 		uploadId,
 		questionText: "Untitled Question",
+		modelUsed: "user",
 		originalQuestionText: "User Added Question",
 		answerText: "Untitled Answer",
 		originalAnswerText: "Untitled Answer",

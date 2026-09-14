@@ -355,6 +355,7 @@ Return JSON array only:
 							id: "id", // Placeholder
 							uploadId: "",
 							questionText: q.question,
+							modelUsed: use_custom ? "runpod" : "gemini",
 							answerText: q.answer,
 							createdAt: null,
 							imageUrl: null,

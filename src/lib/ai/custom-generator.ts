@@ -159,6 +159,7 @@ export async function generateQuestions(
 							id: "id", // Placeholder
 							uploadId: "",
 							questionText: q.question,
+							modelUsed: "runpod",
 							answerText: q.answer,
 							createdAt: null,
 							imageUrl: null,
